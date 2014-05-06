@@ -10,7 +10,6 @@ class SerialAdaptor():
 		self.connect()
 	def transmitData(self, data):
 		success = True
-		print data
 		try:
 			self.connection.write(data)
 		except:
@@ -19,7 +18,8 @@ class SerialAdaptor():
 				self.connection.write(data)
 			except:
 				appMessenger.putMessage('log', '%s failure sending data' %(self.configData['id']))
-				success = False
+				print data
+				#success = False
 		return success
 	def connect(self):
 		self.connection = False
