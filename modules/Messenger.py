@@ -1,13 +1,22 @@
 class Messenger():
 	def __init__(self):
 		self.messages = {}
-	def putMessage(self, unitId, message):
-		if not unitId in self.messages.keys():
-			self.messages[unitId] = []
-		self.messages[unitId].append(message)
-	def getMessages(self, unitId):
+		self.bindings = {}
+	def putMessage(self, channel, message):
+		if not channel in self.messages.keys():
+			self.messages[channel] = []
+			self.bindings[channel] = []
+		self.messages[channel].append(message)
+		for binding in self.bindings[channel]:
+			binding()
+	def getMessages(self, channel):
 		messages = []
-		if unitId in self.messages.keys():
-			messages = self.messages[unitId]
-			self.messages[unitId] = []
+		if channel in self.messages.keys():
+			messages = self.messages[channel]
+			self.messages[channel] = []
 		return messages
+	def addBinding(self, channel, function):
+		if not channel in self.messages.keys():
+			self.messages[channel] = []
+			self.bindings[channel] = []
+		self.bindings[channel].append(function)

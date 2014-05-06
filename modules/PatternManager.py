@@ -20,6 +20,7 @@ class PatternManager:
 				self.availablePatternNames.append(patternId)
 			except:
 				pass
+		appMessenger.addBinding('patternTimers', getattr(self, "doUpdates"))
 	def getAvailablePatterns(self): #return list of patterns that apply for this module and sculpture
 		return self.availablePatternNames
 		
@@ -42,5 +43,6 @@ class PatternManager:
 	
 	#def bindInput(self, patternInstanceId, patternParameterIndex, inputId): #connect data from an input to a pattern parameter
 	
-	#def checkForUpdates(self): #will be called my a timer thread, sees if there are any messages from other timer threads or new inputs, sends new data out
+	def doUpdates(self): #will be called my a timer thread, sees if there are any messages from other timer threads or new inputs, sends new data out
+		self.dataChannelManager.send('poofers', [[[0, 15], [True]]])
 	
