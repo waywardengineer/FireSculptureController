@@ -1,3 +1,8 @@
+''' Creates instances of adaptor and protocol objects and passes data to them
+One instance of this in the program seems to make more sense than one instance per module for now,
+due to adaptors needing to serve multiple data channels in some cases
+'''
+
 class DataChannelManager():
 	def __init__(self, sculptureConfigData):
 		self.adaptors = {}
