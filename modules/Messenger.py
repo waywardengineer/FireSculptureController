@@ -7,26 +7,44 @@ will be called when a message appears on the channel.
 
 class Messenger():
 	def __init__(self):
-		self.messages = {}
-		self.bindings = {}
-	def putMessage(self, channel, message):
-		if not channel in self.messages.keys():
-			self.messages[channel] = []
-			self.bindings[channel] = []
-		self.messages[channel].append(message)
-		for binding in self.bindings[channel]:
-			binding()
-	def getMessages(self, channel):
-		messages = []
-		if channel in self.messages.keys():
-			messages = self.messages[channel]
-			self.messages[channel] = []
-		return messages
-	def addBinding(self, channel, function):
-		if not channel in self.messages.keys():
-			self.messages[channel] = []
-			self.bindings[channel] = []
-		self.bindings[channel].append(function)
-		
-		
-		
+		self.channels = {}
+		self.nextBindingId = 0
+
+
+	def putMessage(self, channelId, message):
+		checkForChannel(channelId)
+		self.channels[channel]['messages'].append(message)
+		for bindingId in self.channels['bindings']:
+			function = self.channels['bindings'][bindingId]['function']
+			data = self.channels['bindings'][bindingId]['data']
+			if data:
+				function(data)
+			else:
+				function()
+
+
+	def getMessages(self, channelId):
+		checkForChannel(channelId)
+		return self.channels[channelId]['messages']
+
+
+	def addBinding(self, channel, function, data=False):
+		checkForChannel(channel)
+		if data:
+			data['bindingId'] = self.nextBindingId
+		binding = {'function' : function, 'data' : data}
+		self.bindings[channel][self.nextBindingId] = binding
+		self.nextBindingId += 1
+
+
+	def removeBinding(self, bindingId):
+		for channelId in self.channels:
+			if bindingId in self.channels[channelId]['bindings']:
+				del self.channels[channelId]['bindings'][bindingId]
+
+
+	def checkForChannel(self, channelId)
+		if not channelId in self.channels.keys():
+			self.channels[channelId] = {'messages' : [], 'bindings' : {}}
+
+
