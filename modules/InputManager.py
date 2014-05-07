@@ -4,6 +4,8 @@ class InputManager():
 		self.inputModules = __import__('Inputs')
 		self.nextInputInstanceId = 0
 		self.inputInstances = {}
+
+
 	def buildInputCollection(self, inputParams):
 		inputDict = {}
 		for patternInputId in inputParams:
@@ -15,7 +17,10 @@ class InputManager():
 			self.inputInstances[self.nextInputInstanceId].setInstanceId(self.nextInputInstanceId)
 			inputDict[patternInputId] = self.inputInstances[self.nextInputInstanceId]
 			self.nextInputInstanceId += 1
-		InputWrapper = getattr(self.inputModules, "InputWrapper")
-		return InputWrapper(inputDict)
-			
+		InputCollectionWrapper = getattr(self.inputModules, "InputCollectionWrapper")
+		return InputCollectionWrapper(inputDict)
+
+
+	def getInputObj(self, inputInstanceId):
+		return self.inputInstances[inputInstanceId]
 

@@ -5,6 +5,7 @@ class PatternBase():
 		self.inputParamData = {}
 		self.messengerBindingIds = {}
 		self.updateTriggerFunction = False
+		self.patternName = ''
 		try:
 			self.inputParams
 		except:
@@ -17,8 +18,8 @@ class PatternBase():
 					self.messengerBindingIds[patternInputId] = appMessenger.addBinding('pulse%s' %(inputObj.getId()), getattr(self, patternInputId))
 
 
-	def bindNewInput(self, patternInputId, inputInstanceId):
-		self.inputs.replaceInput(patternInputId, inputManager.getInput(inputInstanceId))
+	def changeInputBinding(self, patternInputId, inputInstanceId):
+		self.inputs.replaceInput(patternInputId, inputManager.getInputObj(inputInstanceId))
 		if self.inputParamData[patternInputId]['patternInputSpecs']['type'] == 'pulse':
 			if patternInputId in self.messengerBindingIds.keys():
 				appMessenger.removeBinding(self.messengerBindingIds[patternInputId])
@@ -32,7 +33,13 @@ class PatternBase():
 			appMessenger.removeBinding(self.messengerBindingIds[bindingIdKey])
 			del self.messengerBindingIds[bindingIdKey]
 		self.updateTriggerFunction = False
-
+	
+	def getCurrentStateData(self):
+		data = {'name' : self.patternName, 'inputBindings' : {}}
+		for patternInputId in self.inputParams:
+			inputObj = getattr(self.inputs, patternInputId)
+			data['inputBindings'][patternInputId] = inputObj.getId()
+		return data
 
 	def bindUpdateTrigger(self, function):
 		self.updateTriggerFunction = function

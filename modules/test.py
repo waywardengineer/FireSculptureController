@@ -16,6 +16,7 @@ dcm.send('poofers', [[[0, 15], [True]]])
 im = InputManager(dcm)
 pm = DiscreteActionModule(dcm, im, config['modules'][0])
 pm.addPattern('Chase')
+print(pm.getCurrentStateData())
 for message in appMessenger.getMessages('log'):
 	print message
 

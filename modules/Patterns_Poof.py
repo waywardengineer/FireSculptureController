@@ -8,8 +8,8 @@ class Chase(PatternBase):
 							'defaultSubType' : 'timer',
 							'scope' : 'global',
 							'min' : 100,
-							'max' : 2000, 
-							'default' : 501
+							'max' : 3000, 
+							'default' : 3000
 							},
 						'triggerSequence' : {
 							'description' : 'Trigger chase',
@@ -42,6 +42,8 @@ class Chase(PatternBase):
 							}
 						}
 		PatternBase.__init__(self, *args)
+		self.patternName = 'Poofer Chase'
+
 		self.position = 0
 		self.sequenceTriggered = True
 

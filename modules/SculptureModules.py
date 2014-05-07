@@ -15,6 +15,7 @@ class SculptureModuleBase():
 		self.availablePatternClasses = {} 
 		self.availablePatternNames = []
 		self.patterns = {}
+		self.patternRowSettings = {}
 		self.gridSize = [len(moduleConfig['protocol']['mapping']), len(moduleConfig['protocol']['mapping'][0])]
 		for patternTypeId in moduleConfig['patterns']:
 			try:
@@ -24,41 +25,54 @@ class SculptureModuleBase():
 				pass
 
 
-	def getModuleData(self, module): # gui will call this to render all the controls and stuff
-		pass
+	def getCurrentStateData(self): # Dump all the state data for gui to render it
+		data = {'availablePatternNames' : self.availablePatternNames, 'currentOutputState' : self.currentOutputState, 'inputs' : [], 'patterns' : []}
+		inputIdsUsed = []
+		for patternInstanceId in self.patterns:
+			patternData = self.patterns[patternInstanceId].getCurrentStateData()
+			patternData['instanceId'] = patternInstanceId
+			patternData['rowSettings'] = self.patternRowSettings[patternInstanceId]
+			for patternInputId in patternData['inputBindings']:
+				if patternData['inputBindings'][patternInputId] not in inputIdsUsed:
+					inputIdsUsed.append(patternData['inputBindings'][patternInputId])
+			data['patterns'].append(patternData)
+		for inputId in inputIdsUsed:
+			inputObj = self.inputManager.getInputObj(inputId)
+			data['inputs'].append(inputObj.getCurrentStateData())
+		return data
 
 	def addPattern(self, patternTypeId): # make a pattern live and select all rows by default
-		self.patterns[self.nextPatternInstanceId] = {
-						'patternTypeId' : patternTypeId, 
-						'pattern' : self.availablePatternClasses[patternTypeId](self.inputManager, self.gridSize),
-						'rows' : [True for i in range(self.gridSize[0])],
-						}
-		self.patterns[self.nextPatternInstanceId]['pattern'].bindUpdateTrigger(getattr(self, "doUpdates"))
+		self.patterns[self.nextPatternInstanceId] = self.availablePatternClasses[patternTypeId](self.inputManager, self.gridSize)
+		self.patternRowSettings[self.nextPatternInstanceId] = [True for i in range(self.gridSize[0])]
+		self.patterns[self.nextPatternInstanceId].bindUpdateTrigger(getattr(self, "doUpdates"))
 		self.nextPatternInstanceId += 1
 
 	def removePattern(self, patternInstanceId): #remove a pattern instance from the stack
-		self.patterns[patternInstanceId]['pattern'].unBind()
+		self.patterns[patternInstanceId].unBind()
 		del self.patterns[patternInstanceId]
 
 
-	def bindInput(self, patternInstanceId, patternInputId, inputInstanceId): #connect data from an input to a pattern parameter
-		patternInputSpec = self.patterns[patternInstanceId]['pattern'].getInputSpecs(patternInputId)
-		if inputManager.checkType(patternInputSpec['type'], inputInstanceId):
-			self.patterns[patternInstanceId]['pattern'].bindInput(patternInputId, inputInstanceId)
-			return True
-		return False
+	def changeInputBinding(self, patternInstanceId, patternInputId, inputInstanceId): #connect data from an input to a pattern parameter
+		return self.patterns[patternInstanceId].changeInputBinding(patternInputId, inputInstanceId)
 
 class DiscreteActionModule(SculptureModuleBase):
+	def __init__ (self, *args):
+		SculptureModuleBase.__init__ (self, *args)
+		self.currentOutputState = [[False for j in range(self.gridSize[1])] for i in range(self.gridSize[0])]
+
+
 	def doUpdates(self): #Check the pattern state and send data out
 		data = []
 		for row in range(len(self.moduleConfig['protocol']['mapping'])):
 			for col in range(len(self.moduleConfig['protocol']['mapping'][row])):
-				trigger = False
+				state = False
 				for patternId in self.patterns:
-					if self.patterns[patternId]['rows'][row] and self.patterns[patternId]['pattern'].getState(row, col):
-						trigger = True
-				data.append([[row, col], [trigger]])
+					if self.patternRowSettings[patternId][row] and self.patterns[patternId].getState(row, col):
+						state = True
+				data.append([[row, col], [state]])
+				self.currentOutputState[row][col] = state
 		self.dataChannelManager.send(self.moduleConfig['id'], data)
+
 
 	def toggleRowSelection(self, moduleId, patternInstanceId, row): #toggle row selection for pattern
 		self.patterns[patternInstanceId]['rows'][row] = not self.patterns[patternInstanceId]['rows'][row]

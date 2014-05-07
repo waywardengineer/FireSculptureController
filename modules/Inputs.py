@@ -5,7 +5,7 @@ will be interchangeable
 
 
 from threading import Timer, Thread, Event
-class InputWrapper(object):
+class InputCollectionWrapper(object):
 	def __init__(self, inputParamData):
 		self.inputParamData = inputParamData
 	def __getattr__(self, attr):
@@ -19,9 +19,10 @@ class InputBase():
 		self.params = params
 		if 'default' in params.keys():
 			self.inputValues = [params['default']]
-			print self.inputValues[0]
 		else:
 			self.inputValues = [False]
+		if not 'scope' in params.keys():
+			self.params['scope'] = 'local'
 		self.outputValue = False
 		self.instanceId = 0
 	def setInstanceId(self, id):
@@ -42,6 +43,12 @@ class InputBase():
 		return self.instanceId
 	def updateValue(self):
 		pass
+	def getCurrentStateData(self):
+		output = self.params
+		self.updateValue()
+		output['currentValue'] = self.outputValue
+		output['instanceId'] = self.instanceId
+		return output
 
 
 class TimerPulseInput(InputBase):
