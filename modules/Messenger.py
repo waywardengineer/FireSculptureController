@@ -1,3 +1,10 @@
+'''
+Messenger is an interface for all objects in the program to communicate with each other. It can have an arbitrary number of "channels".
+Any object can put a message on any channel, and other objects can either check the channel for messages on their own, or bind a function that
+will be called when a message appears on the channel.
+'''
+
+
 class Messenger():
 	def __init__(self):
 		self.messages = {}
@@ -20,3 +27,6 @@ class Messenger():
 			self.messages[channel] = []
 			self.bindings[channel] = []
 		self.bindings[channel].append(function)
+		
+		
+		
