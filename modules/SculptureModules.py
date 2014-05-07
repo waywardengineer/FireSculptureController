@@ -13,8 +13,9 @@ class SculptureModuleBase():
 		patternModuleName = 'Patterns_' + moduleConfig['patternType']
 		patternClasses = __import__(patternModuleName)
 		self.availablePatternClasses = {} 
-		self.availablePatternNames = {}
+		self.availablePatternNames = []
 		self.patterns = {}
+		self.gridSize = [len(moduleConfig['protocol']['mapping']), len(moduleConfig['protocol']['mapping'][0])]
 		for patternTypeId in moduleConfig['patterns']:
 			try:
 				self.availablePatternClasses[patternTypeId] = getattr(patternClasses, patternTypeId)
@@ -26,45 +27,35 @@ class SculptureModuleBase():
 	def getModuleData(self, module): # gui will call this to render all the controls and stuff
 		pass
 
-	def addPattern(self, moduleId, patternTypeId): # make a pattern live and select all rows by default
-		self.[patterns][self.nextPatternInstanceId] = {
+	def addPattern(self, patternTypeId): # make a pattern live and select all rows by default
+		self.patterns[self.nextPatternInstanceId] = {
 						'patternTypeId' : patternTypeId, 
-						'pattern' : self.availablePatternClasses[patternTypeId](),
-						'rows' : [True for i in range(len(self.moduleConfig['protocol']['mapping']))],
+						'pattern' : self.availablePatternClasses[patternTypeId](self.inputManager, self.gridSize),
+						'rows' : [True for i in range(self.gridSize[0])],
 						}
-		self.bindDefaultInputs(self.nextPatternInstanceId)
-		self.[patterns][self.nextPatternInstanceId].setUpdateTrigger(self, "doUpdates")
+		self.patterns[self.nextPatternInstanceId]['pattern'].bindUpdateTrigger(getattr(self, "doUpdates"))
 		self.nextPatternInstanceId += 1
 
-	def removePattern(self, module, patternInstanceId): #remove a pattern instance from the stack
-		self.patterns[patternInstanceId]['pattern'].unBindInputs()
+	def removePattern(self, patternInstanceId): #remove a pattern instance from the stack
+		self.patterns[patternInstanceId]['pattern'].unBind()
 		del self.patterns[patternInstanceId]
 
 
-	def bindDefaultInputs(self, patternInstanceId):
-		patternInputSpecs = self.patterns[patternInstanceId]['pattern'].getInputSpecs()
-		for patternInputId in patternInputSpecs:
-			bindInput(patternInstanceId, patternInputId)
-
-
-	def bindInput(self, patternInstanceId, patternInputId, inputInstanceId = False): #connect data from an input to a pattern parameter
+	def bindInput(self, patternInstanceId, patternInputId, inputInstanceId): #connect data from an input to a pattern parameter
 		patternInputSpec = self.patterns[patternInstanceId]['pattern'].getInputSpecs(patternInputId)
-		if inputInstanceId == False:
-			inputInstanceId = inputManager.getInputId(patternInputSpec['subType'], self.patterns[patternInstanceId]['inputIds'])
-		if (inputManager.checkType(patternInputSpec['type'], inputInstanceId)){
+		if inputManager.checkType(patternInputSpec['type'], inputInstanceId):
 			self.patterns[patternInstanceId]['pattern'].bindInput(patternInputId, inputInstanceId)
 			return True
-		}
 		return False
 
 class DiscreteActionModule(SculptureModuleBase):
-	def doUpdates(self, data): #Check the pattern state and send data out
+	def doUpdates(self): #Check the pattern state and send data out
 		data = []
 		for row in range(len(self.moduleConfig['protocol']['mapping'])):
-			for col in range(len(self.moduleConfig['protocol']['mapping'][row]):
+			for col in range(len(self.moduleConfig['protocol']['mapping'][row])):
 				trigger = False
 				for patternId in self.patterns:
-					if self.patterns[patternId]['rows'][row] and self.patterns[patternId]['pattern'].getState(row, column):
+					if self.patterns[patternId]['rows'][row] and self.patterns[patternId]['pattern'].getState(row, col):
 						trigger = True
 				data.append([[row, col], [trigger]])
 		self.dataChannelManager.send(self.moduleConfig['id'], data)

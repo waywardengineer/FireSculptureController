@@ -18,7 +18,7 @@
       "patternType" : "Poof",
       "patterns" : ["Chase", "AllPoof"]
       
-    }
+    },
     {
       "id" : "clackers",
       "name" : "Sound hammers",

@@ -12,11 +12,11 @@ class Messenger():
 
 
 	def putMessage(self, channelId, message):
-		checkForChannel(channelId)
-		self.channels[channel]['messages'].append(message)
-		for bindingId in self.channels['bindings']:
-			function = self.channels['bindings'][bindingId]['function']
-			data = self.channels['bindings'][bindingId]['data']
+		self.checkForChannel(channelId)
+		self.channels[channelId]['messages'].append(message)
+		for bindingId in self.channels[channelId]['bindings']:
+			function = self.channels[channelId]['bindings'][bindingId]['function']
+			data = self.channels[channelId]['bindings'][bindingId]['data']
 			if data:
 				function(data)
 			else:
@@ -24,17 +24,19 @@ class Messenger():
 
 
 	def getMessages(self, channelId):
-		checkForChannel(channelId)
+		self.checkForChannel(channelId)
 		return self.channels[channelId]['messages']
 
 
-	def addBinding(self, channel, function, data=False):
-		checkForChannel(channel)
+	def addBinding(self, channelId, function, data=False):
+		self.checkForChannel(channelId)
+		newBindingId = self.nextBindingId
 		if data:
-			data['bindingId'] = self.nextBindingId
+			data['bindingId'] = newBindingId
 		binding = {'function' : function, 'data' : data}
-		self.bindings[channel][self.nextBindingId] = binding
+		self.channels[channelId]['bindings'][newBindingId] = binding
 		self.nextBindingId += 1
+		return newBindingId
 
 
 	def removeBinding(self, bindingId):
@@ -43,7 +45,7 @@ class Messenger():
 				del self.channels[channelId]['bindings'][bindingId]
 
 
-	def checkForChannel(self, channelId)
+	def checkForChannel(self, channelId):
 		if not channelId in self.channels.keys():
 			self.channels[channelId] = {'messages' : [], 'bindings' : {}}
 
