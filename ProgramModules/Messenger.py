@@ -8,7 +8,7 @@ will be called when a message appears on the channel.
 class Messenger():
 	def __init__(self):
 		self.channels = {}
-		self.nextBindingId = 0
+		self.nextBindingId = 1
 
 
 	def putMessage(self, channelId, message):
@@ -49,4 +49,7 @@ class Messenger():
 		if not channelId in self.channels.keys():
 			self.channels[channelId] = {'messages' : [], 'bindings' : {}}
 
+	def doReset(self):
+		self.channels = {}
+		self.nextBindingId = 1
 

@@ -1,4 +1,6 @@
 {
+  "sculptureId" : "tympani",
+  "sculptureName" : "Tympani Lambata",
   "adaptors" : [
     {"id" : "flameBus", "type" : "serial", "baudrate" : 9600, "ports" : ["COM7"]}, 
     {"id" : "ledBus", "type" : "serial", "baudrate" : 9600, "ports" : ["COM8"]}
@@ -7,6 +9,7 @@
     {
       "id" : "poofers",
       "name" : "Poofers",
+      "moduleType" : "Poofer",
       "adaptor" : "flameBus",
       "protocol" : {
         "type" : "flgRelay",
@@ -22,6 +25,7 @@
     {
       "id" : "clackers",
       "name" : "Sound hammers",
+      "moduleType" : "Poofer",
       "adaptor" : "ledBus",
       "protocol" : {
         "type" : "flgRelay",

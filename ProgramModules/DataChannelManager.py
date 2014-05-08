@@ -7,8 +7,8 @@ class DataChannelManager():
 	def __init__(self, sculptureConfigData):
 		self.adaptors = {}
 		self.dataChannels = {}
-		adaptorModules = __import__('Adaptors')
-		protocolModules = __import__('Protocols')
+		adaptorModules = __import__('ProgramModules.Adaptors')
+		protocolModules = __import__('ProgramModules.Protocols')
 		for adaptorConfig in sculptureConfigData['adaptors']:
 			adaptorClassName = adaptorConfig['type'][0].upper() + adaptorConfig['type'][1:] + 'Adaptor'
 			adaptorClass = getattr(adaptorModules, adaptorClassName)

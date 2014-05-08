@@ -1,4 +1,4 @@
-from PatternBase import PatternBase
+from Patterns.PatternBase import PatternBase
 class Chase(PatternBase):
 	def __init__(self, *args):
 		self.inputParams = {
@@ -52,7 +52,6 @@ class Chase(PatternBase):
 		if self.position > self.gridSize[1]:
 			self.position -= self.gridSize[1]
 			self.sequenceTriggered = self.inputs.triggerSequence.getValue()
-		print "Triggered"
 		self.updateTriggerFunction()
 		
 	def triggerSequence(self):

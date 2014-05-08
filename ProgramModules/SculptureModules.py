@@ -6,11 +6,12 @@ or a variable type(probably from 0 to 100)
 
 class SculptureModuleBase():
 	def __init__ (self, dataChannelManager, inputManager, moduleConfig):
+
 		self.dataChannelManager = dataChannelManager
 		self.inputManager = inputManager
 		self.moduleConfig = moduleConfig
 		self.nextPatternInstanceId = 0
-		patternModuleName = 'Patterns_' + moduleConfig['patternType']
+		patternModuleName = 'Patterns.' + moduleConfig['patternType']
 		patternClasses = __import__(patternModuleName)
 		self.availablePatternClasses = {} 
 		self.availablePatternNames = []
@@ -55,7 +56,7 @@ class SculptureModuleBase():
 	def changeInputBinding(self, patternInstanceId, patternInputId, inputInstanceId): #connect data from an input to a pattern parameter
 		return self.patterns[patternInstanceId].changeInputBinding(patternInputId, inputInstanceId)
 
-class DiscreteActionModule(SculptureModuleBase):
+class PooferModule(SculptureModuleBase):
 	def __init__ (self, *args):
 		SculptureModuleBase.__init__ (self, *args)
 		self.currentOutputState = [[False for j in range(self.gridSize[1])] for i in range(self.gridSize[0])]

@@ -1,7 +1,7 @@
 class InputManager():
 	def __init__ (self, dataChannelManager):
 		self.dataChannelManager = dataChannelManager
-		self.inputModules = __import__('Inputs')
+		self.inputModules = __import__('ProgramModules.Inputs')
 		self.nextInputInstanceId = 0
 		self.inputInstances = {}
 
