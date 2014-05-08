@@ -2,9 +2,8 @@
 keyboard bindings, timers, audio pulse thingeys, etc. There will be several broad types such as pulse and value, and any input of the same type 
 will be interchangeable
 ''' 
+from ProgramModules.Timers import Timer
 
-
-from threading import Timer, Thread, Event
 class InputCollectionWrapper(object):
 	def __init__(self, inputParamData):
 		self.inputParamData = inputParamData
@@ -25,8 +24,9 @@ class InputBase():
 			self.params['scope'] = 'local'
 		self.outputValue = False
 		self.instanceId = 0
+		self.persistant = False
+
 	def setInstanceId(self, id):
-		print "instance id set"
 		self.instanceId = id
 	def setInputValue(self, value, paramIndex = 0):
 		if 'min' in params.keys:
@@ -49,29 +49,24 @@ class InputBase():
 		output['currentValue'] = self.outputValue
 		output['instanceId'] = self.instanceId
 		return output
+	def stop(self):
+		pass
+	def isPersistant(self):
+		return self.persistant
 
 
 class TimerPulseInput(InputBase):
-	class TimerThread(Thread):
-		def __init__(self, parent, event):
-			Thread.__init__(self)
-			self.stopped = event
-			self.parent = parent
-		def run(self):
-			while not self.stopped.wait(self.parent.inputValues[0] / 1000.):
-				self.parent.sendMessage()
 	def __init__(self, *args):
 		InputBase.__init__(self, *args)
-		self.startTimer()
-	def startTimer(self):
-		self.stopEvent = Event()
-		thread = TimerPulseInput.TimerThread(self, self.stopEvent)
-		thread.start()
-	def stopTimer(self):
-		self.stopEvent.set()
+		self.timer = Timer(True, self.inputValues[0], getattr(self, 'sendMessage'))
+	def stop(self):
+		self.timer.stop()
 	def sendMessage(self):
 		appMessenger.putMessage('pulse%s' %(self.instanceId), True)
-		#print "Pulse sent"
+	def setInputValue(self):
+		InputBase.setInputValue(self)
+		self.timer.changeInterval(self.inputValues[0])
+
 
 class AlwaysOnPulseInput(InputBase):
 	def updateValue(self):

@@ -9,7 +9,7 @@ class Chase(PatternBase):
 							'scope' : 'global',
 							'min' : 100,
 							'max' : 3000, 
-							'default' : 3000
+							'default' : 2000
 							},
 						'triggerSequence' : {
 							'description' : 'Trigger chase',

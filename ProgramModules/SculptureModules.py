@@ -27,7 +27,7 @@ class SculptureModuleBase():
 
 
 	def getCurrentStateData(self): # Dump all the state data for gui to render it
-		data = {'availablePatternNames' : self.availablePatternNames, 'currentOutputState' : self.currentOutputState, 'inputs' : [], 'patterns' : []}
+		data = {'availablePatternNames' : self.availablePatternNames, 'currentOutputState' : self.currentOutputState, 'inputs' : {}, 'patterns' : {}}
 		inputIdsUsed = []
 		for patternInstanceId in self.patterns:
 			patternData = self.patterns[patternInstanceId].getCurrentStateData()
@@ -36,17 +36,20 @@ class SculptureModuleBase():
 			for patternInputId in patternData['inputBindings']:
 				if patternData['inputBindings'][patternInputId] not in inputIdsUsed:
 					inputIdsUsed.append(patternData['inputBindings'][patternInputId])
-			data['patterns'].append(patternData)
+			data['patterns'][patternInstanceId] = patternData
 		for inputId in inputIdsUsed:
 			inputObj = self.inputManager.getInputObj(inputId)
-			data['inputs'].append(inputObj.getCurrentStateData())
+			data['inputs'][inputId] = inputObj.getCurrentStateData()
 		return data
 
 	def addPattern(self, patternTypeId): # make a pattern live and select all rows by default
-		self.patterns[self.nextPatternInstanceId] = self.availablePatternClasses[patternTypeId](self.inputManager, self.gridSize)
-		self.patternRowSettings[self.nextPatternInstanceId] = [True for i in range(self.gridSize[0])]
-		self.patterns[self.nextPatternInstanceId].bindUpdateTrigger(getattr(self, "doUpdates"))
+		newInstanceId = self.nextPatternInstanceId
+		self.patterns[newInstanceId] = self.availablePatternClasses[patternTypeId](self.inputManager, self.gridSize)
+		self.patternRowSettings[newInstanceId] = [True for i in range(self.gridSize[0])]
+		self.patterns[newInstanceId].bindUpdateTrigger(getattr(self, "doUpdates"))
+		self.patterns[newInstanceId].setInstanceId(newInstanceId)
 		self.nextPatternInstanceId += 1
+		return newInstanceId
 
 	def removePattern(self, patternInstanceId): #remove a pattern instance from the stack
 		self.patterns[patternInstanceId].unBind()

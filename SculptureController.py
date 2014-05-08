@@ -38,10 +38,21 @@ class SculptureController():
 			self.sculptureModules[moduleConfig['id']] = sculptureModuleClass(self.dataChannelManager, self.inputManager, moduleConfig)
 	def doCommand(self, command):
 		function = getattr(self, command.pop(0))
-		function(*command)
+		return function(*command)
 		
 	def addPattern(self, moduleId, *args):
-		self.sculptureModules[moduleId].addPattern(*args)
+		return self.sculptureModules[moduleId].addPattern(*args)
+		
+	def removePattern(self, moduleId, *args):
+		return self.sculptureModules[moduleId].removePattern(*args)
 	
+	def getCurrentStateData(self):
+		data = {'sculptureConfig' : self.sculptureConfig, 'modules' : {}}
+		for moduleId in self.sculptureModules:
+			data['modules'][moduleId] = self.sculptureModules[moduleId].getCurrentStateData()
+		return data
+		
+			
+			
 
 
