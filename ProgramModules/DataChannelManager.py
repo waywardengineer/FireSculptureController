@@ -9,13 +9,16 @@ class DataChannelManager():
 		self.dataChannels = {}
 		adaptorModules = __import__('ProgramModules.Adaptors')
 		protocolModules = __import__('ProgramModules.Protocols')
-		for adaptorConfig in sculptureConfigData['adaptors']:
+		for adaptorId in sculptureConfigData['adaptors']:
+			adaptorConfig = sculptureConfigData['adaptors'][adaptorId]
+			adaptorConfig['adaptorId'] = adaptorId
 			adaptorClassName = adaptorConfig['type'][0].upper() + adaptorConfig['type'][1:] + 'Adaptor'
 			adaptorClass = getattr(adaptorModules, adaptorClassName)
-			self.adaptors[adaptorConfig['id']] = adaptorClass(adaptorConfig)
-		for moduleConfig in sculptureConfigData['modules']:
+			self.adaptors[adaptorId] = adaptorClass(adaptorConfig)
+		for moduleId in sculptureConfigData['modules']:
+			moduleConfig = sculptureConfigData['modules'][moduleId]
 			protocolClassName = moduleConfig['protocol']['type'][0].upper() + moduleConfig['protocol']['type'][1:] + 'Protocol'
 			protocolClass = getattr(protocolModules, protocolClassName)
-			self.dataChannels[moduleConfig['id']] = protocolClass(self.adaptors[moduleConfig['adaptor']], moduleConfig['protocol']['mapping'])
+			self.dataChannels[moduleId] = protocolClass(self.adaptors[moduleConfig['adaptor']], moduleConfig['protocol']['mapping'])
 	def send(self, moduleId, data):
 		self.dataChannels[moduleId].send(data)

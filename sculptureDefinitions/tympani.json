@@ -1,12 +1,12 @@
 {
   "sculptureId" : "tympani",
   "sculptureName" : "Tympani Lambata",
-  "adaptors" : [
-    {"id" : "flameBus", "type" : "serial", "baudrate" : 9600, "ports" : ["COM7"]}, 
-    {"id" : "ledBus", "type" : "serial", "baudrate" : 9600, "ports" : ["COM8"]}
-  ],
-  "modules" : [
-    {
+  "adaptors" : {
+    "flameBus" : {"type" : "serial", "baudrate" : 9600, "ports" : ["COM7"]}, 
+    "ledBus" : {"type" : "serial", "baudrate" : 9600, "ports" : ["COM8"]}
+  },
+  "modules" : {
+    "clackers" : {
       "id" : "poofers",
       "name" : "Poofers",
       "moduleType" : "Poofer",
@@ -22,7 +22,7 @@
       "patterns" : ["Chase", "AllPoof"]
       
     },
-    {
+    "poofers" : {
       "id" : "clackers",
       "name" : "Sound hammers",
       "moduleType" : "Poofer",
@@ -36,5 +36,5 @@
       "patternType" : "Poof",
       "patterns" : ["Chase", "AllPoof"]
     }
-  ]
+  }
 }

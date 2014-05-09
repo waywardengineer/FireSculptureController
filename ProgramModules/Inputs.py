@@ -10,9 +10,9 @@ class InputCollectionWrapper(object):
 	def __getattr__(self, attr):
 		return self.inputParamData[attr]
 	def replaceInput (self, patternInputId, inputObj):
-		self.inputParamData[patternInputId]['inputInstanceId'] = inputObj
+		self.inputParamData[patternInputId] = inputObj
 
-		
+
 class InputBase():
 	def __init__(self, params):
 		self.params = params
@@ -63,8 +63,8 @@ class TimerPulseInput(InputBase):
 		self.timer.stop()
 	def sendMessage(self):
 		appMessenger.putMessage('pulse%s' %(self.instanceId), True)
-	def setInputValue(self):
-		InputBase.setInputValue(self)
+	def setInputValue(self, *args):
+		InputBase.setInputValue(self, *args)
 		self.timer.changeInterval(self.inputValues[0])
 
 

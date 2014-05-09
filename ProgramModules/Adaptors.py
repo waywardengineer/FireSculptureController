@@ -17,7 +17,7 @@ class SerialAdaptor():
 			try:
 				self.connection.write(data)
 			except:
-				appMessenger.putMessage('log', '%s failure sending data' %(self.configData['id']))
+				appMessenger.putMessage('log', '%s failure sending data' %(self.configData['adaptorId']))
 				print data
 				#success = False
 		return success
@@ -27,7 +27,7 @@ class SerialAdaptor():
 		while (not self.connection) and portIndex < len(self.configData['ports']):
 			try:
 				self.connection = serial.Serial(self.configData['ports'][portIndex], self.configData['baudrate'], timeout=0.1)
-				appMessenger.putMessage('log', '%s connected on %s at baudrate %s' %(self.configData['id'], self.configData['ports'][portIndex], self.configData['baudrate']))
+				appMessenger.putMessage('log', '%s connected on %s at baudrate %s' %(self.configData['adaptorId'], self.configData['ports'][portIndex], self.configData['baudrate']))
 			except:
-				appMessenger.putMessage('log', '%s failed to connect on %s at baudrate %s' %(self.configData['id'], self.configData['ports'][portIndex], self.configData['baudrate']))
+				appMessenger.putMessage('log', '%s failed to connect on %s at baudrate %s' %(self.configData['adaptorId'], self.configData['ports'][portIndex], self.configData['baudrate']))
 				portIndex += 1

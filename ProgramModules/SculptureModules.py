@@ -26,7 +26,7 @@ class SculptureModuleBase():
 				pass
 
 
-	def getCurrentStateData(self): # Dump all the state data for gui to render it
+	def getCurrentStateData(self, *args): # Dump all the state data for gui to render it
 		data = {'availablePatternNames' : self.availablePatternNames, 'currentOutputState' : self.currentOutputState, 'inputs' : {}, 'patterns' : {}}
 		inputIdsUsed = []
 		for patternInstanceId in self.patterns:
@@ -75,7 +75,7 @@ class PooferModule(SculptureModuleBase):
 						state = True
 				data.append([[row, col], [state]])
 				self.currentOutputState[row][col] = state
-		self.dataChannelManager.send(self.moduleConfig['id'], data)
+		self.dataChannelManager.send(self.moduleConfig['moduleId'], data)
 
 
 	def toggleRowSelection(self, moduleId, patternInstanceId, row): #toggle row selection for pattern

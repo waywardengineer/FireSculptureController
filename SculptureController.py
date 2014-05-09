@@ -33,9 +33,11 @@ class SculptureController():
 		self.sculptureConfig = self.sculptureDefinitions[sculptureId]
 		self.dataChannelManager = DataChannelManager(self.sculptureConfig)
 		self.inputManager = InputManager(self.dataChannelManager)
-		for moduleConfig in self.sculptureConfig['modules']:
+		for moduleId in self.sculptureConfig['modules']:
+			moduleConfig = self.sculptureConfig['modules'][moduleId]
+			moduleConfig['moduleId'] = moduleId
 			sculptureModuleClass = getattr(SculptureModules, moduleConfig['moduleType'] + 'Module')
-			self.sculptureModules[moduleConfig['id']] = sculptureModuleClass(self.dataChannelManager, self.inputManager, moduleConfig)
+			self.sculptureModules[moduleId] = sculptureModuleClass(self.dataChannelManager, self.inputManager, moduleConfig)
 	def doCommand(self, command):
 		function = getattr(self, command.pop(0))
 		return function(*command)
@@ -46,13 +48,27 @@ class SculptureController():
 	def removePattern(self, moduleId, *args):
 		return self.sculptureModules[moduleId].removePattern(*args)
 	
-	def getCurrentStateData(self):
-		data = {'sculptureConfig' : self.sculptureConfig, 'modules' : {}}
-		for moduleId in self.sculptureModules:
-			data['modules'][moduleId] = self.sculptureModules[moduleId].getCurrentStateData()
+	def getCurrentStateData(self, sculptureId = False, moduleId = False, *args): 
+		data = {'sculptures' : {}}
+		if self.sculptureConfig:
+			data['activeSculptureId'] = self.sculptureConfig['sculptureId']
+		else:
+			data['activeSculptureId'] = False
+		if sculptureId:
+			data['sculptures'][sculptureId] = {'modules' : False}
+			if moduleId:
+				data['sculptures'][sculptureId]['modules'] = {moduleId : {}}
+				if self.sculptureConfig and sculptureId == self.sculptureConfig['sculptureId']:
+					data['sculptures'][sculptureId]['modules'][moduleId] = self.sculptureModules[moduleId].getCurrentStateData(*args)
+				return data
+			data['sculptures'][sculptureId]['sculptureConfig'] = self.sculptureDefinitions[sculptureId]
+			return data
+		for sculptureId in self.sculptureDefinitions:
+			data['sculptures'][sculptureId] = {'config' : self.sculptureDefinitions[sculptureId], 'modules' : False}
+			if self.sculptureConfig and sculptureId == self.sculptureConfig['sculptureId']:
+				data['sculptures'][sculptureId]['modules'] = {}
+				for moduleId in self.sculptureModules:
+					data['sculptures'][sculptureId]['modules'][moduleId] = self.sculptureModules[moduleId].getCurrentStateData()
 		return data
-		
-			
-			
 
 
