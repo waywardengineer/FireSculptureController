@@ -5,42 +5,49 @@ class Chase(PatternBase):
 						'triggerStep' : {
 							'description' : 'Trigger next step in sequence',
 							'type' : 'pulse',
-							'defaultSubType' : 'timer',
-							'scope' : 'global',
-							'min' : 100,
-							'max' : 3000, 
-							'default' : 2000
-							},
+							'subType' : 'timer',
+							'settings' : [{
+								'min' : 100,
+								'max' : 3000, 
+								'default' : 2000
+							}]
+						},
 						'triggerSequence' : {
 							'description' : 'Trigger chase',
 							'type' : 'pulse',
-							'defaultSubType' : 'alwaysOn'
-							},
+							'subType' : 'alwaysOn'
+						},
 						'numberOn' : {
 							'description' : 'Number of poofers on at once',
 							'type' : 'param',
-							'defaultSubType' : 'discrete',
-							'min' : 1,
-							'max' : 5,
-							'default' : 2
-							},
+							'subType' : 'discrete',
+							'settings' : [{
+								'min' : 1,
+								'max' : 5,
+								'default' : 2
+							}]
+						},
 						'stepping' : {
 							'description' : 'Number of poofers to jump per step',
 							'type' : 'param',
-							'defaultSubType' : 'discrete',
-							'min' : 1,
-							'max' : 5,
-							'default' : 1
-							},
+							'subType' : 'discrete',
+							'settings' : [{
+								'min' : 1,
+								'max' : 5,
+								'default' : 1
+							}]
+						},
 						'numberPulses' : {
 							'description' : 'Number of pulses chasing each other',
 							'type' : 'param',
-							'defaultSubType' : 'discrete',
-							'min' : 1,
-							'max' : 3,
-							'default' : 1
-							}
+							'subType' : 'discrete',
+							'settings' : [{
+								'min' : 1,
+								'max' : 3,
+								'default' : 1
+							}]
 						}
+					}
 		PatternBase.__init__(self, *args)
 		self.patternName = 'Poofer Chase'
 

@@ -15,7 +15,7 @@ class InputManager():
 		inputDict = {}
 		for userSubId in inputParams:
 			typeName = inputParams[userSubId]['type']
-			subTypeName = inputParams[userSubId]['defaultSubType']
+			subTypeName = inputParams[userSubId]['subType']
 			inputClassName = subTypeName[0].upper() + subTypeName[1:] + typeName[0].upper() + typeName[1:] + 'Input'
 			inputClass = getattr(self.inputModules, inputClassName)
 			self.inputInstances[self.nextInputInstanceId] = inputClass(inputParams[userSubId])

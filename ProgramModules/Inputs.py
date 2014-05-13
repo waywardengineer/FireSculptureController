@@ -16,26 +16,32 @@ class InputCollectionWrapper(object):
 class InputBase():
 	def __init__(self, params):
 		self.params = params
-		if 'default' in params.keys():
-			self.inputValues = [params['default']]
-		else:
-			self.inputValues = [False]
-		if not 'scope' in params.keys():
-			self.params['scope'] = 'local'
+		print params
 		self.outputValue = False
 		self.instanceId = 0
 		self.persistant = False
-
+		if not 'settings' in self.params.keys():
+			self.params['settings'] = []
+		for settingIndex in range(len(self.params['settings'])):
+			
+			if 'default' in self.params['settings'][settingIndex].keys():
+				value = self.params['settings'][settingIndex]['default']
+			else:
+				value = 0
+			self.params['settings'][settingIndex]['currentSetting'] = value
 	def setInstanceId(self, id):
 		self.instanceId = id
-	def setInputValue(self, value, paramIndex = 0):
-		if 'min' in params.keys:
-			if value < params['min']:
-				value = params['min']
-		if 'max' in params.keys:
-			if value > params['max']:
-				value = params['max']
-		self.inputValues[paramIndex] = value
+	def setInputValue(self, value, settingIndex = 0):
+		setting = self.params['settings'][settingIndex]
+		value = float(value)
+		if 'min' in setting.keys():
+			if value < setting['min']:
+				value = setting['min']
+		if 'max' in setting.keys():
+			if value > setting['max']:
+				value = setting['max']
+		print value
+		self.params['settings'][settingIndex]['currentSetting'] = value
 	def getValue(self):
 		self.updateValue()
 		return self.outputValue
@@ -58,14 +64,16 @@ class InputBase():
 class TimerPulseInput(InputBase):
 	def __init__(self, *args):
 		InputBase.__init__(self, *args)
-		self.timer = Timer(True, self.inputValues[0], getattr(self, 'sendMessage'))
+		self.params['settings'][0]['name'] = 'Interval(ms)'
+		self.params['settings'][0]['type'] = 'param'
+		self.timer = Timer(True, self.params['settings'][0]['currentSetting'], getattr(self, 'sendMessage'))
 	def stop(self):
 		self.timer.stop()
 	def sendMessage(self):
 		appMessenger.putMessage('pulse%s' %(self.instanceId), True)
 	def setInputValue(self, *args):
 		InputBase.setInputValue(self, *args)
-		self.timer.changeInterval(self.inputValues[0])
+		self.timer.changeInterval(self.params['settings'][0]['currentSetting'])
 
 
 class AlwaysOnPulseInput(InputBase):
@@ -76,19 +84,21 @@ class AlwaysOnPulseInput(InputBase):
 class BasicParamInput(InputBase):
 	def __init__(self, *args):
 		InputBase.__init__(self, *args)
-		if not 'min' in self.params.keys():
-			self.params['min'] = 0
-		if not 'max' in self.params.keys():
-			self.params['max'] = 100
-		if not 'default' in self.params.keys():
-			self.inputValues[0] = self.params['min']
+		self.params['settings'][0]['name'] = 'Value'
+		self.params['settings'][0]['type'] = 'param'
+		if not 'min' in self.params['settings'][0].keys():
+			self.params['settings'][0]['min'] = 0
+		if not 'max' in self.params['settings'][0].keys():
+			self.params['settings'][0]['max'] = 100
+		if not 'default' in self.params['settings'][0].keys():
+			self.params['settings'][0]['currentSetting'] = self.params['settings'][0]['min']
 	def updateValue(self):
 		self.outputValue = self.inputValues[0]
 
 
 class DiscreteParamInput(BasicParamInput):
 	def updateValue(self):
-		self.outputValue = int(float(self.inputValues[0]) + 0.5)
+		self.outputValue = int(float(self.params['settings'][0]['currentSetting']) + 0.5)
 
 
 

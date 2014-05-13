@@ -48,6 +48,9 @@ class SculptureController():
 	def removePattern(self, moduleId, *args):
 		return self.sculptureModules[moduleId].removePattern(*args)
 	
+	def setInputValue(self, moduleId, *args):
+		return self.sculptureModules[moduleId].setInputValue(*args)
+	
 	def getCurrentStateData(self, sculptureId = False, moduleId = False, *args): 
 		data = {'sculptures' : {}}
 		if self.sculptureConfig:

@@ -6,7 +6,7 @@
     "ledBus" : {"type" : "serial", "baudrate" : 9600, "ports" : ["COM8"]}
   },
   "modules" : {
-    "clackers" : {
+    "poofers" : {
       "id" : "poofers",
       "name" : "Poofers",
       "moduleType" : "Poofer",
@@ -22,7 +22,7 @@
       "patterns" : ["Chase", "AllPoof"]
       
     },
-    "poofers" : {
+    "clackers" : {
       "id" : "clackers",
       "name" : "Sound hammers",
       "moduleType" : "Poofer",

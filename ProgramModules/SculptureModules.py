@@ -58,6 +58,10 @@ class SculptureModuleBase():
 
 	def changeInputBinding(self, patternInstanceId, patternInputId, inputInstanceId): #connect data from an input to a pattern parameter
 		return self.patterns[patternInstanceId].changeInputBinding(patternInputId, inputInstanceId)
+	def setInputValue(self, inputInstanceId, *args):
+		inputObj = self.inputManager.getInputObj(inputInstanceId)
+		inputObj.setInputValue(*args)
+		
 
 class PooferModule(SculptureModuleBase):
 	def __init__ (self, *args):
