@@ -1,4 +1,3 @@
-import json
 class PatternBase():
 	def __init__ (self, inputManager, gridSize):
 		self.inputManager = inputManager
