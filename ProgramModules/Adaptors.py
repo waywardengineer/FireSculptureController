@@ -18,7 +18,7 @@ class SerialAdaptor():
 				self.connection.write(data)
 			except:
 				appMessenger.putMessage('log', '%s failure sending data' %(self.configData['adaptorId']))
-				print data
+				#print data
 				#success = False
 		return success
 	def connect(self):

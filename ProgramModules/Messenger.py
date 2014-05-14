@@ -25,7 +25,9 @@ class Messenger():
 
 	def getMessages(self, channelId):
 		self.checkForChannel(channelId)
-		return self.channels[channelId]['messages']
+		data = self.channels[channelId]['messages']
+		self.channels[channelId]['messages'] = []
+		return data
 
 
 	def addBinding(self, channelId, function, data=False):

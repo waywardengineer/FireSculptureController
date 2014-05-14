@@ -20,6 +20,7 @@ class SculptureController():
 		self.doReset()
 
 
+
 	def doReset(self):
 		self.sculptureModules = {}
 		self.dataChannelManager = False
@@ -33,11 +34,14 @@ class SculptureController():
 		self.sculptureConfig = self.sculptureDefinitions[sculptureId]
 		self.dataChannelManager = DataChannelManager(self.sculptureConfig)
 		self.inputManager = InputManager(self.dataChannelManager)
+		self.currentSculptureId = sculptureId
 		for moduleId in self.sculptureConfig['modules']:
 			moduleConfig = self.sculptureConfig['modules'][moduleId]
 			moduleConfig['moduleId'] = moduleId
 			sculptureModuleClass = getattr(SculptureModules, moduleConfig['moduleType'] + 'Module')
 			self.sculptureModules[moduleId] = sculptureModuleClass(self.dataChannelManager, self.inputManager, moduleConfig)
+		appMessenger.addBinding('outputChanged', getattr(self, 'getCurrentOutputState'))
+
 	def doCommand(self, command):
 		function = getattr(self, command.pop(0))
 		return function(*command)
@@ -50,6 +54,16 @@ class SculptureController():
 	
 	def setInputValue(self, moduleId, *args):
 		return self.sculptureModules[moduleId].setInputValue(*args)
+	
+	def getCurrentOutputState(self):
+		if self.sculptureConfig:
+			data = {'sculptures' : {self.currentSculptureId : {'modules' : {}}}}
+			for moduleId in self.sculptureConfig['modules']:
+				data['sculptures'][self.currentSculptureId]['modules'][moduleId] = {'currentOutputState' : self.sculptureModules[moduleId].getCurrentOutputState()}
+		else:
+			data = {'sculptures' : {}}
+		return data
+			
 	
 	def getCurrentStateData(self, sculptureId = False, moduleId = False, *args): 
 		data = {'sculptures' : {}}

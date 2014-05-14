@@ -1,4 +1,4 @@
-
+import json
 class PatternBase():
 	def __init__ (self, inputManager, gridSize):
 		self.inputManager = inputManager
@@ -44,7 +44,9 @@ class PatternBase():
 		data = {'name' : self.patternName, 'inputBindings' : {}}
 		for patternInputId in self.inputParams:
 			inputObj = getattr(self.inputs, patternInputId)
-			data['inputBindings'][patternInputId] = inputObj.getId()
+			print patternInputId
+			
+			data['inputBindings'][patternInputId] = {'inputInstanceId' : inputObj.getId(), 'description' : self.inputParams[patternInputId]['description']}
 		return data
 	
 

@@ -2,11 +2,20 @@ var settings = {
 	'serverUrl' : '/'
 };
 var allSculptureData = false;
-/*var templateData = {
-	'sculptureControl' : {
-		'tag' : 'div',
-		'contents' : [
-			'*/
+var source = new EventSource('/dataStream');
+source.onmessage = function (event) {
+	var data = JSON.parse(event.data);
+	if (data.log){
+		$.each(data.log, function(logIndex, logItem){
+			$('#logDiv').prepend(logItem + '<br>');
+		});
+	}
+	if (data.sculptures){
+		allSculptureData.sculptures = $.extend(true, allSculptureData.sculptures, data.sculptures);
+		updateStatusDisplay();
+	}
+};
+
 
 
 function doInit(){
@@ -26,6 +35,8 @@ function buildAll(data){
 	else {
 		buildElement('sculptureChooser', 'mainDiv');
 	}
+	$('#mainDiv').css('height', $(window).height() * 0.7 + 'px');
+	$('#logDiv').css('height', $(window).height() * 0.25 + 'px');
 }
 function buildElement(elementType, htmlParentId, dataPath){
 	htmlParentId = '#' + htmlParentId
@@ -46,7 +57,7 @@ function buildElement(elementType, htmlParentId, dataPath){
 		break;
 		case 'sculptureControl':
 			$(htmlParentId).append(
-				'<h1>' + allSculptureData.sculptures[dataPath.sculptureId].config.sculptureName + '</h1><div id="sculptureControl"><ul id="sculptureControlTabLabels"></ul></div>'
+				'<h1>' + allSculptureData.sculptures[dataPath.sculptureId].config.sculptureName + '</h1><div id="sculptureControl" style="height:80%;"><ul id="sculptureControlTabLabels"></ul></div>'
 			);
 			$.each( allSculptureData.sculptures[dataPath.sculptureId].modules, function( moduleId, moduleData ) {
 				$('#sculptureControl').append(
@@ -73,7 +84,7 @@ function buildElement(elementType, htmlParentId, dataPath){
 			$('#' + dataPath.moduleId + '_patternChoices').menu();
 
 			$(htmlParentId).append(
-				'<div id="' + dataPath.moduleId  + '_outputView" class="outputView"></div><div id="' + dataPath.moduleId  + '_patternView" class="patternView"></div><div id="' + dataPath.moduleId  + '_inputView" class="inputView"></div>'
+				'<div id="' + dataPath.moduleId  + '_outputView" class="outputView"></div><div style="float:left;" id="' + dataPath.moduleId  + '_patternView" class="patternView"></div><div style="float:left;" id="' + dataPath.moduleId  + '_inputView" class="inputView"></div>'
 			);
 			buildElement('outputView', dataPath.moduleId  + '_outputView', dataPath);
 			buildElement('patternView', dataPath.moduleId  + '_patternView', dataPath);
@@ -96,11 +107,11 @@ function buildElement(elementType, htmlParentId, dataPath){
 		break;
 		case 'inputView':
 			$.each( allSculptureData.sculptures[dataPath.sculptureId].modules[dataPath.moduleId].inputs, function( inputInstanceId, inputData ) {
-				divId  = dataPath.moduleId + '_inputInstance' + inputInstanceId + '_div';
+				idPrefix  = dataPath.moduleId + '_inputInstance' + inputInstanceId + '_';
 				$(htmlParentId).append(
-					'<div id="' + divId + '"></div>'
+					'<div style="display:none; text-align:center; float:left; width:125px;" id="' + idPrefix + 'div"><span class="inputDescription" id="' + idPrefix + 'description"></span></div>'
 				);
-				buildElement('input', divId, {'sculptureId' : dataPath.sculptureId, 'moduleId' : dataPath.moduleId, 'inputInstanceId' : inputInstanceId});
+				buildElement('input', idPrefix + 'div', {'sculptureId' : dataPath.sculptureId, 'moduleId' : dataPath.moduleId, 'inputInstanceId' : inputInstanceId});
 			});
 		break;
 		case 'outputView':
@@ -109,9 +120,11 @@ function buildElement(elementType, htmlParentId, dataPath){
 					'<div id="' + dataPath.moduleId + '_outputView_row' + rowIndex + '"></div>'
 				);
 				$.each(allSculptureData.sculptures[dataPath.sculptureId].config.modules[dataPath.moduleId].protocol.mapping[rowIndex], function( colIndex, foo ) {
+					id = dataPath.moduleId + '_outputView_row' + rowIndex + '_col' + colIndex;
 					$('#' + dataPath.moduleId + '_outputView_row' + rowIndex).append(
-						'<input type="checkbox" id="' + dataPath.moduleId + '_outputView_row' + rowIndex + '_col' + colIndex + '">'
+						'<input type="checkbox" id="' + id + '" class="pooferDisplay"><label for="' + id + '"> </label>'
 					);
+					$('#' + id).button();
 				});
 			});
 		break;
@@ -135,6 +148,7 @@ function buildElement(elementType, htmlParentId, dataPath){
 								'value' : settingData['currentSetting'],
 								'selfClosing' : true,
 								'data-width' : 100,
+								'data-height' : 100,
 								'data-max' : settingData.max,
 								'data-min' : settingData.min,
 								'data-skin' : 'tron',
@@ -146,7 +160,8 @@ function buildElement(elementType, htmlParentId, dataPath){
 					}
 					tagData['id'] = dataPath.moduleId + '_input' + dataPath.inputInstanceId + '_setting' + settingIndex
 					tagData['onChange'] = "setInputValue('" + dataPath.moduleId + "', " + dataPath.inputInstanceId + ", " + settingIndex + ")"
-					$(htmlParentId).append(makeHtml(tagData));
+					$(htmlParentId).append('<div class="controlContainer">' + makeHtml(tagData) + '</div>');
+					$(htmlParentId).append('<span class="settingLabel">' + settingData.name + '</span>');
 					if (makeKnob){
 						initKnob(tagData['id'], dataPath.moduleId, dataPath.inputInstanceId, settingIndex);
 					
@@ -157,6 +172,18 @@ function buildElement(elementType, htmlParentId, dataPath){
 
 		break;
 	}
+}
+function editPattern(moduleId){
+	patternInstanceId = $('#' + moduleId + '_patternSelection').val();
+	$.each(allSculptureData.sculptures[allSculptureData.activeSculptureId].modules[moduleId].inputs, function(inputInstanceId){
+		$('#' + moduleId + '_inputInstance' + inputInstanceId + '_div').css("display", "none");
+	});
+	$.each(allSculptureData.sculptures[allSculptureData.activeSculptureId].modules[moduleId].patterns[patternInstanceId].inputBindings, function(patternInputId, patternInputData){
+		idPrefix  = moduleId + '_inputInstance' + patternInputData.inputInstanceId + '_';
+		$('#' + idPrefix + 'div').css("display", "block");
+		$('#' + idPrefix + 'description').html(patternInputData.description);
+	});
+
 }
 function makeHtml(tagData){
 	result = '<' + tagData['tag'];
@@ -190,6 +217,8 @@ function handleCommandResult(result){
 	switch(result.command){
 		case 'loadSculpture':
 			doInit();
+		case 'addPattern':
+			doInit();
 		break;
 	}
 }
@@ -205,6 +234,20 @@ function setInputValue(moduleId, inputInstanceId, settingIndex){
 	doCommand(['setInputValue', moduleId, parseInt(inputInstanceId), $(htmlId).val(), parseInt(settingIndex)]);
 	
 }
+function updateStatusDisplay(){
+	if (allSculptureData.activeSculptureId){
+		$.each(allSculptureData.sculptures[allSculptureData.activeSculptureId].modules, function(moduleId, moduleData){
+			$.each(moduleData.currentOutputState, function(rowIndex, rowData){
+				$.each(rowData, function(colIndex, colData){
+					id =  moduleId + '_outputView_row' + rowIndex + '_col' + colIndex;
+					$('#' + id).prop('checked', colData).button('refresh');
+				});
+			});
+		});
+	}
+	
+}
+
 function initKnob(htmlId, moduleId, inputInstanceId, settingIndex){
 	htmlId = '#' + htmlId;
 	$(htmlId).knob({
