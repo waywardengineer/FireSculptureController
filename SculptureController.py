@@ -43,18 +43,15 @@ class SculptureController():
 		appMessenger.addBinding('outputChanged', getattr(self, 'getCurrentOutputState'))
 
 	def doCommand(self, command):
-		function = getattr(self, command.pop(0))
-		return function(*command)
-		
-	def addPattern(self, moduleId, *args):
-		return self.sculptureModules[moduleId].addPattern(*args)
-		
-	def removePattern(self, moduleId, *args):
-		return self.sculptureModules[moduleId].removePattern(*args)
-	
-	def setInputValue(self, moduleId, *args):
-		return self.sculptureModules[moduleId].setInputValue(*args)
-	
+		functionName = command[0]
+		if functionName in ['getCurrentStateData', 'getCurrentOutputState', 'loadSculpture']:
+			command.pop(0)
+			function = getattr(self, functionName)
+			return function(*command)
+		else:
+			moduleId = command.pop(1)
+			return self.sculptureModules[moduleId].doCommand(command)
+
 	def getCurrentOutputState(self):
 		if self.sculptureConfig:
 			data = {'sculptures' : {self.currentSculptureId : {'modules' : {}}}}

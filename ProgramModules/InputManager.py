@@ -14,18 +14,22 @@ class InputManager():
 	def buildInputCollection(self, inputParams, userId):
 		inputDict = {}
 		for userSubId in inputParams:
-			typeName = inputParams[userSubId]['type']
-			subTypeName = inputParams[userSubId]['subType']
-			inputClassName = subTypeName[0].upper() + subTypeName[1:] + typeName[0].upper() + typeName[1:] + 'Input'
-			inputClass = getattr(self.inputModules, inputClassName)
-			self.inputInstances[self.nextInputInstanceId] = inputClass(inputParams[userSubId])
-			self.inputInstances[self.nextInputInstanceId].setInstanceId(self.nextInputInstanceId)
-			inputDict[userSubId] = self.inputInstances[self.nextInputInstanceId]
-			self.registerUsage(userId, self.nextInputInstanceId, userSubId)
-			self.nextInputInstanceId += 1
+			newInputInstanceId = self.createNewInput(inputParams[userSubId])
+			inputDict[userSubId] = self.inputInstances[newInputInstanceId]
+			self.registerUsage(userId, newInputInstanceId, userSubId)
 		InputCollectionWrapper = getattr(self.inputModules, "InputCollectionWrapper")
 		return InputCollectionWrapper(inputDict)
 
+	def createNewInput(self, params):
+		typeName = params['type']
+		subTypeName = params['subType']
+		newInputInstanceId = self.nextInputInstanceId
+		self.nextInputInstanceId += 1
+		inputClassName = subTypeName[0].upper() + subTypeName[1:] + typeName[0].upper() + typeName[1:] + 'Input'
+		inputClass = getattr(self.inputModules, inputClassName)
+		self.inputInstances[newInputInstanceId] = inputClass(params)
+		self.inputInstances[newInputInstanceId].setInstanceId(newInputInstanceId)
+		return newInputInstanceId
 
 	def registerUsage(self, userId, inputInstanceId, userSubId = False):
 		if not inputInstanceId in self.inputInstanceUses.keys():

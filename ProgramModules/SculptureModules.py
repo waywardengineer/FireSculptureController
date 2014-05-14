@@ -55,8 +55,15 @@ class SculptureModuleBase():
 		self.patterns[patternInstanceId].unBind()
 		del self.patterns[patternInstanceId]
 
+	def bindPatternToNewInput(self, patternInstanceId, patternInputId, newPatternParams):
+		return changeInputBinding(patternInstanceId, patternInputId, inputManager.createNewInput(params))
+	
+	def doCommand(self, command):
+		functionName = command.pop(0)
+		function = getattr(self, functionName)
+		return function(*command)
 
-	def changeInputBinding(self, patternInstanceId, patternInputId, inputInstanceId): #connect data from an input to a pattern parameter
+	def changePatternInputBinding(self, patternInstanceId, patternInputId, inputInstanceId): #connect data from an input to a pattern parameter
 		return self.patterns[patternInstanceId].changeInputBinding(patternInputId, inputInstanceId)
 	def setInputValue(self, inputInstanceId, *args):
 		inputObj = self.inputManager.getInputObj(inputInstanceId)
