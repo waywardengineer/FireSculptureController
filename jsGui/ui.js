@@ -29,148 +29,94 @@ function buildAll(data){
 	allSculptureData = data
 	$('#mainDiv').html('');
 	if (data['activeSculptureId']){
-		buildElement('sculptureControl', 'mainDiv', {'sculptureId' : data['activeSculptureId']});
+		$('#mainDiv').append($('#sculptureControllerTemplate').render(makeSculptureControllerTemplateData()));
+		$.each( allSculptureData.sculptures[allSculptureData.activeSculptureId].modules, function( moduleId, moduleData ) {
+			$.each( moduleData.inputs, function( inputInstanceId, inputData ) {
+				buildInputControls(moduleId, inputInstanceId);
+			});
+			$('#' + moduleId + '_patternChoices').menu();
+			$('#' + moduleId + '_patternSelection').menu();
+		});
+		$('.pooferDisplay').button();
 		$('#sculptureControl').tabs();
 	}
 	else {
-		buildElement('sculptureChooser', 'mainDiv');
+		data = {"sculptures" : []};
+		$.each(allSculptureData['sculptures'], function(sculptureId, sculptureData) {
+			data.sculptures.push({"sculptureId" : sculptureId, "sculptureName" : sculptureData.config.sculptureName});
+		});
+		$('#mainDiv').append($('#sculptureChooserTemplate').render(data));
+		$('#sculptureChooser').menu();
 	}
 	$('#mainDiv').css('height', $(window).height() * 0.7 + 'px');
 	$('#logDiv').css('height', $(window).height() * 0.25 + 'px');
 }
-function buildElement(elementType, htmlParentId, dataPath){
-	htmlParentId = '#' + htmlParentId
-	switch(elementType){
-		case 'sculptureChooser':
-			$(htmlParentId).append(
-				'<select id="sculptureChooser" onChange="changeSculpture()" size="10"><option value="none">None</option></select>'
-			);
-			$.each(allSculptureData['sculptures'], function(sculptureId, sculptureData) {
-				$('#sculptureChooser').append(makeHtml({
-					'tag' : 'option',
-					'id' : sculptureId + '_choice',
-					'value' : sculptureId
-				}));
-				$('#' + sculptureId + '_choice').append(allSculptureData.sculptures[sculptureId].config.sculptureName);
-			});
-			$('#sculptureChooser').menu();
-		break;
-		case 'sculptureControl':
-			$(htmlParentId).append(
-				'<h1>' + allSculptureData.sculptures[dataPath.sculptureId].config.sculptureName + '</h1><div id="sculptureControl" style="height:80%;"><ul id="sculptureControlTabLabels"></ul></div>'
-			);
-			$.each( allSculptureData.sculptures[dataPath.sculptureId].modules, function( moduleId, moduleData ) {
-				$('#sculptureControl').append(
-					'<div id="' + moduleId + '_module"></div>'
-				);
-				$('#sculptureControlTabLabels').append(
-					'<li><a href="#' + moduleId + '_module">' + allSculptureData.sculptures[dataPath.sculptureId].config.modules[moduleId].name + '</a></li>'
-				);
-				
-				buildElement('module', moduleId + '_module', {'sculptureId' : dataPath.sculptureId, 'moduleId' : moduleId});
-			});
-		break;
-		case 'module':
-			$(htmlParentId).append(makeHtml({
-				'tag' : 'select',
-				'id' : dataPath.moduleId + '_patternChoices',
-				'onChange' : "addPattern('" + dataPath.moduleId + "')",
-				'class' : 'addPattern'
-			}));
-			$('#' + dataPath.moduleId + '_patternChoices').append('<option value="none">Add Pattern</option>');
-			$.each( allSculptureData.sculptures[dataPath.sculptureId].modules[dataPath.moduleId].availablePatternNames, function( patternId, patternData ) {
-				$('#' + dataPath.moduleId + '_patternChoices').append('<option value="' + patternData + '">' + patternData + '</option>');
-			});
-			$('#' + dataPath.moduleId + '_patternChoices').menu();
 
-			$(htmlParentId).append(
-				'<div id="' + dataPath.moduleId  + '_outputView" class="outputView"></div><div style="float:left;" id="' + dataPath.moduleId  + '_patternView" class="patternView"></div><div style="float:left;" id="' + dataPath.moduleId  + '_inputView" class="inputView"></div>'
-			);
-			buildElement('outputView', dataPath.moduleId  + '_outputView', dataPath);
-			buildElement('patternView', dataPath.moduleId  + '_patternView', dataPath);
-			buildElement('inputView', dataPath.moduleId  + '_inputView', dataPath);
-			
-		break;
-		case 'patternView':
-			$(htmlParentId).append(makeHtml({
-				'tag' : 'select',
-				'id' : dataPath.moduleId + '_patternSelection',
-				'onChange' : "editPattern('" + dataPath.moduleId + "')",
-				'class' : 'activePatternList',
-				'size' : '10'
-			}));
-			$.each( allSculptureData.sculptures[dataPath.sculptureId].modules[dataPath.moduleId].patterns, function( patternId, patternData ) {
-				$('#' + dataPath.moduleId + '_patternSelection').append('<option value="' + patternId + '">' + patternData['name'] + '</option>');
+function makeSculptureControllerTemplateData(){
+	data = {"sculptureName" : allSculptureData.activeSculptureId, "modules" : []};
+	$.each( allSculptureData.sculptures[allSculptureData.activeSculptureId].modules, function( moduleId, moduleData ) {
+		configData = allSculptureData.sculptures[allSculptureData.activeSculptureId].config.modules[moduleId]
+		templateModuleData = {"moduleId" : moduleId, "name" : configData.name, "availablePatternNames" : [], "patterns" : [], "inputs" : [], "rows" : []};
+		$.each( moduleData.availablePatternNames, function( patternIndex, patternName ) {
+			templateModuleData.availablePatternNames.push({"name" : patternName});
+		});
+		$.each( moduleData.patterns, function( patternInstanceId, patternData ) {
+			templateModuleData.patterns.push({"patternName" : patternData.name, "patternInstanceId" : patternInstanceId});
+		});
+		$.each( moduleData.inputs, function( inputInstanceId, inputData ) {
+			templateModuleData.inputs.push({"inputInstanceId" : inputInstanceId, "moduleId" : moduleId, });
+		});
+		$.each( configData.protocol.mapping, function( rowIndex, rowData ) {
+			templateRowData = {"rowIndex" : rowIndex, "moduleId" : moduleId, "cols" : []};
+			$.each( rowData, function( colIndex, colData ) {
+				templateRowData.cols.push({"rowIndex" : rowIndex, "moduleId" : moduleId, "colIndex" : colIndex});
 			});
-			$('#' + dataPath.moduleId + '_patternSelection').menu();
+			templateModuleData.rows.push(templateRowData);
+		});
+		data.modules.push(templateModuleData);
+	});
+	return data;
+}
 
-		break;
-		case 'inputView':
-			$.each( allSculptureData.sculptures[dataPath.sculptureId].modules[dataPath.moduleId].inputs, function( inputInstanceId, inputData ) {
-				idPrefix  = dataPath.moduleId + '_inputInstance' + inputInstanceId + '_';
-				$(htmlParentId).append(
-					'<div style="display:none; text-align:center; float:left; width:125px;" id="' + idPrefix + 'div"><span class="inputDescription" id="' + idPrefix + 'description"></span></div>'
-				);
-				buildElement('input', idPrefix + 'div', {'sculptureId' : dataPath.sculptureId, 'moduleId' : dataPath.moduleId, 'inputInstanceId' : inputInstanceId});
-			});
-		break;
-		case 'outputView':
-			$.each( allSculptureData.sculptures[dataPath.sculptureId].config.modules[dataPath.moduleId].protocol.mapping, function( rowIndex, col ) {
-				$(htmlParentId).append(
-					'<div id="' + dataPath.moduleId + '_outputView_row' + rowIndex + '"></div>'
-				);
-				$.each(allSculptureData.sculptures[dataPath.sculptureId].config.modules[dataPath.moduleId].protocol.mapping[rowIndex], function( colIndex, foo ) {
-					id = dataPath.moduleId + '_outputView_row' + rowIndex + '_col' + colIndex;
-					$('#' + dataPath.moduleId + '_outputView_row' + rowIndex).append(
-						'<input type="checkbox" id="' + id + '" class="pooferDisplay"><label for="' + id + '"> </label>'
-					);
-					$('#' + id).button();
-				});
-			});
-		break;
-		case 'input':
-			inputData = allSculptureData.sculptures[dataPath.sculptureId].modules[dataPath.moduleId].inputs[dataPath.inputInstanceId];
-			if (inputData['settings']){
-				$.each( inputData['settings'], function( settingIndex, settingData ) {
-					tagData={};
-					makeKnob = false;
-					switch(settingData['type']){
-						case 'onOff':
-							tagData = {
-								'tag' : 'input',
-								'type' : 'checkbox',
-								'selfClosing' : true
-							};
-						break;
-						case 'param':
-							tagData = {
-								'tag' : 'input',
-								'value' : settingData['currentSetting'],
-								'selfClosing' : true,
-								'data-width' : 100,
-								'data-height' : 100,
-								'data-max' : settingData.max,
-								'data-min' : settingData.min,
-								'data-skin' : 'tron',
-								'class' : 'knob',
-								'data-thickness' : '.2' 
-							};
-							makeKnob = true;
-						break;
-					}
-					tagData['id'] = dataPath.moduleId + '_input' + dataPath.inputInstanceId + '_setting' + settingIndex
-					tagData['onChange'] = "setInputValue('" + dataPath.moduleId + "', " + dataPath.inputInstanceId + ", " + settingIndex + ")"
-					$(htmlParentId).append('<div class="controlContainer">' + makeHtml(tagData) + '</div>');
-					$(htmlParentId).append('<span class="settingLabel">' + settingData.name + '</span>');
-					if (makeKnob){
-						initKnob(tagData['id'], dataPath.moduleId, dataPath.inputInstanceId, settingIndex);
-					
-					}
-
-				});
+function buildInputControls(moduleId, inputInstanceId){
+	inputData = allSculptureData.sculptures[allSculptureData.activeSculptureId].modules[moduleId].inputs[inputInstanceId];
+	htmlParentId = "#" + moduleId + "_inputInstance" + inputInstanceId + "_div"
+	if (inputData['settings']){
+		$.each( inputData['settings'], function( settingIndex, settingData ) {
+			tagData={};
+			makeKnob = false;
+			switch(settingData['type']){
+				case 'onOff':
+					tagData = {
+						'tag' : 'input',
+						'type' : 'checkbox',
+						'selfClosing' : true
+					};
+				break;
+				case 'param':
+					tagData = {
+						'tag' : 'input',
+						'value' : settingData['currentSetting'],
+						'selfClosing' : true,
+						'data-width' : 100,
+						'data-height' : 100,
+						'data-max' : settingData.max,
+						'data-min' : settingData.min,
+						'data-skin' : 'tron',
+						'class' : 'knob',
+						'data-thickness' : '.2' 
+					};
+					makeKnob = true;
+				break;
 			}
-
-		break;
+			tagData['id'] = moduleId + '_input' + inputInstanceId + '_setting' + settingIndex
+			tagData['onChange'] = "setInputValue('" + moduleId + "', " + inputInstanceId + ", " + settingIndex + ")"
+			$(htmlParentId).append('<div class="controlContainer">' + makeHtml(tagData) + '</div>');
+			$(htmlParentId).append('<span class="settingLabel">' + settingData.name + '</span>');
+			if (makeKnob){
+				initKnob(tagData['id'], moduleId, inputInstanceId, settingIndex);
+			}
+		});
 	}
 }
 function editPattern(moduleId){
