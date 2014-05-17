@@ -141,17 +141,6 @@ class DiscreteParamInput(BasicParamInput):
 
 		
 		
-class OscServerThread(Thread):
-	def __init__(self, host, stopEvent):
-		self.server = OSCServer(host)
-		self.stopEvent = stopEvent
-	def run(self, callBacks):
-		for callBack in callBacks:
-			self.server.addMsgHandler(callBack[0], callBack[1])
-		while not self.stopEvent.wait(1):
-			pass
-			self.server.handle_request()
-		self.server.close()
 
 class MultiInput(InputBase):
 	def __init__(self, inputManager, *args):
@@ -164,6 +153,18 @@ class MultiInput(InputBase):
 
 
 class OscMultiInput(MultiInput):
+	class OscServerThread(Thread):
+		def __init__(self, host, stopEvent):
+			Thread.__init__(self)
+			self.server = OSCServer(host)
+			self.stopEvent = stopEvent
+		def setCallBacks(self, callBacks):
+			for callBack in callBacks:
+				self.server.addMsgHandler(callBack[0], callBack[1])
+		def run(self):
+			while not self.stopEvent.is_set():
+				self.server.handle_request()
+			self.server.close()
 
 	def __init__(self, *args):
 		MultiInput.__init__(self, *args)
@@ -172,9 +173,10 @@ class OscMultiInput(MultiInput):
 		self.configParams = dict(defaults, **self.configParams.copy())
 		self.outputValueTypes = ['pulse' for i in range(len(self.configParams['callbackAddresses']['button']))] + ['param' for i in range(len(self.configParams['callbackAddresses']['value']))]
 		self.stopEvent = Event()
-		self.server = OscServerThread(self.configParams['host'], self.stopEvent)
+		self.server = OscMultiInput.OscServerThread(self.configParams['host'], self.stopEvent)
 		self.buildCallbackLinkList()
-		self.server.run(self.callbackLinkList)
+		self.server.setCallBacks(self.callbackLinkList)
+		self.server.start()
 		self.persistant = True
 
 
