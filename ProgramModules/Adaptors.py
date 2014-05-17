@@ -2,7 +2,7 @@
 take the params needed to open the connection, send the already processed data over the connection,
 (eventually) recieve data, and make sure it stays connected. '''
 
-
+from random import randint
 class SerialAdaptor():
 	import serial
 	def __init__ (self, configData):
@@ -19,6 +19,7 @@ class SerialAdaptor():
 			except:
 				appMessenger.putMessage('log', '%s failure sending data' %(self.configData['adaptorId']))
 				#print data
+				print 'ok' + str(randint(0, 20))
 				#success = False
 		return success
 	def connect(self):

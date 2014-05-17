@@ -27,7 +27,10 @@ class InputManager():
 		self.nextInputInstanceId += 1
 		inputClassName = subTypeName[0].upper() + subTypeName[1:] + typeName[0].upper() + typeName[1:] + 'Input'
 		inputClass = getattr(self.inputModules, inputClassName)
-		self.inputInstances[newInputInstanceId] = inputClass(params)
+		if typeName == 'multi':
+			self.inputInstances[newInputInstanceId] = inputClass(self, params)
+		else:
+			self.inputInstances[newInputInstanceId] = inputClass(params)
 		self.inputInstances[newInputInstanceId].setInstanceId(newInputInstanceId)
 		return newInputInstanceId
 

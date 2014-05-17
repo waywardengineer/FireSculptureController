@@ -11,6 +11,7 @@ class SculptureController():
 	def __init__(self):
 		definitionFileDirectory = 'sculptureDefinitions'
 		self.sculptureDefinitions = {}
+		self.sculptureModules = {}
 		for definitionFileName in os.listdir(definitionFileDirectory):
 			try:
 				definition = json.load(open("%s/%s" %(definitionFileDirectory, definitionFileName)))
@@ -22,6 +23,8 @@ class SculptureController():
 
 
 	def doReset(self):
+		for moduleId in self.sculptureModules:
+			self.sculptureModules[moduleId].stop()
 		self.sculptureModules = {}
 		self.dataChannelManager = False
 		self.inputManager = False
@@ -41,6 +44,7 @@ class SculptureController():
 			sculptureModuleClass = getattr(SculptureModules, moduleConfig['moduleType'] + 'Module')
 			self.sculptureModules[moduleId] = sculptureModuleClass(self.dataChannelManager, self.inputManager, moduleConfig)
 		appMessenger.addBinding('outputChanged', getattr(self, 'getCurrentOutputState'))
+		self.inputManager.createNewInput({'type' : 'multi', 'subType' : 'osc'}) 
 
 	def doCommand(self, command):
 		functionName = command[0]

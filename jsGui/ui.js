@@ -14,6 +14,14 @@ source.onmessage = function (event) {
 		allSculptureData.sculptures = $.extend(true, allSculptureData.sculptures, data.sculptures);
 		updateStatusDisplay();
 	}
+	if (data.outputChanges){
+		$.each(data.outputChanges, function(index, outputChangeMessage){
+			$.each(outputChangeMessage.data, function(index, pointData){
+				id = outputChangeMessage.moduleId + '_outputView_row' + pointData[0][0] + '_col' + pointData[0][1];
+				$('#' + id).prop('checked', pointData[1][0]).button('refresh');
+			});
+		});
+	}
 };
 
 
@@ -81,8 +89,8 @@ function makeSculptureControllerTemplateData(){
 function buildInputControls(moduleId, inputInstanceId){
 	inputData = allSculptureData.sculptures[allSculptureData.activeSculptureId].modules[moduleId].inputs[inputInstanceId];
 	htmlParentId = "#" + moduleId + "_inputInstance" + inputInstanceId + "_div"
-	if (inputData['settings']){
-		$.each( inputData['settings'], function( settingIndex, settingData ) {
+	if (inputData['inputSettings']){
+		$.each( inputData['inputSettings'], function( settingIndex, settingData ) {
 			tagData={};
 			makeKnob = false;
 			switch(settingData['type']){
@@ -96,7 +104,7 @@ function buildInputControls(moduleId, inputInstanceId){
 				case 'param':
 					tagData = {
 						'tag' : 'input',
-						'value' : settingData['currentSetting'],
+						'value' : settingData.currentValue,
 						'selfClosing' : true,
 						'data-width' : 100,
 						'data-height' : 100,

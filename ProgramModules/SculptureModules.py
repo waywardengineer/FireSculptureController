@@ -58,6 +58,14 @@ class SculptureModuleBase():
 	def bindPatternToNewInput(self, patternInstanceId, patternInputId, newPatternParams):
 		return changeInputBinding(patternInstanceId, patternInputId, inputManager.createNewInput(params))
 	
+	def stop(self):
+		for patternInstanceId in self.patterns:
+			self.patterns[patternInstanceId].unBind()
+		self.patterns = {}
+
+		
+	
+	
 	def doCommand(self, command):
 		functionName = command.pop(0)
 		function = getattr(self, functionName)
@@ -85,10 +93,11 @@ class PooferModule(SculptureModuleBase):
 				for patternId in self.patterns:
 					if self.patternRowSettings[patternId][row] and self.patterns[patternId].getState(row, col):
 						state = True
-				data.append([[row, col], [state]])
-				self.currentOutputState[row][col] = state
+				if not state == self.currentOutputState[row][col]:
+					data.append([[row, col], [state]])
+					self.currentOutputState[row][col] = state
 		self.dataChannelManager.send(self.moduleConfig['moduleId'], data)
-		appMessenger.putMessage('outputChanged', True)
+		appMessenger.putMessage('outputChanged', {'moduleId' : self.moduleConfig['moduleId'], 'data' : data})
 
 
 	def toggleRowSelection(self, moduleId, patternInstanceId, row): #toggle row selection for pattern

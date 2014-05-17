@@ -6,7 +6,7 @@ class Chase(PatternBase):
 							'description' : 'Trigger next step in sequence',
 							'type' : 'pulse',
 							'subType' : 'timer',
-							'settings' : [{
+							'inputSettings' : [{
 								'min' : 100,
 								'max' : 3000, 
 								'default' : 2000
@@ -21,7 +21,7 @@ class Chase(PatternBase):
 							'description' : 'Number of poofers on at once',
 							'type' : 'param',
 							'subType' : 'discrete',
-							'settings' : [{
+							'inputSettings' : [{
 								'min' : 1,
 								'max' : 5,
 								'default' : 2
@@ -31,7 +31,7 @@ class Chase(PatternBase):
 							'description' : 'Number of poofers to jump per step',
 							'type' : 'param',
 							'subType' : 'discrete',
-							'settings' : [{
+							'inputSettings' : [{
 								'min' : 1,
 								'max' : 5,
 								'default' : 1
@@ -41,7 +41,7 @@ class Chase(PatternBase):
 							'description' : 'Number of pulses chasing each other',
 							'type' : 'param',
 							'subType' : 'discrete',
-							'settings' : [{
+							'inputSettings' : [{
 								'min' : 1,
 								'max' : 3,
 								'default' : 1

@@ -41,7 +41,7 @@ def sendNewOutputState(argData):
 	whatChanged = argData['whatChanged']
 	data = {}
 	if whatChanged == 'outputChanged':
-		data = sculpture.getCurrentOutputState()
+		data = {'outputChanges' : appMessenger.getMessages('outputChanged')}
 	elif whatChanged == 'log':
 		data = {'log' : appMessenger.getMessages('log')}
 	for sub in subscriptions[:]:
@@ -85,9 +85,12 @@ def subscribe():
 
 
 
-
+# sculpture.loadSculpture('tympani')
 
 if __name__ == '__main__':
 	app.debug = True
 	server = WSGIServer(("", 5000), app)
-	server.serve_forever()
+	try:
+		server.serve_forever()
+	except:
+		sculpture.doReset()
