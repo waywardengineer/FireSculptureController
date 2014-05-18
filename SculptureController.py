@@ -78,29 +78,22 @@ class SculptureController():
 			
 	
 	def getCurrentStateData(self, sculptureId = False, moduleId = False, *args): 
-		data = {'sculptures' : {}}
 		if self.sculptureConfig:
-			data['activeSculptureId'] = self.sculptureConfig['sculptureId']
+			data = {'currentSculpture' : self.sculptureConfig.copy()}
+			for moduleId in self.sculptureConfig['modules']:
+				data['currentSculpture']['modules'][moduleId] = dict(self.sculptureConfig['modules'][moduleId], **self.sculptureModules[moduleId].getCurrentStateData())
+			data['inputs'] = self.inputManager.getCurrentStateData()['inputs']
+			
 		else:
-			data['activeSculptureId'] = False
-		if sculptureId:
-			data['sculptures'][sculptureId] = {'modules' : False}
-			if moduleId:
-				data['sculptures'][sculptureId]['modules'] = {moduleId : {}}
+			for sculptureId in self.sculptureDefinitions:
+				data['sculptures'][sculptureId] = {'config' : self.sculptureDefinitions[sculptureId], 'modules' : False}
 				if self.sculptureConfig and sculptureId == self.sculptureConfig['sculptureId']:
-					data['sculptures'][sculptureId]['modules'][moduleId] = self.sculptureModules[moduleId].getCurrentStateData(*args)
-				return data
-			data['sculptures'][sculptureId]['sculptureConfig'] = self.sculptureDefinitions[sculptureId]
-			return data
-		for sculptureId in self.sculptureDefinitions:
-			data['sculptures'][sculptureId] = {'config' : self.sculptureDefinitions[sculptureId], 'modules' : False}
-			if self.sculptureConfig and sculptureId == self.sculptureConfig['sculptureId']:
-				data['sculptures'][sculptureId]['modules'] = {}
-				for moduleId in self.sculptureModules:
-					data['sculptures'][sculptureId]['modules'][moduleId] = self.sculptureModules[moduleId].getCurrentStateData()
-		data['globalInputs'] = {}
-		for inputInstanceId in self.globalInputs:
-			data['globalInputs'][inputInstanceId] = self.globalInputs[inputInstanceId].getCurrentStateData()
+					data['sculptures'][sculptureId]['modules'] = {}
+					for moduleId in self.sculptureModules:
+						data['sculptures'][sculptureId]['modules'][moduleId] = self.sculptureModules[moduleId].getCurrentStateData()
+			data['globalInputs'] = {}
+			for inputInstanceId in self.globalInputs:
+				data['globalInputs'][inputInstanceId] = self.globalInputs[inputInstanceId].getCurrentStateData()
 		return data
 
 

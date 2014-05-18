@@ -3,45 +3,45 @@ class Chase(PatternBase):
 	def __init__(self, *args):
 		self.inputParams = {
 						'triggerStep' : {
-							'description' : 'Trigger next step in sequence',
+							'descriptionInPattern' : 'Trigger next step in sequence',
 							'type' : 'pulse',
 							'subType' : 'timer',
-							'inputSettings' : [{
+							'inputs' : [{
 								'min' : 100,
 								'max' : 3000, 
 								'default' : 2000
 							}]
 						},
 						'triggerSequence' : {
-							'description' : 'Trigger chase',
+							'descriptionInPattern' : 'Trigger chase',
 							'type' : 'pulse',
-							'subType' : 'alwaysOn'
+							'subType' : 'onOff'
 						},
 						'numberOn' : {
-							'description' : 'Number of poofers on at once',
-							'type' : 'param',
-							'subType' : 'discrete',
-							'inputSettings' : [{
+							'descriptionInPattern' : 'Number of poofers on at once',
+							'type' : 'value',
+							'subType' : 'int',
+							'inputs' : [{
 								'min' : 1,
 								'max' : 5,
 								'default' : 2
 							}]
 						},
 						'stepping' : {
-							'description' : 'Number of poofers to jump per step',
-							'type' : 'param',
-							'subType' : 'discrete',
-							'inputSettings' : [{
+							'descriptionInPattern' : 'Number of poofers to jump per step',
+							'type' : 'value',
+							'subType' : 'int',
+							'inputs' : [{
 								'min' : 1,
 								'max' : 5,
 								'default' : 1
 							}]
 						},
 						'numberPulses' : {
-							'description' : 'Number of pulses chasing each other',
-							'type' : 'param',
-							'subType' : 'discrete',
-							'inputSettings' : [{
+							'descriptionInPattern' : 'Number of pulses chasing each other',
+							'type' : 'value',
+							'subType' : 'int',
+							'inputs' : [{
 								'min' : 1,
 								'max' : 3,
 								'default' : 1

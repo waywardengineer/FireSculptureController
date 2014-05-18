@@ -2,11 +2,10 @@ class PatternBase():
 	def __init__ (self, inputManager, gridSize):
 		self.inputManager = inputManager
 		self.gridSize = gridSize
-		self.inputParamData = {}
 		self.messengerBindingIds = {}
 		self.updateTriggerFunction = False
 		self.patternName = ''
-		self.instanceId = False
+		self.instanceId = 0
 
 		try:
 			self.inputParams
@@ -17,17 +16,17 @@ class PatternBase():
 			for patternInputId in self.inputParams:
 				if self.inputParams[patternInputId]['type'] == 'pulse':
 					inputObj = getattr(self.inputs, patternInputId)
-					self.messengerBindingIds[patternInputId] = appMessenger.addBinding('pulse%s' %(inputObj.getId()), getattr(self, patternInputId))
+					self.messengerBindingIds[patternInputId] = appMessenger.addBinding('pulse%s_0' %(inputObj.getId()), getattr(self, patternInputId))
 
 
-	def changeInputBinding(self, inputInstanceId, patternInputId):
+	def changeInputBinding(self, inputInstanceId, patternInputId, outputIndexOfInput = 0):
 		self.inputs.replaceInput(patternInputId, inputManager.registerUsage(self.instanceId, inputInstanceId, patternInputId))
 		if self.inputParamData[patternInputId]['patternInputSpecs']['type'] == 'pulse':
 			if patternInputId in self.messengerBindingIds.keys():
 				appMessenger.removeBinding(self.messengerBindingIds[patternInputId])
 				del self.messengerBindingIds[patternInputId]
 			self.messengerBindingIds[inputInstanceId] = newBindingId
-			newBindingId = appMessenger.addBinding('pulse%s' %(inputInstanceId), getattr(self, patternInputId))
+			newBindingId = appMessenger.addBinding('pulse%s_%s' %(inputInstanceId, outputIndexOfInput), getattr(self, patternInputId))
 
 
 	def unBind(self):
@@ -43,7 +42,7 @@ class PatternBase():
 		data = {'name' : self.patternName, 'inputBindings' : {}}
 		for patternInputId in self.inputParams:
 			inputObj = getattr(self.inputs, patternInputId)
-			data['inputBindings'][patternInputId] = {'inputInstanceId' : inputObj.getId(), 'description' : self.inputParams[patternInputId]['description']}
+			data['inputBindings'][patternInputId] = {'inputInstanceId' : inputObj.getId(), 'description' : self.inputParams[patternInputId]['descriptionInPattern']}
 		return data
 	
 

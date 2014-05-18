@@ -85,7 +85,8 @@ def subscribe():
 
 
 
-# sculpture.loadSculpture('tympani')
+sculpture.loadSculpture('tympani')
+sculpture.doCommand(['addPattern', 'poofers', 'Chase'])
 
 if __name__ == '__main__':
 	app.debug = True

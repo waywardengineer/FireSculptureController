@@ -27,19 +27,12 @@ class SculptureModuleBase():
 
 
 	def getCurrentStateData(self, *args): # Dump all the state data for gui to render it
-		data = {'availablePatternNames' : self.availablePatternNames, 'currentOutputState' : self.currentOutputState, 'inputs' : {}, 'patterns' : {}}
-		inputIdsUsed = []
+		data = {'availablePatternNames' : self.availablePatternNames, 'currentOutputState' : self.currentOutputState, 'patterns' : {}}
 		for patternInstanceId in self.patterns:
 			patternData = self.patterns[patternInstanceId].getCurrentStateData()
 			patternData['instanceId'] = patternInstanceId
 			patternData['rowSettings'] = self.patternRowSettings[patternInstanceId]
-			for patternInputId in patternData['inputBindings']:
-				if patternData['inputBindings'][patternInputId]['inputInstanceId'] not in inputIdsUsed:
-					inputIdsUsed.append(patternData['inputBindings'][patternInputId]['inputInstanceId'])
 			data['patterns'][patternInstanceId] = patternData
-		for inputId in inputIdsUsed:
-			inputObj = self.inputManager.getInputObj(inputId)
-			data['inputs'][inputId] = inputObj.getCurrentStateData()
 		return data
 
 	def addPattern(self, patternTypeId): # make a pattern live and select all rows by default

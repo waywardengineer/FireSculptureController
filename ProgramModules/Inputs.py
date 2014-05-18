@@ -26,44 +26,27 @@ class InputCollectionWrapper(object):
 
 
 class InputBase():
-	def __init__(self, configParams):
-		self.configParams = configParams
-		print self.configParams
-		self.outputValues = [False]
-		self.outputValueTypes = ['value']
-		self.inputValues = []
-		self.inputValueTypes = []
-		self.instanceId = 0
-		self.persistant = False
-		if not 'inputSettings' in self.configParams.keys():
-			self.configParams['inputSettings'] = []
-		for settingIndex in range(len(self.configParams['inputSettings'])):
-			if 'default' in self.configParams['inputSettings'][settingIndex].keys():
-				value = self.configParams['inputSettings'][settingIndex]['default']
-			else:
-				value = 0
-			self.inputValues.append(value)
-
-
-	def setInstanceId(self, id):
-		self.instanceId = id
+	def __init__(self, configParams, instanceId):
+		self.configParams = dict(self.defaultParams, **configParams)
+		self.outputs = []
+		self.inputs = []
+		self.instanceId = instanceId
+		if 'inputs' in self.configParams.keys():
+			for inputParam in self.configParams['inputs']:
+				self.inputs.append(InputOutputParam(inputParam))
+		if 'outputs' in self.configParams.keys():
+			for outputParamIndex in range(len(self.configParams['outputs'])):
+				self.outputs.append(InputOutputParam(self.configParams['outputs'][outputParamIndex], self.instanceId, outputParamIndex))
 
 
 	def setInputValue(self, value, settingIndex = 0):
-		setting = self.configParams['inputSettings'][settingIndex]
-		value = float(value)
-		if 'min' in setting.keys():
-			if value < setting['min']:
-				value = setting['min']
-		if 'max' in setting.keys():
-			if value > setting['max']:
-				value = setting['max']
-		self.inputValues[settingIndex] = value
+		inputs[settingIndex].setValue(value)
+
 
 
 	def getValue(self, outputIndex = 0):
 		self.updateOutputValues()
-		return self.outputValues[0]
+		return self.outputs[outputIndex].getValue()
 
 
 	def getId(self):
@@ -76,13 +59,15 @@ class InputBase():
 
 	def getCurrentStateData(self):
 		self.updateOutputValues()
-		output = self.configParams.copy()
-		print output
-		for settingIndex in range(len(output['inputSettings'])):
-			output['inputSettings'][settingIndex]['currentValue'] = self.inputValues[settingIndex]
-		output['currentOutputValues'] = self.outputValues
-		output['instanceId'] = self.instanceId
-		return output
+		data = self.configParams.copy()
+		data['inputs'] = []
+		data['outputs'] = []
+		for input in self.inputs:
+			data['inputs'].append(input.getCurrentStateData())
+		for output in self.outputs:
+			data['outputs'].append(output.getCurrentStateData())
+		data['instanceId'] = self.instanceId
+		return data
 
 
 	def stop(self):
@@ -90,75 +75,70 @@ class InputBase():
 
 
 	def isPersistant(self):
-		return self.persistant
+		return False
 
 
 class TimerPulseInput(InputBase):
 	def __init__(self, *args):
+		self.defaultParams = {
+													'inputs' : [{'type' : 'value', 'description' : 'Interval(ms)'}],
+													'outputs' : [{'type' : 'pulse'}]
+													}
 		InputBase.__init__(self, *args)
-		self.configParams['inputSettings'][0]['name'] = 'Interval(ms)'
-		self.configParams['inputSettings'][0]['type'] = 'param'
-		self.timer = Timer(True, self.inputValues[0], getattr(self, 'sendMessage'))
-
+		self.timer = Timer(True, self.inputs[0].getValue(), getattr(self, 'sendMessage'))
 
 	def stop(self):
 		self.timer.stop()
 
 
 	def sendMessage(self):
-		appMessenger.putMessage('pulse%s' %(self.instanceId), True)
+		appMessenger.putMessage('pulse%s_0' %(self.instanceId), True)
 
 
 	def setInputValue(self, *args):
 		InputBase.setInputValue(self, *args)
-		self.timer.changeInterval(self.inputValues[0])
+		self.timer.changeInterval(self.inputs[0].getValue())
 
 
-class AlwaysOnPulseInput(InputBase):
-	def updateOutputValues(self):
-		self.outputValues[0] = True
-
-
-class BasicParamInput(InputBase):
+class OnOffPulseInput(InputBase):
 	def __init__(self, *args):
+		self.defaultParams = {
+													'inputs' : [{'type' : 'pulse', 'description' : 'On/Off', 'default' : True,  'sendMessageOnChange' : True}],
+													'outputs' : [{'type' : 'pulse'}]
+													}
 		InputBase.__init__(self, *args)
-		self.configParams['inputSettings'][0]['name'] = 'Value'
-		self.configParams['inputSettings'][0]['type'] = 'param'
-		if not 'min' in self.configParams['inputSettings'][0].keys():
-			self.configParams['inputSettings'][0]['min'] = 0
-		if not 'max' in self.configParams['inputSettings'][0].keys():
-			self.configParams['inputSettings'][0]['max'] = 100
-		if not 'default' in self.configParams['inputSettings'][0].keys():
-			self.inputValues[0] = self.configParams['inputSettings'][0]['min']
-	def updateOutputValues(self):
-		self.outputValues[0] = self.inputValues[0]
 
 
-class DiscreteParamInput(BasicParamInput):
+class ValueInput(InputBase):
+	def __init__(self, *args):
+		self.defaultParams = {
+													'inputs' : [{'type' : 'value', 'description' : 'Value', 'default' : 0, 'min' : 0, 'max' : 100}],
+													'outputs' : [{'type' : 'value'}]
+													}
+		InputBase.__init__(self, *args)
+		
 	def updateOutputValues(self):
-		self.outputValues[0] = int(float(self.inputValues[0]) + 0.5)
+		self.outputs[0].setValue(self.inputs[0].getValue())
+
+
+class IntValueInput(InputBase):
+	def __init__(self, *args):
+		self.defaultParams = {
+													'inputs' : [{'type' : 'value', 'subType' : 'int', 'description' : 'Value', 'default' : 0, 'min' : 0, 'max' : 100}],
+													'outputs' : [{'type' : 'value'}]
+													}
+		InputBase.__init__(self, *args)
+		
+	def updateOutputValues(self):
+		self.outputs[0].setValue(self.inputs[0].getValue())
 
 
 		
 		
 
 class MultiInput(InputBase):
-	def __init__(self, inputManager, *args):
+	def __init__(self, *args):
 		InputBase.__init__(self, *args)
-		self.inputManager = inputManager
-		self.childInputs = []
-	def buildChildInputs(self):
-		for outputIndex in range(len(self.outputValueTypes)):
-			self.childInputs.append(self.inputManager.registerUsage(self.instanceId, self.inputManager.createNewInput({'type' : self.outputValueTypes[outputIndex], 'subType' : 'driven'}), outputIndex))
-
-
-	def getCurrentStateData(self):
-		data = InputBase.getCurrentStateData(self)
-		data['childInputs'] = []
-		for childInput in self.childInputs:
-			data['childInputs'].append(childInput.getCurrentStateData())
-		return data
-
 
 class OscMultiInput(MultiInput):
 	class OscServerThread(Thread):
@@ -174,23 +154,23 @@ class OscMultiInput(MultiInput):
 				self.server.handle_request()
 			self.server.close()
 
-	def __init__(self, *args):
-		MultiInput.__init__(self, *args)
+	def __init__(self, params, *args):
+		self.defaultParams = {'host' : ('127.0.0.2', 8000), 'callbackAddresses' : {'button' : ['/1/button1', '/1/button2', '/1/button3'], 'value' : ['/1/value1', '/1/value2', '/1/value3']}}
+		params = dict(self.defaultParams, **params)
+		params['outputs'] = []
+		for buttonAddress in params['callbackAddresses']['button']:
+			params['outputs'].append({'type' : 'pulse', 'description' : 'Button ' + buttonAddress, 'sendMessageOnChange' : True})
+		for valueAddress in params['callbackAddresses']['value']:
+			params['outputs'].append({'type' : 'value', 'description' : 'Value ' + valueAddress, 'sendMessageOnChange' : True})
+			
+		MultiInput.__init__(self, params, *args)
 		self.callbackLinkList = []
-		defaults = {"host" : ("127.0.0.2", 8000), 'callbackAddresses' : {'button' : ['/1/button1', '/1/button2', '/1/button3'], 'value' : ['/1/value1', '/1/value2', '/1/value3']}}
-		self.configParams = dict(defaults, **self.configParams.copy())
-		self.outputValueTypes = ['pulse' for i in range(len(self.configParams['callbackAddresses']['button']))] + ['param' for i in range(len(self.configParams['callbackAddresses']['value']))]
 		self.stopEvent = Event()
 		self.server = OscMultiInput.OscServerThread(self.configParams['host'], self.stopEvent)
 		self.buildCallbackLinkList()
-		self.buildChildInputs()
 		self.server.setCallBacks(self.callbackLinkList)
 		self.server.start()
 		self.persistant = True
-		
-
-
-
 
 
 	def buildCallbackLinkList(self):
@@ -205,24 +185,16 @@ class OscMultiInput(MultiInput):
 		self.stopEvent.set()
 
 	def doButtonCallback(self, path, tags, args, source):
-		print path
 		outputIndex = self.getOutputIndexFromAddress(path, 'button')
-		if args[0] == 1.0:
-			self.outputValues[outputIndex] = True
-		else:
-			self.outputValues[outputIndex] = False
-		self.childInputs[outputIndex].setValue(args[0])
+		self.outputs[outputIndex].setValue(args[0])
 		appMessenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outputValues[outputIndex]])
-
 
 
 	def doValueCallback(self, path, tags, args, source):
-		print path
 		outputIndex = self.getOutputIndexFromAddress(path, 'value')
-		self.outputValues[outputIndex] = args[0]
-		self.updateChildInputs(outputIndex)
-		self.childInputs[outputIndex].setValue(args[0])
+		self.outputs[outputIndex].setValue(args[0])
 		appMessenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outputValues[outputIndex]])
+
 
 	def getOutputIndexFromAddress(self, path, outputType):
 		if path[:-2].isdigit():
@@ -239,14 +211,45 @@ class OscMultiInput(MultiInput):
 			return false
 		return index
 
-class DrivenPulseInput(InputBase):
-	def setValue(self, value):
-		self.outputValues[0] = value
-		if value:
-			appMessenger.putMessage('pulse%s' %(self.instanceId), True)
 
-class DrivenParamInput(InputBase):
+class InputOutputParam():
+	def __init__(self, params, parentId = 0, indexId = 0):
+		defaultParams = {'description' : 'Value', 'type' : 'value', 'subtype' : False, 'min' : False, 'max' : False, 'default' : 0, 'sendMessageOnChange' : False}
+		self.params = dict(defaultParams, **params)
+		self.value = self.params['default']
+		type = self.params['type']
+		subType = self.params['subtype']
+		if self.params['subtype']:
+			constrainValueFunctionName = 'constrain' + subtype[0].upper() + subtype[1:] + type[0].upper() + type[1:] 
+		else:
+			constrainValueFunctionName = 'constrain' + type[0].upper() + type[1:]
+		self.constrainValueFunction = getattr(self, constrainValueFunctionName)
+	def getValue(self):
+		return self.value
 	def setValue(self, value):
-		self.outputValues[0] = value
-
+		self.value = self.constrainValueFunction(value)
+		if self.params['sendMessageOnChange']:
+			appMessenger.putMessage("%s%s_%s" %(self.params['type'], self.parentId, self.indexId), self.value)
+	def constrainValue(self, value):
+		value = float(value)
+		if self.params['min']:
+			if value < self.params['min']:
+				value = self.params['min']
+		if self.params['max']:
+			if value > self.params['max']:
+				value = self.params['max']
+		return value
+	def constrainIntValue(self, value):
+		value = int(float(self.constrainValue(value)) + 0.5)
+		return value
+	def constrainPulse(self, value):
+		if (value):
+			return True
+		else:
+			return False
+			
+	def getCurrentStateData(self):
+		data = self.params.copy()
+		data['currentValue'] = self.value
+		return data
 
