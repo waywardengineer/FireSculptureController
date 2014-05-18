@@ -149,7 +149,15 @@ class MultiInput(InputBase):
 		self.childInputs = []
 	def buildChildInputs(self):
 		for outputIndex in range(len(self.outputValueTypes)):
-			self.childInputs.append(self.inputManager.registerUsage(self.instanceId, self.inputManager.createNewInput({'type' : self.outputValueTypes[outputIndex], 'subtype' : 'driven'}), outputIndex))
+			self.childInputs.append(self.inputManager.registerUsage(self.instanceId, self.inputManager.createNewInput({'type' : self.outputValueTypes[outputIndex], 'subType' : 'driven'}), outputIndex))
+
+
+	def getCurrentStateData(self):
+		data = InputBase.getCurrentStateData(self)
+		data['childInputs'] = []
+		for childInput in self.childInputs:
+			data['childInputs'].append(childInput.getCurrentStateData())
+		return data
 
 
 class OscMultiInput(MultiInput):
@@ -175,9 +183,14 @@ class OscMultiInput(MultiInput):
 		self.stopEvent = Event()
 		self.server = OscMultiInput.OscServerThread(self.configParams['host'], self.stopEvent)
 		self.buildCallbackLinkList()
+		self.buildChildInputs()
 		self.server.setCallBacks(self.callbackLinkList)
 		self.server.start()
 		self.persistant = True
+		
+
+
+
 
 
 	def buildCallbackLinkList(self):
@@ -199,6 +212,7 @@ class OscMultiInput(MultiInput):
 		else:
 			self.outputValues[outputIndex] = False
 		self.childInputs[outputIndex].setValue(args[0])
+		appMessenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outputValues[outputIndex]])
 
 
 
@@ -208,7 +222,7 @@ class OscMultiInput(MultiInput):
 		self.outputValues[outputIndex] = args[0]
 		self.updateChildInputs(outputIndex)
 		self.childInputs[outputIndex].setValue(args[0])
-
+		appMessenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outputValues[outputIndex]])
 
 	def getOutputIndexFromAddress(self, path, outputType):
 		if path[:-2].isdigit():

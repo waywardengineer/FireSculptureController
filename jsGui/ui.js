@@ -38,6 +38,9 @@ function buildAll(data){
 	$('#mainDiv').html('');
 	if (data['activeSculptureId']){
 		$('#mainDiv').append($('#sculptureControllerTemplate').render(makeSculptureControllerTemplateData()));
+		$.each( allSculptureData.globalInputs, function( inputInstanceId, inputdata ) {
+			buildInputControls('mainModule', inputInstanceId);
+		});
 		$.each( allSculptureData.sculptures[allSculptureData.activeSculptureId].modules, function( moduleId, moduleData ) {
 			$.each( moduleData.inputs, function( inputInstanceId, inputData ) {
 				buildInputControls(moduleId, inputInstanceId);
@@ -61,7 +64,10 @@ function buildAll(data){
 }
 
 function makeSculptureControllerTemplateData(){
-	data = {"sculptureName" : allSculptureData.activeSculptureId, "modules" : []};
+	data = {"sculptureName" : allSculptureData.activeSculptureId, "modules" : [], "globalInputs" : []};
+	$.each( allSculptureData.globalInputs, function( inputInstanceId, inputdata ) {
+		data.globalInputs.push({"inputInstanceId" : inputInstanceId});
+	});
 	$.each( allSculptureData.sculptures[allSculptureData.activeSculptureId].modules, function( moduleId, moduleData ) {
 		configData = allSculptureData.sculptures[allSculptureData.activeSculptureId].config.modules[moduleId]
 		templateModuleData = {"moduleId" : moduleId, "name" : configData.name, "availablePatternNames" : [], "patterns" : [], "inputs" : [], "rows" : []};
@@ -87,7 +93,12 @@ function makeSculptureControllerTemplateData(){
 }
 
 function buildInputControls(moduleId, inputInstanceId){
-	inputData = allSculptureData.sculptures[allSculptureData.activeSculptureId].modules[moduleId].inputs[inputInstanceId];
+	if (moduleId == 'mainModule'){
+		inputData = allSculptureData.globalInputs[inputInstanceId];
+	}
+	else {
+		inputData = allSculptureData.sculptures[allSculptureData.activeSculptureId].modules[moduleId].inputs[inputInstanceId];
+	}
 	htmlParentId = "#" + moduleId + "_inputInstance" + inputInstanceId + "_div"
 	if (inputData['inputSettings']){
 		$.each( inputData['inputSettings'], function( settingIndex, settingData ) {

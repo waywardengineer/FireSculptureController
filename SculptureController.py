@@ -9,15 +9,19 @@ from ProgramModules import SculptureModules
 
 class SculptureController():
 	def __init__(self):
+		configFileName = 'config.json'
 		definitionFileDirectory = 'sculptureDefinitions'
 		self.sculptureDefinitions = {}
 		self.sculptureModules = {}
+		self.globalInputs = {}
 		for definitionFileName in os.listdir(definitionFileDirectory):
 			try:
 				definition = json.load(open("%s/%s" %(definitionFileDirectory, definitionFileName)))
 				self.sculptureDefinitions[definition['sculptureId']] = definition
 			except:
 				pass
+		self.globalConfig = json.load(open(configFileName))
+			
 		self.doReset()
 
 
@@ -25,11 +29,15 @@ class SculptureController():
 	def doReset(self):
 		for moduleId in self.sculptureModules:
 			self.sculptureModules[moduleId].stop()
+		for inputInstanceId in self.globalInputs:
+			self.globalInputs[inputInstanceId].stop()
+		self.globalInputs = {}
 		self.sculptureModules = {}
 		self.dataChannelManager = False
 		self.inputManager = False
 		self.sculptureConfig = False
 		appMessenger.doReset()
+		
 
 
 	def loadSculpture(self, sculptureId):
@@ -44,7 +52,10 @@ class SculptureController():
 			sculptureModuleClass = getattr(SculptureModules, moduleConfig['moduleType'] + 'Module')
 			self.sculptureModules[moduleId] = sculptureModuleClass(self.dataChannelManager, self.inputManager, moduleConfig)
 		appMessenger.addBinding('outputChanged', getattr(self, 'getCurrentOutputState'))
-		self.inputManager.createNewInput({'type' : 'multi', 'subType' : 'osc'}) 
+		for inputDefinition in self.globalConfig['inputs']:
+			newInputId = self.inputManager.createNewInput(inputDefinition)
+			self.globalInputs[newInputId] = (self.inputManager.registerUsage('main', newInputId))
+
 
 	def doCommand(self, command):
 		functionName = command[0]
@@ -87,6 +98,9 @@ class SculptureController():
 				data['sculptures'][sculptureId]['modules'] = {}
 				for moduleId in self.sculptureModules:
 					data['sculptures'][sculptureId]['modules'][moduleId] = self.sculptureModules[moduleId].getCurrentStateData()
+		data['globalInputs'] = {}
+		for inputInstanceId in self.globalInputs:
+			data['globalInputs'][inputInstanceId] = self.globalInputs[inputInstanceId].getCurrentStateData()
 		return data
 
 
