@@ -21,37 +21,38 @@
 <body>
   <div id="mainDiv" style="overflow:auto;"></div>
   <div id="logDiv" style="clear:both; overflow:auto;" class=" ui-widget ui-widget-content ui-corner-all"></div>
+  <div id="dialog"></div>
 </body>
 
 
 <script id="sculptureControllerTemplate" type="text/x-jsrender">
   <h1>{{>sculptureName}}</h1>
-  <div id="sculptureControl" style="height:80%;">
+  <div id="sculptureControl" style="height:80%; width:60%; float:left">
     <ul id="sculptureControlTabLabels">
-      <li><a href="#mainModule">Main</a></li>
+      <li><a href="#mainModule" onclick="activeTab='mainModule'">Main</a></li>
       {{for modules}}
-        <li><a href="#{{>moduleId}}_module">{{>name}}</a></li>
+        <li><a href="#{{>moduleId}}_module" onclick="activeTab='{{>moduleId}}_module'">{{>name}}</a></li>
       {{/for}}
     </ul>
     <div id="mainModule">
     </div>
     {{for modules}}
       <div id="{{>moduleId}}_module">
+        <div id="{{>moduleId}}_outputView" class="outputView">
+          {{for rows}}
+            <div id="{{>moduleId}}_outputView_row{{>rowIndex}}">
+              {{for cols}}
+                <input type="checkbox" id="{{>moduleId}}_outputView_row{{>rowIndex}}_col{{>colIndex}}" class="pooferDisplay"><label style="width:15px; height:15px;" for="{{>moduleId}}_outputView_row{{>rowIndex}}_col{{>colIndex}}"></label>
+              {{/for}}
+            </div>
+          {{/for}}
+        </div>
         <select id="{{>moduleId}}_patternChoices" onChange="addPattern('{{>moduleId}}')" class="addPattern">
           <option value="none">Add Pattern</option>
           {{for availablePatternNames}}
             <option value="{{>name}}">{{>name}}</option>
           {{/for}}
         </select>
-        <div id="{{>moduleId}}_outputView" class="outputView">
-          {{for rows}}
-            <div id="{{>moduleId}}_outputView_row{{>rowIndex}}">
-              {{for cols}}
-                <input type="checkbox" id="{{>moduleId}}_outputView_row{{>rowIndex}}_col{{>colIndex}}" class="pooferDisplay"><label for="{{>moduleId}}_outputView_row{{>rowIndex}}_col{{>colIndex}}"> </label>
-              {{/for}}
-            </div>
-          {{/for}}
-        </div>
         <div style="float:left;" id="{{>moduleId}}_patternView" class="patternView">
           <select id="{{>moduleId}}_patternSelection" onChange="editPattern('{{>moduleId}}')" class="activePatternList" size="10">
             {{for patterns}}
@@ -62,9 +63,9 @@
       </div>
     {{/for}}
   </div>
-  <div id="inputs">
+  <div id="inputs" style="float:left; width:30%; height:80%; overflow:auto; margin: 0px 0px 0px 15px;" class=" ui-widget ui-widget-content ui-corner-all">
     {{for inputs}}
-      <div style=" text-align:center; float:left; width:125px;" id="inputInstance{{>inputInstanceId}}_div">
+      <div style="display:none; text-align:center; float:left; width:125px;" id="inputInstance{{>inputInstanceId}}_div">
         <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_description"></span>
       </div>
     {{/for}}
@@ -81,4 +82,20 @@
     {{/for}}
   </select>
 </script>
+
+
+<script id="knobTemplate" type="text/x-jsrender">
+  <input id="{{>id}}" value="{{>currentValue}}" data-width="100" data-height="100" data-max="{{>max}}" data-min="{{>min}}" data-skin="tron" class="knob" data-thickness=".2"> 
+</script>
+<script id="buttonTemplate" type="text/x-jsrender">
+  <input id="{{>id}}" {{>checked}} type="checkbox"><label for="{{>id}}" style="width:75px; height:75px;"> </label>
+</script>
+<script id="inputControlTemplate" type="text/x-jsrender">
+  <div class="controlContainer">
+    {{:controlHtml}}
+  </div>
+</script>
+
+
+</html>
 

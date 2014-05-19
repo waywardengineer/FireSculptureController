@@ -42,9 +42,10 @@ class InputManager():
 			return userId == l[0] and (not inputChannelId or inputChannelId == l[1])
 		def unRegisterForInput(userId, inputInstanceId, inputChannelId):
 			self.inputInstanceUses[inputInstanceId][:] = [l for l in self.inputInstanceUses[inputInstanceId] if not checkItem(l, userId, inputChannelId)]
-			if len(self.inputInstanceUses[inputInstanceId]) == 0 and not self.inputInstances[inputInstanceId].isPersistant():
-				self.inputInstances[inputInstanceId].stop()
-				del self.inputInstances[inputInstanceId]
+			if len(self.inputInstanceUses[inputInstanceId]) == 0:
+				if inputInstanceId in self.inputInstances.keys():
+					self.inputInstances[inputInstanceId].stop()
+					del self.inputInstances[inputInstanceId]
 
 		if not inputInstanceId:
 			for inputInstanceId in self.inputInstanceUses:

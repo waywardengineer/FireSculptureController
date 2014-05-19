@@ -40,7 +40,7 @@ class InputBase():
 
 
 	def setInputValue(self, value, settingIndex = 0):
-		inputs[settingIndex].setValue(value)
+		self.inputs[settingIndex].setValue(value)
 
 
 
@@ -81,9 +81,10 @@ class InputBase():
 class TimerPulseInput(InputBase):
 	def __init__(self, *args):
 		self.defaultParams = {
-													'inputs' : [{'type' : 'value', 'description' : 'Interval(ms)'}],
-													'outputs' : [{'type' : 'pulse'}]
-													}
+			'description' : 'Timer Pulse',
+			'inputs' : [{'type' : 'value', 'description' : 'Interval(ms)'}],
+			'outputs' : [{'type' : 'pulse'}]
+		}
 		InputBase.__init__(self, *args)
 		self.timer = Timer(True, self.inputs[0].getValue(), getattr(self, 'sendMessage'))
 
@@ -103,18 +104,22 @@ class TimerPulseInput(InputBase):
 class OnOffPulseInput(InputBase):
 	def __init__(self, *args):
 		self.defaultParams = {
-													'inputs' : [{'type' : 'pulse', 'description' : 'On/Off', 'default' : True,  'sendMessageOnChange' : True}],
-													'outputs' : [{'type' : 'pulse'}]
-													}
+			'description' : 'On/off control',
+			'inputs' : [{'type' : 'pulse', 'description' : '', 'default' : True,  'sendMessageOnChange' : True}],
+			'outputs' : [{'type' : 'pulse'}]
+		}
 		InputBase.__init__(self, *args)
+	def updateOutputValues(self):
+		self.outputs[0].setValue(self.inputs[0].getValue())
 
 
 class ValueInput(InputBase):
 	def __init__(self, *args):
 		self.defaultParams = {
-													'inputs' : [{'type' : 'value', 'description' : 'Value', 'default' : 0, 'min' : 0, 'max' : 100}],
-													'outputs' : [{'type' : 'value'}]
-													}
+			'description' : 'Value setting',
+			'inputs' : [{'type' : 'value', 'description' : 'Value', 'default' : 0, 'min' : 0, 'max' : 100}],
+			'outputs' : [{'type' : 'value'}]
+		}
 		InputBase.__init__(self, *args)
 		
 	def updateOutputValues(self):
@@ -124,9 +129,10 @@ class ValueInput(InputBase):
 class IntValueInput(InputBase):
 	def __init__(self, *args):
 		self.defaultParams = {
-													'inputs' : [{'type' : 'value', 'subType' : 'int', 'description' : 'Value', 'default' : 0, 'min' : 0, 'max' : 100}],
-													'outputs' : [{'type' : 'value'}]
-													}
+			'description' : 'Value setting',
+			'inputs' : [{'type' : 'value', 'subType' : 'int', 'description' : 'Value', 'default' : 0, 'min' : 0, 'max' : 100}],
+			'outputs' : [{'type' : 'value'}]
+		}
 		InputBase.__init__(self, *args)
 		
 	def updateOutputValues(self):
@@ -187,13 +193,13 @@ class OscMultiInput(MultiInput):
 	def doButtonCallback(self, path, tags, args, source):
 		outputIndex = self.getOutputIndexFromAddress(path, 'button')
 		self.outputs[outputIndex].setValue(args[0])
-		appMessenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outputValues[outputIndex]])
+		appMessenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outputs[outputIndex].getValue()])
 
 
 	def doValueCallback(self, path, tags, args, source):
 		outputIndex = self.getOutputIndexFromAddress(path, 'value')
 		self.outputs[outputIndex].setValue(args[0])
-		appMessenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outputValues[outputIndex]])
+		appMessenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outputs[outputIndex].getValue()])
 
 
 	def getOutputIndexFromAddress(self, path, outputType):
@@ -214,9 +220,11 @@ class OscMultiInput(MultiInput):
 
 class InputOutputParam():
 	def __init__(self, params, parentId = 0, indexId = 0):
-		defaultParams = {'description' : 'Value', 'type' : 'value', 'subtype' : False, 'min' : False, 'max' : False, 'default' : 0, 'sendMessageOnChange' : False}
+		defaultParams = {'description' : '', 'type' : 'value', 'subtype' : False, 'min' : False, 'max' : False, 'default' : 0, 'sendMessageOnChange' : False}
 		self.params = dict(defaultParams, **params)
 		self.value = self.params['default']
+		self.parentId = parentId
+		self.indexId = indexId
 		type = self.params['type']
 		subType = self.params['subtype']
 		if self.params['subtype']:

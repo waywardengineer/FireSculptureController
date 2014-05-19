@@ -1,11 +1,11 @@
 class PatternBase():
-	def __init__ (self, inputManager, gridSize):
+	def __init__ (self, inputManager, gridSize, instanceId):
 		self.inputManager = inputManager
 		self.gridSize = gridSize
 		self.messengerBindingIds = {}
 		self.updateTriggerFunction = False
 		self.patternName = ''
-		self.instanceId = 0
+		self.instanceId = instanceId
 
 		try:
 			self.inputParams
@@ -48,11 +48,6 @@ class PatternBase():
 
 	def bindUpdateTrigger(self, function):
 		self.updateTriggerFunction = function
-
-
-
-	def setInstanceId(self, id):
-		self.instanceId = id
 
 
 	def getId(self):

@@ -37,10 +37,9 @@ class SculptureModuleBase():
 
 	def addPattern(self, patternTypeId): # make a pattern live and select all rows by default
 		newInstanceId = self.nextPatternInstanceId
-		self.patterns[newInstanceId] = self.availablePatternClasses[patternTypeId](self.inputManager, self.gridSize)
+		self.patterns[newInstanceId] = self.availablePatternClasses[patternTypeId](self.inputManager, self.gridSize, newInstanceId)
 		self.patternRowSettings[newInstanceId] = [True for i in range(self.gridSize[0])]
 		self.patterns[newInstanceId].bindUpdateTrigger(getattr(self, "doUpdates"))
-		self.patterns[newInstanceId].setInstanceId(newInstanceId)
 		self.nextPatternInstanceId += 1
 		return newInstanceId
 
@@ -66,9 +65,6 @@ class SculptureModuleBase():
 
 	def changePatternInputBinding(self, patternInstanceId, patternInputId, inputInstanceId): #connect data from an input to a pattern parameter
 		return self.patterns[patternInstanceId].changeInputBinding(patternInputId, inputInstanceId)
-	def setInputValue(self, inputInstanceId, *args):
-		inputObj = self.inputManager.getInputObj(inputInstanceId)
-		inputObj.setInputValue(*args)
 	def getCurrentOutputState(self):
 		return self.currentOutputState
 

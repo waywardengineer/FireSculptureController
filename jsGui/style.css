@@ -8,3 +8,11 @@ body{
 }
 #logDiv{
 }
+.inputDescription{
+  display:block;
+  height:50px;
+  color: #FFC98D;
+  font-variant:small-caps;
+  font-size: 12px;
+  padding: 0px 10px 0px 10px;
+}

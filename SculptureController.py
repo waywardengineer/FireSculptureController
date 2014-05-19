@@ -55,11 +55,14 @@ class SculptureController():
 		for inputDefinition in self.globalConfig['inputs']:
 			newInputId = self.inputManager.createNewInput(inputDefinition)
 			self.globalInputs[newInputId] = (self.inputManager.registerUsage('main', newInputId))
+	def setInputValue(self, inputInstanceId, *args):
+		inputObj = self.inputManager.getInputObj(inputInstanceId)
+		inputObj.setInputValue(*args)
 
 
 	def doCommand(self, command):
 		functionName = command[0]
-		if functionName in ['getCurrentStateData', 'getCurrentOutputState', 'loadSculpture']:
+		if functionName in ['setInputValue', 'getCurrentStateData', 'getCurrentOutputState', 'loadSculpture']:
 			command.pop(0)
 			function = getattr(self, functionName)
 			return function(*command)
@@ -85,15 +88,9 @@ class SculptureController():
 			data['inputs'] = self.inputManager.getCurrentStateData()['inputs']
 			
 		else:
+			data = {'sculptures' : {}}
 			for sculptureId in self.sculptureDefinitions:
-				data['sculptures'][sculptureId] = {'config' : self.sculptureDefinitions[sculptureId], 'modules' : False}
-				if self.sculptureConfig and sculptureId == self.sculptureConfig['sculptureId']:
-					data['sculptures'][sculptureId]['modules'] = {}
-					for moduleId in self.sculptureModules:
-						data['sculptures'][sculptureId]['modules'][moduleId] = self.sculptureModules[moduleId].getCurrentStateData()
-			data['globalInputs'] = {}
-			for inputInstanceId in self.globalInputs:
-				data['globalInputs'][inputInstanceId] = self.globalInputs[inputInstanceId].getCurrentStateData()
+				data['sculptures'][sculptureId] = self.sculptureDefinitions[sculptureId]
 		return data
 
 
