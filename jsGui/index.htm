@@ -95,7 +95,14 @@
     {{:controlHtml}}
   </div>
 </script>
+<script id="selectTemplate" type="text/x-jsrender">
+  <select id="{{>id}}" {{:onChange}}>
+    {{for options}}
+      <option value="{{>value}}">{{>name}}</option>
+    {{/for}}
+  </select>
 
+</script>
 
 </html>
 

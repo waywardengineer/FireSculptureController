@@ -25,26 +25,38 @@ source.onmessage = function (event) {
 	}
 };
 
-function showRebindDialog(patternInstanceId, patternInputId){
-	$('#dialog').dialog('open');
+function showRebindDialog(moduleId, patternInstanceId, patternInputId){
+	selectData = {'id' : 'patternRebindSelector', 'onChange' : 'onChange = "selectPattern()"', 'options' : [{'name' : 'Select Input', 'value' : 'none'}]};
+	inputChannelType = allSculptureData.currentSculpture.modules[moduleId].patterns[patternInstanceId].inputs[patternInputId].type;
+	$.each(allSculptureData.availableInputTypes[inputChannelType], function(typeIndex, typeData){
+		selectData.options.push({'name' : typeData.description, 'value' : typeData.subtype});
+	});
+	if (inputChannelType != 'multi'){
+		
+	}
+	$('#dialog').append($('#selectTemplate').render(selectData));
+	$('#dialog').dialog({
+		autoOpen: true,
+		height: 300,
+		width: 350,
+		modal: true,
+		buttons: {
+			"Update": function() {
+				$(this).dialog("close");
+			},
+			"Cancel": function() {
+				$(this).dialog("close");
+			}
+		},
+		close: function(event, ui) {
+			$(this).empty().dialog('destroy');
+    }
+});
+
 
 }
 
 function doInit(){
-	$('#dialog').dialog({
-			autoOpen: false,
-			height: 300,
-			width: 350,
-			modal: true,
-			buttons: {
-				"Update": function() {
-					$(this).dialog("close");
-				},
-				"Cancel": function() {
-					$(this).dialog("close");
-				}
-			}
-	});
 	reloadData();
 }
 
@@ -120,7 +132,7 @@ function buildInputControls(inputInstanceId, inputData){
 			tagData={};
 			makeKnob = false;
 			inputId = 'inputInstance' + inputInstanceId + '_setting' + settingIndex;
-			templateData = settingData;
+			templateData = $.extend(true, {}, settingData);
 			templateData['id'] = inputId;
 			templateData['inputInstanceId'] = inputInstanceId;
 			templateData['settingIndex'] = settingIndex;
@@ -160,7 +172,7 @@ function editPattern(moduleId){
 			$('#inputInstance' + inputInstanceId + '_output' + outputIndex + '_reBindDiv').html();
 		});
 	});
-	$.each(allSculptureData.currentSculpture.modules[moduleId].patterns[patternInstanceId].inputBindings, function(patternInputId, patternInputData){
+	$.each(allSculptureData.currentSculpture.modules[moduleId].patterns[patternInstanceId].inputs, function(patternInputId, patternInputData){
 		idPrefix  = 'inputInstance' + patternInputData.inputInstanceId + '_';
 		$('#' + idPrefix + 'div').css("display", "block");
 		$('#' + idPrefix + 'description').html(patternInputData.description);
@@ -169,7 +181,7 @@ function editPattern(moduleId){
 			html = '<button id="' + idPrefix + 'Button">' + allSculptureData.inputs[patternInputData.inputInstanceId].description + '</button>'
 			$('#' + idPrefix + 'Div').html(html);
 			$('#' + idPrefix + 'Button').button().click(function(e){
-				showRebindDialog(patternInstanceId, patternInputId);
+				showRebindDialog(moduleId, patternInstanceId, patternInputId);
 			});
 		});
 	});

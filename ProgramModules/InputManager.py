@@ -9,12 +9,25 @@ class InputManager():
 		self.nextInputInstanceId = 1
 		self.inputInstances = {}
 		self.inputInstanceUses = {}
-
+		self.availableInputTypes = {
+			'pulse' : [
+				{'subtype' : 'timer', 'params' : [], 'inputTypes' : ['value'], 'description' : 'Timer pulse input, variable timing'},
+				{'subtype' : 'onOff', 'params' : [], 'inputTypes' : ['toggle'], 'description' : 'On/off toggle control'},
+				{'subtype' : 'button', 'params' : [], 'inputTypes' : ['pulse'], 'description' : 'On/off instantaneous button control'}
+			],
+			'value' : [
+				{'subtype' : '', 'params' : [], 'inputTypes' : ['value'], 'description' : 'Variable value input, can be decimal'},
+				{'subtype' : 'int', 'params' : [], 'inputTypes' : ['value'], 'description' : 'Variable value input, integer'}
+			],
+			'multi' : [
+				{'subtype' : 'osc', 'params' : [['Host', 'host'], ['Port', 'port'], ['Button addresses(separated by space)', 'buttonAddressesString'], ['Value addresses(separated by space)', 'valueAddressesString']], 'inputTypes' : [], 'description' : 'OpenSoundControl server'}
+			]
+		}
 
 	def buildInputCollection(self, inputParams, patternId):
 		inputDict = {}
 		for inputChannelId in inputParams:
-			newInputInstanceId = self.createNewInput(inputParams[inputChannelId])
+			newInputInstanceId = self.createNewInput(inputParams[inputChannelId].copy())
 			inputDict[inputChannelId] = self.inputInstances[newInputInstanceId]
 			self.registerUsage(patternId, newInputInstanceId, inputChannelId)
 		InputCollectionWrapper = getattr(self.inputModules, "InputCollectionWrapper")
@@ -54,10 +67,10 @@ class InputManager():
 			unRegisterForInput(userId, inputInstanceId, inputChannelId)
 
 	def getCurrentStateData(self):
-		data = {}
+		currentInputData = {}
 		for inputInstanceId in self.inputInstances:
-			data[inputInstanceId] = self.inputInstances[inputInstanceId].getCurrentStateData()
-		data = {'inputs' : data}
+			currentInputData[inputInstanceId] = self.inputInstances[inputInstanceId].getCurrentStateData()
+		data = {'inputs' : currentInputData, 'availableInputTypes' : self.availableInputTypes}
 		return data
 		
 

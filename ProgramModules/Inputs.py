@@ -105,7 +105,7 @@ class OnOffPulseInput(InputBase):
 	def __init__(self, *args):
 		self.defaultParams = {
 			'description' : 'On/off control',
-			'inputs' : [{'type' : 'pulse', 'description' : '', 'default' : True,  'sendMessageOnChange' : True}],
+			'inputs' : [{'type' : 'toggle', 'description' : '', 'default' : True,  'sendMessageOnChange' : True}],
 			'outputs' : [{'type' : 'pulse'}]
 		}
 		InputBase.__init__(self, *args)
@@ -251,10 +251,12 @@ class InputOutputParam():
 		value = int(float(self.constrainValue(value)) + 0.5)
 		return value
 	def constrainPulse(self, value):
-		if (value):
+		if value:
 			return True
 		else:
 			return False
+	def constrainToggle(self, value):
+		return self.constrainPulse(value)
 			
 	def getCurrentStateData(self):
 		data = self.params.copy()

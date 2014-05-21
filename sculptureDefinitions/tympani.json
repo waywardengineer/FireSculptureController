@@ -2,8 +2,8 @@
   "sculptureId" : "tympani",
   "sculptureName" : "Tympani Lambata",
   "adaptors" : {
-    "flameBus" : {"type" : "serial", "baudrate" : 9600, "ports" : ["COM7"]}, 
-    "ledBus" : {"type" : "serial", "baudrate" : 9600, "ports" : ["COM8"]}
+    "flameBus" : {"type" : "serial", "baudrate" : 19200, "ports" : ["COM7"]}, 
+    "ledBus" : {"type" : "serial", "baudrate" : 19200, "ports" : ["COM8"]}
   },
   "modules" : {
     "poofers" : {

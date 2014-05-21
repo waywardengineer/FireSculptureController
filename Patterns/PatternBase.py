@@ -39,10 +39,10 @@ class PatternBase():
 
 
 	def getCurrentStateData(self):
-		data = {'name' : self.patternName, 'inputBindings' : {}}
+		data = {'name' : self.patternName, 'inputs' : {}}
 		for patternInputId in self.inputParams:
 			inputObj = getattr(self.inputs, patternInputId)
-			data['inputBindings'][patternInputId] = {'inputInstanceId' : inputObj.getId(), 'description' : self.inputParams[patternInputId]['descriptionInPattern']}
+			data['inputs'][patternInputId] = {'type' : self.inputParams[patternInputId]['type'], 'inputInstanceId' : inputObj.getId(), 'description' : self.inputParams[patternInputId]['descriptionInPattern']}
 		return data
 	
 

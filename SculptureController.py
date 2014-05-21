@@ -85,7 +85,7 @@ class SculptureController():
 			data = {'currentSculpture' : self.sculptureConfig.copy()}
 			for moduleId in self.sculptureConfig['modules']:
 				data['currentSculpture']['modules'][moduleId] = dict(self.sculptureConfig['modules'][moduleId], **self.sculptureModules[moduleId].getCurrentStateData())
-			data['inputs'] = self.inputManager.getCurrentStateData()['inputs']
+			data = dict(data, **self.inputManager.getCurrentStateData())
 			
 		else:
 			data = {'sculptures' : {}}
