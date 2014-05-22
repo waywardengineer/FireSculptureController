@@ -28,8 +28,8 @@ source.onmessage = function (event) {
 function showRebindDialog(moduleId, patternInstanceId, patternInputId){
 	selectData = {'id' : 'inputSelector', 'onChange' : 'onChange = "showInputParamsForm()"', 'options' : [{'description' : 'Select Input', 'value' : 'none'}]};
 	inputChannelType = allSculptureData.currentSculpture.modules[moduleId].patterns[patternInstanceId].inputs[patternInputId].type;
-	$.each(allSculptureData.availableInputTypes[inputChannelType], function(typeIndex, typeData){
-		selectData.options.push({'description' : "(New)" + typeData.description, 'value' : JSON.stringify(['new', inputChannelType, typeIndex])});
+	$.each(allSculptureData.availableInputTypes[inputChannelType], function(subType, typeData){
+		selectData.options.push({'description' : "(New)" + typeData.longDescription, 'value' : JSON.stringify(['new', inputChannelType, subType])});
 	});
 	if (inputChannelType != 'multi'){
 		$.each(allSculptureData.inputs, function(inputInstanceId, inputData){
@@ -69,22 +69,48 @@ function doNewInputBinding(moduleId, patternInstanceId, patternInputId){
 		doCommand(['changePatternInputBinding', moduleId, parseInt(patternInstanceId), patternInputId, parseInt(values[1]), parseInt(values[2])])
 	}
 	else if (values[0] == 'new'){
-		params = {'type' : values[1], 'subType' : allSculptureData.availableInputTypes[values[1]][values[2]].subtype}
-		$.each(allSculptureData.availableInputTypes[values[1]][values[2]].params, function (paramIndex, paramData){
-			formInputId = '#inputDefinition' + paramData[2];
-			switch (paramData[0]){
-				case 'text':
-					params[paramData[2]] = $(formInputId).val();
-				break;
-				case 'int':
-					params[paramData[2]] = parseInt($(formInputId).val());
-				break;
-				case 'bool':
-					params[paramData[2]] = $(formInputId).is(":checked");
-				break;
+		params = {'type' : values[1], 'subType' : values[2], 'inputs' : []}
+		inputTypeData = allSculptureData.availableInputTypes[values[1]][values[2]];
+		if (inputTypeData.initInputData){
+			$.each(inputTypeData.initInputData, function (paramIndex, paramData){
+				formInputId = '#inputDefinitionMainParam' + paramData[2];
+				switch (paramData[0]){
+					case 'text':
+						params[paramData[2]] = $(formInputId).val();
+					break;
+					case 'int':
+						params[paramData[2]] = parseInt($(formInputId).val());
+					break;
+					case 'bool':
+						params[paramData[2]] = $(formInputId).is(":checked");
+					break;
+				}
+			});
+		}
+		$.each(inputTypeData.inputs, function (inputIndex, inputData){
+			configData = {}
+			if (inputData.initInputData){
+				$.each(inputData.initInputData, function (paramIndex, paramData){
+					formInputId = '#inputDefinitionInputParam' + inputIndex + paramData[2];
+					data = false;
+					switch (paramData[0]){
+						case 'text':
+							data = $(formInputId).val();
+						break;
+						case 'int':
+							data = parseInt($(formInputId).val());
+						break;
+						case 'bool':
+							data = $(formInputId).is(":checked");
+						break;
+					}
+					configData[paramData[2]] = data;
+				});
 			}
+			params.inputs.push(configData)
 		});
-		doCommand(['bindPatternToNewInput', moduleId, parseInt(patternInstanceId), patternInputId, params]);
+		
+		doCommand(['bindPatternToNewInput', moduleId, parseInt(patternInstanceId), patternInputId, $.extend(true, inputTypeData, params)]);
 	}
 }
 
@@ -92,15 +118,32 @@ function showInputParamsForm(){
 	values = JSON.parse($('#inputSelector').val());
 	formFields = [];
 	if (values[0] == 'new'){
-		$.each(allSculptureData.availableInputTypes[values[1]][values[2]].params, function (paramIndex, paramData){
-			fieldData = {"id" : "inputDefinition" + paramData[2], "label" : paramData[1]}
-			if (paramData[0] == 'text' || paramData[0] == 'int'){
-				fieldData['input'] = true;
+		inputTypeData = allSculptureData.availableInputTypes[values[1]][values[2]];
+		if (inputTypeData.initInputData){
+			$.each(inputTypeData.initInputData, function (paramIndex, paramData){
+				fieldData = {"id" : "inputDefinition" + paramData[2], "label" : paramData[1]}
+				if (paramData[0] == 'text' || paramData[0] == 'int'){
+					fieldData['input'] = true;
+				}
+				else if (paramData[0] == 'bool'){
+					fieldData['checkbox'] = true;
+				}
+				formFields.push(fieldData);
+			});
+		}
+		$.each(inputTypeData.inputs, function (inputIndex, inputData){
+			if (inputData.initInputData){
+				$.each(inputData.initInputData, function (paramIndex, paramData){
+					fieldData = {"id" : "inputDefinitionInputParam" + inputIndex + paramData[2], "label" : paramData[1]}
+					if (paramData[0] == 'text' || paramData[0] == 'int'){
+						fieldData['input'] = true;
+					}
+					else if (paramData[0] == 'bool'){
+						fieldData['checkbox'] = true;
+					}
+					formFields.push(fieldData);
+				});
 			}
-			else if (paramData[0] == 'bool'){
-				fieldData['checkbox'] = true;
-			}
-			formFields.push(fieldData);
 		});
 	}
 	$('#dialogInputs').html($('#formFieldsTemplate').render({'fields' : formFields}));
@@ -239,7 +282,7 @@ function editPattern(moduleId){
 		$.each(allSculptureData.inputs[patternInputData.inputInstanceId].outputs, function(outputIndex, outputData){
 			if (outputIndex == patternInputData.outputIndexOfInput || patternInputData.type=='multi'){
 				idPrefix = 'inputInstance' + patternInputData.inputInstanceId + '_output' + outputIndex + '_reBind'
-				html = '<button id="' + idPrefix + 'Button">' + allSculptureData.inputs[patternInputData.inputInstanceId].description + ' ' + outputData.description + '</button>';
+				html = '<button id="' + idPrefix + 'Button">' + allSculptureData.inputs[patternInputData.inputInstanceId].shortDescription + ' ' + outputData.description + '</button>';
 				$('#' + idPrefix + 'Div').html(html);
 				$('#' + idPrefix + 'Button').button().click(function(e){
 					showRebindDialog(moduleId, patternInstanceId, patternInputId);

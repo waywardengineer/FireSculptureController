@@ -3,14 +3,59 @@ keyboard bindings, timers, audio pulse thingeys, etc. There will be several broa
 will be interchangeable
 ''' 
 from ProgramModules.Timers import Timer
+from threading import Thread, Event
+
 outputTypes = ['pulse', 'toggle', 'value']
+
+availableInputTypes = {'pulse' : ['timer', 'onOff', 'button'], 'value' : ['', 'int'], 'multi' : ['osc']}
+inputTypeSettings = {
+	'TimerPulseInput' : {
+		'longDescription' : 'Timer pulse input, variable timing',
+		'shortDescription' : 'Timer Pulse',
+		'inputs' : [{'type' : 'value', 'description' : 'Interval(ms)', 'initInputData' : [['int', 'Maximum time(ms)', 'max'], ['int', 'Minimum time(ms)', 'min']]}],
+		'outputs' : [{'type' : 'pulse', 'sendMessageOnChange' : True}]
+	},
+	'OnOffPulseInput' : {
+		'longDescription' : 'On/off toggle control',
+		'shortDescription' : 'On/off control',
+		'inputs' : [{'type' : 'toggle', 'description' : '', 'default' : True}],
+		'outputs' : [{'type' : 'toggle', 'sendMessageOnChange' : True}]
+	},
+	'ButtonPulseInput' : {
+		'longDescription' : 'On/off instantaneous button control',
+		'shortDescription' : 'Button Pulse control',
+		'inputs' : [{'type' : 'pulse', 'description' : '', 'default' : False}],
+		'outputs' : [{'type' : 'pulse', 'sendMessageOnChange' : True}]
+	},
+	'ValueInput' : {
+		'longDescription' : 'Variable value input, can be decimal',
+		'shortDescription' : 'Value setting',
+		'inputs' : [{'type' : 'value', 'description' : 'Value', 'default' : 0, 'min' : 0, 'max' : 100}],
+		'outputs' : [{'type' : 'value'}]
+	},
+	'IntValueInput' : {
+		'longDescription' : 'Variable value input, integer',
+		'shortDescription' : 'Value setting',
+		'inputs' : [{'type' : 'value', 'subType' : 'int', 'description' : 'Value', 'default' : 0, 'min' : 0, 'max' : 100}],
+		'outputs' : [{'type' : 'value'}]
+	},
+	'OscMultiInput' : {
+		'longDescription' : 'OpenSoundControl server', 
+		'shortDescription' : 'OSC server', 
+		'inputs' : [],
+		'host' : '127.0.0.2', 
+		'port' : 8000, 
+		'initInputData' : [['text', 'Host', 'host'], ['int', 'Port', 'port'], ['text', 'Button addresses(separated by space)', 'buttonAddressesString'], ['text', 'Value addresses(separated by space)', 'valueAddressesString']],
+		'callbackAddresses' : {'pulse' : ['/1/button1', '/1/button2', '/1/button3'], 'toggle' : [], 'value' : ['/1/value1', '/1/value2', '/1/value3']}
+	}
+
+}
+
 try:
 	from OSC import OSCServer,OSCClient, OSCMessage
-	from time import sleep
-	import types
-	from threading import Thread, Event
 except:
-	pass
+	inputTypeSettings['OscMultiInput']['unavailable'] = True
+
 
 class InputCollectionWrapper(object):
 	def __init__(self, inputCollection):
@@ -35,6 +80,7 @@ class InputCollectionWrapper(object):
 
 class InputBase():
 	def __init__(self, configParams, instanceId):
+		self.defaultParams = inputTypeSettings[self.__class__.__name__]
 		self.configParams = dict(self.defaultParams, **configParams)
 		self.outputs = []
 		self.inputs = []
@@ -91,11 +137,6 @@ class InputBase():
 
 class TimerPulseInput(InputBase):
 	def __init__(self, *args):
-		self.defaultParams = {
-			'description' : 'Timer Pulse',
-			'inputs' : [{'type' : 'value', 'description' : 'Interval(ms)'}],
-			'outputs' : [{'type' : 'pulse', 'sendMessageOnChange' : True}]
-		}
 		InputBase.__init__(self, *args)
 		self.timer = Timer(True, self.inputs[0].getValue(), getattr(self, 'sendPulse'))
 
@@ -112,48 +153,22 @@ class TimerPulseInput(InputBase):
 	def setInputValue(self, *args):
 		InputBase.setInputValue(self, *args)
 		self.timer.changeInterval(self.inputs[0].getValue())
+		
+	def updateOutputValues(self):
+		pass
 
 
 class OnOffPulseInput(InputBase):
-	def __init__(self, *args):
-		self.defaultParams = {
-			'description' : 'On/off control',
-			'inputs' : [{'type' : 'toggle', 'description' : '', 'default' : True}],
-			'outputs' : [{'type' : 'toggle', 'sendMessageOnChange' : True}]
-		}
-		InputBase.__init__(self, *args)
-		print self.configParams
+	pass
 
 class ButtonPulseInput(InputBase):
-	def __init__(self, *args):
-		self.defaultParams = {
-			'description' : 'Button Pulse control',
-			'inputs' : [{'type' : 'pulse', 'description' : '', 'default' : False}],
-			'outputs' : [{'type' : 'pulse', 'sendMessageOnChange' : True}]
-		}
-		InputBase.__init__(self, *args)
-
-
+	pass
 
 class ValueInput(InputBase):
-	def __init__(self, *args):
-		self.defaultParams = {
-			'description' : 'Value setting',
-			'inputs' : [{'type' : 'value', 'description' : 'Value', 'default' : 0, 'min' : 0, 'max' : 100}],
-			'outputs' : [{'type' : 'value'}]
-		}
-		InputBase.__init__(self, *args)
-		
+	pass
 
 class IntValueInput(InputBase):
-	def __init__(self, *args):
-		self.defaultParams = {
-			'description' : 'Value setting',
-			'inputs' : [{'type' : 'value', 'subType' : 'int', 'description' : 'Value', 'default' : 0, 'min' : 0, 'max' : 100}],
-			'outputs' : [{'type' : 'value'}]
-		}
-		InputBase.__init__(self, *args)
-
+	pass
 
 
 class MultiInput(InputBase):
@@ -251,7 +266,6 @@ class InputOutputParam():
 	def __init__(self, params, parentId = 0, indexId = 0):
 		defaultParams = {'description' : '', 'type' : 'value', 'subtype' : False, 'min' : False, 'max' : False, 'default' : 0, 'sendMessageOnChange' : False, 'toggleTimeOut' : 100}
 		self.params = dict(defaultParams, **params)
-		self.value = self.params['default']
 		self.parentId = parentId
 		self.indexId = indexId
 		type = self.params['type']
@@ -262,6 +276,8 @@ class InputOutputParam():
 		else:
 			constrainValueFunctionName = 'constrain' + type[0].upper() + type[1:]
 		self.constrainValueFunction = getattr(self, constrainValueFunctionName)
+		self.value = False
+		self.setValue(self.params['default'])
 	def getValue(self):
 		return self.value
 	def setValue(self, newValue):

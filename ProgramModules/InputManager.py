@@ -9,20 +9,16 @@ class InputManager():
 		self.nextInputInstanceId = 1
 		self.inputInstances = {}
 		self.inputInstanceUses = {}
-		self.availableInputTypes = {
-			'pulse' : [
-				{'subtype' : 'timer', 'params' : [['int', 'Maximum time(ms)', 'max'], ['int', 'Minimum time(ms)', 'min']], 'inputTypes' : ['value'], 'description' : 'Timer pulse input, variable timing'},
-				{'subtype' : 'onOff', 'params' : [], 'inputTypes' : ['toggle'], 'description' : 'On/off toggle control'},
-				{'subtype' : 'button', 'params' : [], 'inputTypes' : ['pulse'], 'description' : 'On/off instantaneous button control'}
-			],
-			'value' : [
-				{'subtype' : '', 'params' : [['int', 'Maximum', 'max'], ['int', 'Minimum', 'min']], 'inputTypes' : ['value'], 'description' : 'Variable value input, can be decimal'},
-				{'subtype' : 'int', 'params' : [['int', 'Maximum', 'max'], ['int', 'Minimum', 'min']], 'inputTypes' : ['value'], 'description' : 'Variable value input, integer'}
-			],
-			'multi' : [
-				{'subtype' : 'osc', 'params' : [['text', 'Host', 'host'], ['int', 'Port', 'port'], ['text', 'Button addresses(separated by space)', 'buttonAddressesString'], ['text', 'Value addresses(separated by space)', 'valueAddressesString']], 'inputTypes' : [], 'description' : 'OpenSoundControl server'}
-			]
-		}
+		self.availableInputTypes = {}
+		for inputType in self.inputModules.availableInputTypes:
+			self.availableInputTypes[inputType] = {}
+			for subType in self.inputModules.availableInputTypes[inputType]:
+				if len(subType) > 1:
+					className = subType[0].upper() + subType[1:] + inputType[0].upper() + inputType[1:] + 'Input'
+				else:
+					className = inputType[0].upper() + inputType[1:] + 'Input'
+				if not ('unavailable' in self.inputModules.inputTypeSettings[className].keys()):
+					self.availableInputTypes[inputType][subType] = self.inputModules.inputTypeSettings[className]
 
 	def buildInputCollection(self, inputParams, patternId):
 		inputDict = {}
@@ -48,6 +44,8 @@ class InputManager():
 		return newInputInstanceId
 
 	def registerUsage(self, userId, inputInstanceId, inputChannelId = False):
+		if inputChannelId:
+			self.unRegisterUsage(userId, inputChannelId = inputChannelId)
 		if not inputInstanceId in self.inputInstanceUses.keys():
 			self.inputInstanceUses[inputInstanceId] = []
 		self.inputInstanceUses[inputInstanceId].append([userId, inputChannelId])
