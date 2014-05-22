@@ -34,7 +34,6 @@ class ServerSentEvent(object):
 appMessenger = Messenger()
 setattr(__builtins__, 'appMessenger', appMessenger)
 sculpture = SculptureController()
-dataQueue = ''
 subscriptions = []
 
 def sendNewOutputState(argData):

@@ -13,16 +13,21 @@ except:
 	pass
 
 class InputCollectionWrapper(object):
-	def __init__(self, inputParamData):
-		self.inputParamData = inputParamData
+	def __init__(self, inputCollection):
+		self.inputCollection = inputCollection
+		
 
 
-	def __getattr__(self, attr):
-		return self.inputParamData[attr]
+	def __getattr__(self, patternInputId):
+		return self.inputCollection[patternInputId]['inputObj'].getValue(self.inputCollection[patternInputId]['outputIndexOfInput'])
 
-
-	def replaceInput (self, patternInputId, inputObj):
-		self.inputParamData[patternInputId] = inputObj
+	def getBinding(self, patternInputId):
+		return [self.inputCollection[patternInputId]['inputObj'].getId(), self.inputCollection[patternInputId]['outputIndexOfInput']]
+		
+		
+	def replaceInput (self, patternInputId, inputObj, outputIndexOfInput = 0):
+		self.inputCollection[patternInputId]['inputObj'] = inputObj
+		self.inputCollection[patternInputId]['outputIndexOfInput'] = outputIndexOfInput
 
 
 class InputBase():

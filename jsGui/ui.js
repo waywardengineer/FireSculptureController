@@ -8,7 +8,7 @@ source.onmessage = function (event) {
 	var data = JSON.parse(event.data);
 	if (data.log){
 		$.each(data.log, function(logIndex, logItem){
-			$('#logDiv').prepend(logItem + '<br>');
+			//$('#logDiv').prepend(logItem + '<br>');
 		});
 	}
 	if (data.sculptures){
@@ -26,15 +26,24 @@ source.onmessage = function (event) {
 };
 
 function showRebindDialog(moduleId, patternInstanceId, patternInputId){
-	selectData = {'id' : 'patternRebindSelector', 'onChange' : 'onChange = "selectPattern()"', 'options' : [{'name' : 'Select Input', 'value' : 'none'}]};
+	selectData = {'id' : 'inputSelector', 'onChange' : 'onChange = "showInputParamsForm()"', 'options' : [{'description' : 'Select Input', 'value' : 'none'}]};
 	inputChannelType = allSculptureData.currentSculpture.modules[moduleId].patterns[patternInstanceId].inputs[patternInputId].type;
 	$.each(allSculptureData.availableInputTypes[inputChannelType], function(typeIndex, typeData){
-		selectData.options.push({'name' : typeData.description, 'value' : typeData.subtype});
+		selectData.options.push({'description' : "(New)" + typeData.description, 'value' : JSON.stringify(['new', inputChannelType, typeIndex])});
 	});
 	if (inputChannelType != 'multi'){
-		
+		$.each(allSculptureData.inputs, function(inputInstanceId, inputData){
+			if (inputData.type == 'multi'){
+				$.each(inputData.outputs, function(outputIndex, outputData){
+					if (outputData.type == inputChannelType){
+						selectData.options.push({'description' : "(Running)" + inputData.description + ' ' + outputData.description, 'value' : JSON.stringify(['running', inputInstanceId , outputIndex])});
+					}
+				});
+			}
+		});
 	}
 	$('#dialog').append($('#selectTemplate').render(selectData));
+	$('#dialog').append('<div id="dialogInputs"></div>');
 	$('#dialog').dialog({
 		autoOpen: true,
 		height: 300,
@@ -42,6 +51,7 @@ function showRebindDialog(moduleId, patternInstanceId, patternInputId){
 		modal: true,
 		buttons: {
 			"Update": function() {
+				doNewInputBinding(moduleId, patternInstanceId, patternInputId);
 				$(this).dialog("close");
 			},
 			"Cancel": function() {
@@ -50,11 +60,53 @@ function showRebindDialog(moduleId, patternInstanceId, patternInputId){
 		},
 		close: function(event, ui) {
 			$(this).empty().dialog('destroy');
-    }
-});
-
-
+		}
+	});
 }
+function doNewInputBinding(moduleId, patternInstanceId, patternInputId){
+	values = JSON.parse($('#inputSelector').val());
+	if (values[0] == 'running'){
+		doCommand(['changePatternInputBinding', moduleId, parseInt(patternInstanceId), patternInputId, parseInt(values[1]), parseInt(values[2])])
+	}
+	else if (values[0] == 'new'){
+		params = {'type' : values[1], 'subType' : allSculptureData.availableInputTypes[values[1]][values[2]].subtype}
+		$.each(allSculptureData.availableInputTypes[values[1]][values[2]].params, function (paramIndex, paramData){
+			formInputId = '#inputDefinition' + paramData[2];
+			switch (paramData[0]){
+				case 'text':
+					params[paramData[2]] = $(formInputId).val();
+				break;
+				case 'int':
+					params[paramData[2]] = parseInt($(formInputId).val());
+				break;
+				case 'bool':
+					params[paramData[2]] = $(formInputId).is(":checked");
+				break;
+			}
+		});
+		doCommand(['bindPatternToNewInput', moduleId, parseInt(patternInstanceId), patternInputId, params]);
+	}
+}
+
+function showInputParamsForm(){
+	values = JSON.parse($('#inputSelector').val());
+	formFields = [];
+	if (values[0] == 'new'){
+		$.each(allSculptureData.availableInputTypes[values[1]][values[2]].params, function (paramIndex, paramData){
+			fieldData = {"id" : "inputDefinition" + paramData[2], "label" : paramData[1]}
+			if (paramData[0] == 'text' || paramData[0] == 'int'){
+				fieldData['input'] = true;
+			}
+			else if (paramData[0] == 'bool'){
+				fieldData['checkbox'] = true;
+			}
+			formFields.push(fieldData);
+		});
+	}
+	$('#dialogInputs').html($('#formFieldsTemplate').render({'fields' : formFields}));
+}
+
+
 
 function doInit(){
 	reloadData();
@@ -160,6 +212,7 @@ function buildInputControls(inputInstanceId, inputData){
 			$(htmlParentId).append('<span class="settingLabel">' + settingData.description + '</span>');
 		});
 		$.each( inputData.outputs, function( outputIndex, outputData ) {
+			
 			$(htmlParentId).append('<div id="inputInstance' + inputInstanceId + '_output' + outputIndex + '_reBindDiv"></div>');
 		});
 	}
@@ -177,12 +230,14 @@ function editPattern(moduleId){
 		$('#' + idPrefix + 'div').css("display", "block");
 		$('#' + idPrefix + 'description').html(patternInputData.description);
 		$.each(allSculptureData.inputs[patternInputData.inputInstanceId].outputs, function(outputIndex, outputData){
-			idPrefix = 'inputInstance' + patternInputData.inputInstanceId + '_output' + outputIndex + '_reBind'
-			html = '<button id="' + idPrefix + 'Button">' + allSculptureData.inputs[patternInputData.inputInstanceId].description + '</button>'
-			$('#' + idPrefix + 'Div').html(html);
-			$('#' + idPrefix + 'Button').button().click(function(e){
-				showRebindDialog(moduleId, patternInstanceId, patternInputId);
-			});
+			if (outputIndex == patternInputData.outputIndexOfInput || patternInputData.type=='multi'){
+				idPrefix = 'inputInstance' + patternInputData.inputInstanceId + '_output' + outputIndex + '_reBind'
+				html = '<button id="' + idPrefix + 'Button">' + allSculptureData.inputs[patternInputData.inputInstanceId].description + ' ' + outputData.description + '</button>';
+				$('#' + idPrefix + 'Div').html(html);
+				$('#' + idPrefix + 'Button').button().click(function(e){
+					showRebindDialog(moduleId, patternInstanceId, patternInputId);
+				});
+			}
 		});
 	});
 
@@ -206,8 +261,10 @@ function changeSculpture(){
 	}
 }
 function doCommand(command){
+	commandStr = JSON.stringify(command)
+	$('#logDiv').prepend('Command sent:' + commandStr + '<br>');
 	$.ajax(settings.serverUrl + 'doCommand', {
-		data : JSON.stringify(command),
+		data : commandStr,
 		contentType : 'application/json',
 		type : 'POST',
 		dataType: 'json',
@@ -216,12 +273,8 @@ function doCommand(command){
 	});
 }
 function handleCommandResult(result){
-	switch(result.command){
-		case 'loadSculpture':
-			reloadData();
-		case 'addPattern':
-			reloadData();
-		break;
+	if ($.inArray(result.command, ['loadSculpture', 'addPattern', 'changePatternInputBinding', 'bindPatternToNewInput']) > -1){
+		reloadData();
 	}
 }
 function addPattern(moduleId){

@@ -11,16 +11,16 @@ class InputManager():
 		self.inputInstanceUses = {}
 		self.availableInputTypes = {
 			'pulse' : [
-				{'subtype' : 'timer', 'params' : [], 'inputTypes' : ['value'], 'description' : 'Timer pulse input, variable timing'},
+				{'subtype' : 'timer', 'params' : [['int', 'Maximum time(ms)', 'max'], ['int', 'Minimum time(ms)', 'min']], 'inputTypes' : ['value'], 'description' : 'Timer pulse input, variable timing'},
 				{'subtype' : 'onOff', 'params' : [], 'inputTypes' : ['toggle'], 'description' : 'On/off toggle control'},
 				{'subtype' : 'button', 'params' : [], 'inputTypes' : ['pulse'], 'description' : 'On/off instantaneous button control'}
 			],
 			'value' : [
-				{'subtype' : '', 'params' : [], 'inputTypes' : ['value'], 'description' : 'Variable value input, can be decimal'},
-				{'subtype' : 'int', 'params' : [], 'inputTypes' : ['value'], 'description' : 'Variable value input, integer'}
+				{'subtype' : '', 'params' : [['int', 'Maximum', 'max'], ['int', 'Minimum', 'min']], 'inputTypes' : ['value'], 'description' : 'Variable value input, can be decimal'},
+				{'subtype' : 'int', 'params' : [['int', 'Maximum', 'max'], ['int', 'Minimum', 'min']], 'inputTypes' : ['value'], 'description' : 'Variable value input, integer'}
 			],
 			'multi' : [
-				{'subtype' : 'osc', 'params' : [['Host', 'host'], ['Port', 'port'], ['Button addresses(separated by space)', 'buttonAddressesString'], ['Value addresses(separated by space)', 'valueAddressesString']], 'inputTypes' : [], 'description' : 'OpenSoundControl server'}
+				{'subtype' : 'osc', 'params' : [['text', 'Host', 'host'], ['int', 'Port', 'port'], ['text', 'Button addresses(separated by space)', 'buttonAddressesString'], ['text', 'Value addresses(separated by space)', 'valueAddressesString']], 'inputTypes' : [], 'description' : 'OpenSoundControl server'}
 			]
 		}
 
@@ -28,7 +28,11 @@ class InputManager():
 		inputDict = {}
 		for inputChannelId in inputParams:
 			newInputInstanceId = self.createNewInput(inputParams[inputChannelId].copy())
-			inputDict[inputChannelId] = self.inputInstances[newInputInstanceId]
+			if 'outputIndexOfInput' in inputParams[inputChannelId].keys():
+				outputIndexOfInput = inputParams[inputChannelId][outputIndexOfInput]
+			else:
+				outputIndexOfInput = 0
+			inputDict[inputChannelId] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outputIndexOfInput' : outputIndexOfInput}
 			self.registerUsage(patternId, newInputInstanceId, inputChannelId)
 		InputCollectionWrapper = getattr(self.inputModules, "InputCollectionWrapper")
 		return InputCollectionWrapper(inputDict)

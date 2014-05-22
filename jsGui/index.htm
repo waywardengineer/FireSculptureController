@@ -98,11 +98,26 @@
 <script id="selectTemplate" type="text/x-jsrender">
   <select id="{{>id}}" {{:onChange}}>
     {{for options}}
-      <option value="{{>value}}">{{>name}}</option>
+      <option value="{{>value}}">{{>description}}</option>
     {{/for}}
   </select>
 
 </script>
+<script id="formFieldsTemplate" type="text/x-jsrender">
+  {{for fields}}
+    <label for="{{>id}}">{{>label}}</label>
+    {{if input}}
+      <input id="{{>id}}">
+    {{else checkbox}}
+      <input type="checkbox" id="{{>id}}">
+    {{else}}
+      god fucking dammit
+    {{/if}}
+  {{/for}}
+
+</script>
+
+
 
 </html>
 

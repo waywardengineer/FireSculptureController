@@ -15,18 +15,18 @@ class PatternBase():
 			self.inputs = self.inputManager.buildInputCollection(self.inputParams, self.instanceId)
 			for patternInputId in self.inputParams:
 				if self.inputParams[patternInputId]['type'] == 'pulse':
-					inputObj = getattr(self.inputs, patternInputId)
-					self.messengerBindingIds[patternInputId] = appMessenger.addBinding('pulse%s_0' %(inputObj.getId()), getattr(self, patternInputId))
+					inputBinding = self.inputs.getBinding(patternInputId) 
+					self.messengerBindingIds[patternInputId] = appMessenger.addBinding('pulse%s_%s' %(inputBinding[0], inputBinding[1]), getattr(self, patternInputId))
 
 
-	def changeInputBinding(self, inputInstanceId, patternInputId, outputIndexOfInput = 0):
-		self.inputs.replaceInput(patternInputId, inputManager.registerUsage(self.instanceId, inputInstanceId, patternInputId))
-		if self.inputParamData[patternInputId]['patternInputSpecs']['type'] == 'pulse':
+	def changeInputBinding(self, patternInputId, inputInstanceId, outputIndexOfInput = 0):
+		self.inputs.replaceInput(patternInputId, self.inputManager.registerUsage(self.instanceId, inputInstanceId, patternInputId), outputIndexOfInput)
+		if self.inputParams[patternInputId]['type'] == 'pulse':
 			if patternInputId in self.messengerBindingIds.keys():
 				appMessenger.removeBinding(self.messengerBindingIds[patternInputId])
 				del self.messengerBindingIds[patternInputId]
-			self.messengerBindingIds[inputInstanceId] = newBindingId
 			newBindingId = appMessenger.addBinding('pulse%s_%s' %(inputInstanceId, outputIndexOfInput), getattr(self, patternInputId))
+			self.messengerBindingIds[inputInstanceId] = newBindingId
 
 
 	def unBind(self):
@@ -41,8 +41,8 @@ class PatternBase():
 	def getCurrentStateData(self):
 		data = {'name' : self.patternName, 'inputs' : {}}
 		for patternInputId in self.inputParams:
-			inputObj = getattr(self.inputs, patternInputId)
-			data['inputs'][patternInputId] = {'type' : self.inputParams[patternInputId]['type'], 'inputInstanceId' : inputObj.getId(), 'description' : self.inputParams[patternInputId]['descriptionInPattern']}
+			inputBinding = self.inputs.getBinding(patternInputId) 
+			data['inputs'][patternInputId] = {'type' : self.inputParams[patternInputId]['type'], 'inputInstanceId' : inputBinding[0], 'outputIndexOfInput' : inputBinding[1], 'description' : self.inputParams[patternInputId]['descriptionInPattern']}
 		return data
 	
 

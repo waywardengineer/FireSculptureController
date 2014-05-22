@@ -55,10 +55,10 @@ class Chase(PatternBase):
 		self.sequenceTriggered = True
 
 	def triggerStep(self):
-		self.position += self.inputs.stepping.getValue()
+		self.position += self.inputs.stepping
 		if self.position > self.gridSize[1]:
 			self.position -= self.gridSize[1]
-			self.sequenceTriggered = self.inputs.triggerSequence.getValue()
+			self.sequenceTriggered = self.inputs.triggerSequence
 		self.updateTriggerFunction()
 		
 	def triggerSequence(self):
@@ -66,16 +66,16 @@ class Chase(PatternBase):
 	def getState(self, row, col):
 		result = False
 		if self.sequenceTriggered:
-			spacing = self.gridSize[1] / self.inputs.numberPulses.getValue()
+			spacing = self.gridSize[1] / self.inputs.numberPulses
 			intervalCount = 0
-			while intervalCount < self.inputs.numberPulses.getValue() and not result:
+			while intervalCount < self.inputs.numberPulses and not result:
 				lowerLimit = self.position + intervalCount * spacing
-				upperLimit = lowerLimit + self.inputs.numberOn.getValue()
+				upperLimit = lowerLimit + self.inputs.numberOn
 				if col >= lowerLimit and col < upperLimit:
 					result = True
-				if self.inputs.numberPulses.getValue() > 1:
+				if self.inputs.numberPulses > 1:
 					lowerLimit = self.position - intervalCount * spacing
-					upperLimit = lowerLimit + self.inputs.numberOn.getValue()
+					upperLimit = lowerLimit + self.inputs.numberOn
 					if col >= lowerLimit and col < upperLimit:
 						result = True
 				intervalCount += 1

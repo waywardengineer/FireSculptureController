@@ -48,7 +48,7 @@ class SculptureModuleBase():
 		del self.patterns[patternInstanceId]
 
 	def bindPatternToNewInput(self, patternInstanceId, patternInputId, newPatternParams):
-		return changeInputBinding(patternInstanceId, patternInputId, inputManager.createNewInput(params))
+		return self.changePatternInputBinding(patternInstanceId, patternInputId, self.inputManager.createNewInput(newPatternParams))
 	
 	def stop(self):
 		for patternInstanceId in self.patterns:
@@ -63,8 +63,8 @@ class SculptureModuleBase():
 		function = getattr(self, functionName)
 		return function(*command)
 
-	def changePatternInputBinding(self, patternInstanceId, patternInputId, inputInstanceId): #connect data from an input to a pattern parameter
-		return self.patterns[patternInstanceId].changeInputBinding(patternInputId, inputInstanceId)
+	def changePatternInputBinding(self, patternInstanceId, *args): #connect data from an input to a pattern parameter
+		return self.patterns[patternInstanceId].changeInputBinding(*args)
 	def getCurrentOutputState(self):
 		return self.currentOutputState
 
