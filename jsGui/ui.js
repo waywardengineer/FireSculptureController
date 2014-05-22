@@ -191,13 +191,20 @@ function buildInputControls(inputInstanceId, inputData){
 			
 			switch(settingData['type']){
 				case 'pulse':
+					templateData['controlHtml'] =  $('#buttonTemplate').render(templateData);
+					$(htmlParentId).append($('#inputControlTemplate').render(templateData));
+					$('#' + inputId).button().click(function(e){
+						doCommand(['setInputValue', parseInt(inputInstanceId), true]);
+					});
+				break;
+				case 'toggle':
 					if (settingData.currentValue){
 						templateData['checked'] = 'checked="checked"';
 					}
 					else {
 						templateData['checked'] = '';
 					}
-					templateData['controlHtml'] =  $('#buttonTemplate').render(templateData);
+					templateData['controlHtml'] =  $('#checkButtonTemplate').render(templateData);
 					$(htmlParentId).append($('#inputControlTemplate').render(templateData));
 					$('#' + inputId).button().click(function(e){
 						setInputToggle(inputInstanceId, settingIndex);
@@ -273,6 +280,8 @@ function doCommand(command){
 	});
 }
 function handleCommandResult(result){
+	resultStr = JSON.stringify(result)
+	//$('#logDiv').prepend('Result recieved:' + resultStr + '<br>');
 	if ($.inArray(result.command, ['loadSculpture', 'addPattern', 'changePatternInputBinding', 'bindPatternToNewInput']) > -1){
 		reloadData();
 	}

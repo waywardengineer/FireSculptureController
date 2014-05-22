@@ -87,8 +87,11 @@
 <script id="knobTemplate" type="text/x-jsrender">
   <input id="{{>id}}" value="{{>currentValue}}" data-width="100" data-height="100" data-max="{{>max}}" data-min="{{>min}}" data-skin="tron" class="knob" data-thickness=".2"> 
 </script>
-<script id="buttonTemplate" type="text/x-jsrender">
+<script id="checkButtonTemplate" type="text/x-jsrender">
   <input id="{{>id}}" {{>checked}} type="checkbox"><label for="{{>id}}" style="width:75px; height:75px;"> </label>
+</script>
+<script id="buttonTemplate" type="text/x-jsrender">
+  <button id="{{>id}}" style="width:75px; height:75px;"></button>
 </script>
 <script id="inputControlTemplate" type="text/x-jsrender">
   <div class="controlContainer">

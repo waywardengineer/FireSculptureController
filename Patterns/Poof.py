@@ -55,14 +55,21 @@ class Chase(PatternBase):
 		self.sequenceTriggered = True
 
 	def triggerStep(self):
-		self.position += self.inputs.stepping
-		if self.position > self.gridSize[1]:
-			self.position -= self.gridSize[1]
-			self.sequenceTriggered = self.inputs.triggerSequence
-		self.updateTriggerFunction()
+		if self.inputs.triggerStep:
+			self.position += self.inputs.stepping
+			if self.position > self.gridSize[1]:
+				self.position -= self.gridSize[1]
+				self.sequenceTriggered = self.inputs.triggerSequence
+			self.updateTriggerFunction()
 		
 	def triggerSequence(self):
-		self.sequenceTriggered = True
+		if self.inputs.triggerSequence:
+			print('ok')
+			self.inputs.doCommand(['triggerStep', 'refresh'])
+			self.position = 0
+			self.sequenceTriggered = True
+			
+			
 	def getState(self, row, col):
 		result = False
 		if self.sequenceTriggered:

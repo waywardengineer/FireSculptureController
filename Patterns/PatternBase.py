@@ -16,7 +16,7 @@ class PatternBase():
 			for patternInputId in self.inputParams:
 				if self.inputParams[patternInputId]['type'] == 'pulse':
 					inputBinding = self.inputs.getBinding(patternInputId) 
-					self.messengerBindingIds[patternInputId] = appMessenger.addBinding('pulse%s_%s' %(inputBinding[0], inputBinding[1]), getattr(self, patternInputId))
+					self.messengerBindingIds[patternInputId] = appMessenger.addBinding('output%s_%s' %(inputBinding[0], inputBinding[1]), getattr(self, patternInputId))
 
 
 	def changeInputBinding(self, patternInputId, inputInstanceId, outputIndexOfInput = 0):
@@ -25,7 +25,7 @@ class PatternBase():
 			if patternInputId in self.messengerBindingIds.keys():
 				appMessenger.removeBinding(self.messengerBindingIds[patternInputId])
 				del self.messengerBindingIds[patternInputId]
-			newBindingId = appMessenger.addBinding('pulse%s_%s' %(inputInstanceId, outputIndexOfInput), getattr(self, patternInputId))
+			newBindingId = appMessenger.addBinding('output%s_%s' %(inputInstanceId, outputIndexOfInput), getattr(self, patternInputId))
 			self.messengerBindingIds[inputInstanceId] = newBindingId
 
 
