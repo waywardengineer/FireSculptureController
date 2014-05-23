@@ -47,7 +47,7 @@ def sendNewOutputState(argData):
 		#data = {'log' : appMessenger.getMessages('log')}
 	if data:
 		for sub in subscriptions[:]:
-			sub.put(json.dumps(data), False)
+			sub.put(json.dumps(data))
 
 
 @app.route('/')
@@ -65,7 +65,7 @@ def doCommand():
 	command = requestData[0]
 	result = sculpture.doCommand(requestData)
 	if command == 'loadSculpture':
-		# appMessenger.addBinding('outputChanged', globals()['sendNewOutputState'], {'whatChanged' : 'outputChanged'})
+		#appMessenger.addBinding('outputChanged', globals()['sendNewOutputState'], {'whatChanged' : 'outputChanged'})
 		appMessenger.addBinding('log', globals()['sendNewOutputState'], {'whatChanged' : 'log'})
 
 	return jsonify({'command' : command, 'result' : result})
@@ -80,7 +80,6 @@ def subscribe():
 			while True:
 				result = q.get()
 				ev = ServerSentEvent(str(result))
-				# print str(result)
 
 				yield ev.encode()
 		except GeneratorExit:
@@ -89,8 +88,11 @@ def subscribe():
 
 
 
-# sculpture.loadSculpture('tympani')
-# sculpture.doCommand(['addPattern', 'poofers', 'Chase'])
+sculpture.loadSculpture('tympani')
+sculpture.doCommand(['addPattern', 'poofers', 'Chase'])
+appMessenger.addBinding('log', globals()['sendNewOutputState'], {'whatChanged' : 'log'})
+appMessenger.addBinding('outputChanged', globals()['sendNewOutputState'], {'whatChanged' : 'outputChanged'})
+
 
 if __name__ == '__main__':
 	app.debug = True

@@ -1,14 +1,28 @@
-from threading import Timer, Thread, Event
+from threading import Thread, Event
+import timer
 
 class Timer():
 	class TimerThread(Thread):
 		def __init__(self, parent):
 			Thread.__init__(self)
 			self.parent = parent
+			self.waitEvent = Event()
+			self.timer = timer.Timer(parent.interval*1000, self.waitEvent.set)
 		def run(self):
-			while not self.parent.stopEvent.wait(self.parent.interval / 1000.):
+			self.timer.start()
+			if self.parent.repeating:
+				self.parent.doFunction()
+			while not self.parent.stopEvent.isSet():
+				while not self.waitEvent.isSet():
+					pass
 				if self.parent.fireFunction:
 					self.parent.doFunction()
+				if self.parent.repeating:
+					self.waitEvent = Event()
+					self.timer = timer.Timer(self.parent.interval*1000, self.waitEvent.set)
+					self.timer.start()
+
+
 					
 	def __init__(self, repeating, interval, function, args = False):
 		self.function = function
@@ -16,30 +30,21 @@ class Timer():
 		self.args = args
 		self.fireFunction = True
 		self.interval = interval
-		self.startThread()
-
-	def startThread(self):
 		self.stopEvent = Event()
-		thread = Timer.TimerThread(self)
-		if self.repeating:
-			intervalSetting = self.interval
-			self.interval = 50
-			thread.start()
-			self.interval = intervalSetting
-		else:
-			thread.start()
-
+		self.thread = Timer.TimerThread(self)
+		self.thread.start()
 
 	def stop(self):
+		self.fireFunction = False
+		self.thread.timer.stop()
+		self.thread.waitEvent.set()
 		self.stopEvent.set()
 	
 	def refresh(self):
 		self.fireFunction = False
-		self.stop()
+		self.thread.timer.stop()
+		self.thread.waitEvent.set()
 		self.fireFunction = True
-		self.startThread()
-		
-	
 	
 	def changeInterval(self, interval):
 		self.interval = interval
@@ -48,5 +53,3 @@ class Timer():
 			self.function(*self.args)
 		else:
 			self.function()
-		if not self.repeating:
-			self.stop()

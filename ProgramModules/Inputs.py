@@ -129,7 +129,10 @@ class InputBase():
 
 
 	def stop(self):
-		pass
+		for input in self.inputs:
+			input.stop()
+		for output in self.outputs:
+			output.stop()
 
 
 	def isPersistant(self):
@@ -143,6 +146,7 @@ class TimerPulseInput(InputBase):
 
 	def stop(self):
 		self.timer.stop()
+		InputBase.stop(self)
 
 	def refresh(self):
 		self.timer.refresh()
@@ -235,6 +239,7 @@ class OscMultiInput(MultiInput):
 
 	def stop(self):
 		self.stopEvent.set()
+		InputBase.stop(self)
 
 	def doPulseCallback(self, path, tags, args, source):
 		outputIndex = self.getOutputIndexFromAddress(path, 'pulse')
@@ -271,7 +276,7 @@ class OscMultiInput(MultiInput):
 
 class InputOutputParam():
 	def __init__(self, params, parentId = 0, indexId = 0):
-		defaultParams = {'description' : '', 'type' : 'value', 'subtype' : False, 'min' : False, 'max' : False, 'default' : 0, 'sendMessageOnChange' : False, 'toggleTimeOut' : 100}
+		defaultParams = {'description' : '', 'type' : 'value', 'subtype' : False, 'min' : False, 'max' : False, 'default' : 0, 'sendMessageOnChange' : False, 'toggleTimeOut' : 10}
 		self.params = dict(defaultParams, **params)
 		self.parentId = parentId
 		self.indexId = indexId
@@ -324,3 +329,6 @@ class InputOutputParam():
 		data['currentValue'] = self.value
 		return data
 
+	def stop(self):
+		if self.timer:
+			self.timer.stop()

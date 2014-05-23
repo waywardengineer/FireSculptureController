@@ -9,7 +9,7 @@ class Chase(PatternBase):
 				'inputs' : [{
 					'min' : 100,
 					'max' : 3000, 
-					'default' : 200
+					'default' : 300
 				}]
 			},
 			'triggerSequence' : {
