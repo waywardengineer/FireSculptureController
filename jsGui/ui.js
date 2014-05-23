@@ -9,15 +9,15 @@ source.onmessage = function (event) {
 	var data = JSON.parse(event.data);
 	if (data.log){
 		$.each(data.log, function(logIndex, logItem){
-			//$('#logDiv').prepend(logItem + '<br>');
+			$('#logDiv').prepend(logItem + '<br>');
 		});
 	}
 	if (data.sculptures){
 		allSculptureData.sculptures = $.extend(true, allSculptureData.sculptures, data.sculptures);
 		updateStatusDisplay();
 	}
-	if (data.outputChanges){
-		$.each(data.outputChanges, function(index, outputChangeMessage){
+	if (data.outputChanged){
+		$.each(data.outputChanged, function(index, outputChangeMessage){
 			$.each(outputChangeMessage.data, function(index, pointData){
 				id = outputChangeMessage.moduleId + '_outputView_row' + pointData[0][0] + '_col' + pointData[0][1];
 				$('#' + id).prop('checked', pointData[1][0]).button('refresh');
@@ -43,7 +43,10 @@ function showRebindDialog(moduleId, patternInstanceId, patternInputId){
 	});
 	if (inputChannelType != 'multi'){
 		$.each(allSculptureData.inputs, function(inputInstanceId, inputData){
-			if (inputData.type == 'multi'){
+			$('#logDiv').prepend(inputInstanceId + '<br>')
+			$('#logDiv').prepend(JSON.stringify(allSculptureData.globalInputs) + '<br>');
+			
+			if (inputData.type == 'multi' || $.inArray(parseInt(inputInstanceId), allSculptureData.globalInputs) > -1){
 				$.each(inputData.outputs, function(outputIndex, outputData){
 					if (typesAreCompatible(outputData.type, inputChannelType) ){
 						selectData.options.push({'description' : "(Running)" + inputData.shortDescription + ' ' + outputData.description, 'value' : JSON.stringify(['running', inputInstanceId , outputIndex])});
@@ -166,6 +169,10 @@ function showInputParamsForm(){
 				fieldData = {"id" : "inputDefinitionMainParam" + paramData[2], "label" : paramData[1]}
 				if (paramData[0] == 'text' || paramData[0] == 'int'){
 					fieldData['input'] = true;
+					if (inputTypeData[paramData[2]]){
+						fieldData['value'] = inputTypeData[paramData[2]];
+					}
+					
 				}
 				else if (paramData[0] == 'bool'){
 					fieldData['checkbox'] = true;
@@ -293,7 +300,6 @@ function makeSculptureControllerTemplateData(){
 	data['globalInputs'] = []
 	$.each(allSculptureData.globalInputs, function (index, inputInstanceId){
 		data.globalInputs.push({'value' : inputInstanceId.toString(), 'name' : allSculptureData.inputs[inputInstanceId].shortDescription})
-		
 	});
 	return data;
 }

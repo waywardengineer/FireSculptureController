@@ -33,8 +33,6 @@ class Messenger():
 	def addBinding(self, channelId, function, data=False):
 		self.checkForChannel(channelId)
 		newBindingId = self.nextBindingId
-		if data:
-			data['bindingId'] = newBindingId
 		binding = {'function' : function, 'data' : data}
 		self.channels[channelId]['bindings'][newBindingId] = binding
 		self.nextBindingId += 1

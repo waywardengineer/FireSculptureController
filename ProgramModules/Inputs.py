@@ -6,8 +6,9 @@ from ProgramModules.Timers import Timer
 from threading import Thread, Event
 from copy import deepcopy
 outputTypes = ['pulse', 'toggle', 'value']
-
-availableInputTypes = {'pulse' : ['timer', 'onOff', 'button'], 'value' : ['', 'int'], 'multi' : ['osc']}
+import json
+import time
+availableInputTypes = {'pulse' : ['timer', 'onOff', 'button', 'audio'], 'value' : ['', 'int'], 'multi' : ['osc']}
 inputParams = {
 	'TimerPulseInput' : {
 		'longDescription' : 'Timer pulse input, variable timing',
@@ -25,7 +26,7 @@ inputParams = {
 		'longDescription' : 'On/off instantaneous button control',
 		'shortDescription' : 'Button Pulse control',
 		'inputs' : [{'type' : 'pulse', 'description' : '', 'default' : False}],
-		'outputs' : [{'type' : 'pulse', 'sendMessageOnChange' : True}]
+		'outputs' : [{'type' : 'pulse', 'sendMessageOnChange' : True, 'toggleTimeOut' : 20}]
 	},
 	'ValueInput' : {
 		'longDescription' : 'Variable value input, can be decimal',
@@ -47,8 +48,13 @@ inputParams = {
 		'port' : 8000, 
 		'initInputData' : [['text', 'Host', 'host'], ['int', 'Port', 'port'], ['text', 'Button addresses(separated by space)', 'pulseAddressString'], ['text', 'Toggle addresses(separated by space)', 'toggleAddressString'], ['text', 'Value addresses(separated by space)', 'valueAddressString']],
 		'callbackAddresses' : {'pulse' : ['/1/button1', '/1/button2', '/1/button3'], 'toggle' : [], 'value' : ['/1/value1', '/1/value2', '/1/value3']}
-	}
-
+	},
+	'AudioPulseInput' : {
+		'longDescription' : 'Audio responsive pulse input',
+		'shortDescription' : 'Audio Pulse control',
+		'inputs' : [{'type' : 'value', 'description' : 'Sensitivity', 'default' : 1000, 'min' : 1000, 'max' : 10000}],
+		'outputs' : [{'type' : 'pulse', 'sendMessageOnChange' : True}]
+	},
 }
 
 try:
@@ -56,6 +62,15 @@ try:
 except:
 	inputTypeSettings['OscMultiInput']['unavailable'] = True
 
+	
+try:
+	import pyaudio
+	import sys
+	from numpy import *
+	from numpy.fft import *
+	from struct import *
+except:
+	inputTypeSettings['AudioPulseInput']['unavailable'] = True
 
 class InputCollectionWrapper(object):
 	def __init__(self, inputCollection):
@@ -139,6 +154,8 @@ class InputBase():
 		return False
 
 
+
+
 class TimerPulseInput(InputBase):
 	def __init__(self, *args):
 		InputBase.__init__(self, *args)
@@ -167,7 +184,12 @@ class OnOffPulseInput(InputBase):
 	pass
 
 class ButtonPulseInput(InputBase):
-	pass
+	def setInputValue(self, value, settingIndex = 0):
+		if value:
+			self.outputs[0].setValue(True)
+
+	def updateOutputValues(self):
+		pass
 
 class ValueInput(InputBase):
 	pass
@@ -195,19 +217,14 @@ class OscMultiInput(MultiInput):
 			self.server.close()
 
 	def __init__(self, params, *args):
-		self.defaultParams = {'host' : '127.0.0.2', 'port' : 8000, 'callbackAddresses' : {'pulse' : ['/1/button1', '/1/button2', '/1/button3'], 'toggle' : [], 'value' : ['/1/value1', '/1/value2', '/1/value3']}}
+		self.defaultParams = deepcopy(inputParams[self.__class__.__name__])
 		callbackAddresses = {}
 		callbacksInStringForm = False
 		for outputType in outputTypes:
 			callbackAddresses[outputType] = []
 			key = outputType + 'AddressString'
-			print params
-			print key
 			if key in params.keys():
-				print key
-				print  params[key]
 				callbackAddresses[outputType] = params[key].split()
-				print callbackAddresses[outputType]
 				if len(callbackAddresses[outputType]) > 0:
 					callbacksInStringForm = True
 				del params[key]
@@ -242,8 +259,9 @@ class OscMultiInput(MultiInput):
 		InputBase.stop(self)
 
 	def doPulseCallback(self, path, tags, args, source):
+		print 'pulseCallBack' + json.dumps(args)
 		outputIndex = self.getOutputIndexFromAddress(path, 'pulse')
-		self.outputs[outputIndex].setValue(args[0])
+		self.outputs[outputIndex].setValue(args[0] in ['1', 1, 'true', 'True'])
 		appMessenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outputs[outputIndex].getValue()])
 
 	def doToggleCallback(self, path, tags, args, source):
@@ -293,16 +311,17 @@ class InputOutputParam():
 	def getValue(self):
 		return self.value
 	def setValue(self, newValue):
+		print newValue
 		newValue = self.constrainValueFunction(newValue)
 		if not self.value == newValue:
 			self.value = newValue
 			if self.params['sendMessageOnChange']:
 				appMessenger.putMessage("output%s_%s" %(self.parentId, self.indexId), self.value)
-		if self.params['type'] == 'pulse' and newValue:
-			if self.timer:
-				self.timer.refresh()
-			else:
-				self.timer = Timer(False, self.params['toggleTimeOut'], getattr(self, 'setValue'), [False])
+			if self.params['type'] == 'pulse' and newValue:
+				if self.timer:
+					self.timer.refresh()
+				else:
+					self.timer = Timer(False, self.params['toggleTimeOut'], getattr(self, 'setValue'), [False])
 
 	def constrainValue(self, value):
 		value = float(value)
@@ -332,3 +351,82 @@ class InputOutputParam():
 	def stop(self):
 		if self.timer:
 			self.timer.stop()
+
+class AudioPulseInput(InputBase):
+	class AudioInputThread(Thread):
+		def __init__(self, parent, stopEvent, callBackFunction, configParams = {'chunk' : 1024, 'format' : pyaudio.paInt16, 'channels' : 1, 'rate' : 22500, 'recordSeconds' : 5}):
+			Thread.__init__(self)
+			self.configParams = configParams
+			self.callBackFunction = callBackFunction
+			self.p=pyaudio.PyAudio()
+			self.stopEvent = stopEvent
+			self.stream = self.p.open(
+				format = configParams['format'],
+				channels = configParams['channels'], 
+				rate = configParams['rate'], 
+				input = True,
+				output = True
+			)
+			csum = []
+			spectlen = configParams['rate'] / configParams['chunk'] * configParams['recordSeconds']
+			self.makebands(configParams['chunk']/2)
+			self.bmax=0
+			self.gain = 1.0
+			self.skip =8            # skip this many windows
+
+		def setgain(self,intgain):
+				self.gain = 2*intgain/100.0
+
+		def makebands(self,max):
+				"make a set of power-of-two bands. Max must be power of 2"
+				self.bands = []
+				self.scale = []
+				while max > 2:
+						self.bands.append(range(max/2, max))
+						self.scale.append(max)
+						max = max/2
+				self.bands[-1] = range(0,4)
+				self.bands.reverse()
+				self.scale.reverse()
+
+		def run(self):
+			i = 0
+			while not self.stopEvent.isSet():
+				i += 1
+				try:
+					data = self.stream.read(self.configParams['chunk'])
+				except Exception as e: # HO HUM!
+					data = False
+					time.sleep(0.01)
+				if i>2 and data:
+					i = 0
+					buff = array(unpack_from('1024h',data))
+					bdata = range(len(self.bands))    
+					self.callBackFunction(bands=bdata, value = buff.std())
+					time.sleep(0.01)
+
+		def stop(self):
+			sys.stdout.flush()
+			self.stopEvent.set()
+			self.stream.stop_stream()
+			self.stream.close()
+			self.p.terminate()
+
+	def __init__(self, *args):
+		InputBase.__init__(self, *args)
+		self.audioThread = AudioPulseInput.AudioInputThread(self, Event(), self.handleAudioUpdate)
+		self.audioThread.start()
+		
+	def stop(self):
+		self.audioThread.stop()
+		InputBase.stop(self)
+
+	def handleAudioUpdate(self, bands, value):
+		if (value > self.inputs[0].getValue()):
+			self.outputs[0].setValue(True)
+	
+	def updateOutputValues(self):
+		pass
+
+
+

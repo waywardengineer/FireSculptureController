@@ -29,7 +29,7 @@ class PatternBase():
 			self.messengerBindingIds[inputInstanceId] = newBindingId
 
 
-	def unBind(self):
+	def stop(self):
 		for bindingIdKey in self.messengerBindingIds:
 			appMessenger.removeBinding(self.messengerBindingIds[bindingIdKey])
 		self.messengerBindingIds = {}

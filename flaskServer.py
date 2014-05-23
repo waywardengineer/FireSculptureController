@@ -37,17 +37,10 @@ setattr(__builtins__, 'appMessenger', appMessenger)
 sculpture = SculptureController()
 subscriptions = []
 
-def sendNewOutputState(argData):
-	whatChanged = argData['whatChanged']
-	data = False
-	if whatChanged == 'outputChanged':
-		data = {'outputChanges' : appMessenger.getMessages('outputChanged')}
-	elif whatChanged == 'log':
-		pass
-		#data = {'log' : appMessenger.getMessages('log')}
-	if data:
-		for sub in subscriptions[:]:
-			sub.put(json.dumps(data))
+def sendNewOutputState(whatChanged):
+	data = {whatChanged : appMessenger.getMessages(whatChanged)}
+	for sub in subscriptions[:]:
+		sub.put(json.dumps(data), False)
 
 
 @app.route('/')
@@ -65,8 +58,8 @@ def doCommand():
 	command = requestData[0]
 	result = sculpture.doCommand(requestData)
 	if command == 'loadSculpture':
-		#appMessenger.addBinding('outputChanged', globals()['sendNewOutputState'], {'whatChanged' : 'outputChanged'})
-		appMessenger.addBinding('log', globals()['sendNewOutputState'], {'whatChanged' : 'log'})
+		appMessenger.addBinding('outputChanged', sendNewOutputState, 'outputChanged')
+		# appMessenger.addBinding('log', sendNewOutputState, 'log')
 
 	return jsonify({'command' : command, 'result' : result})
 
@@ -80,7 +73,6 @@ def subscribe():
 			while True:
 				result = q.get()
 				ev = ServerSentEvent(str(result))
-
 				yield ev.encode()
 		except GeneratorExit:
 			subscriptions.remove(q)
@@ -89,10 +81,10 @@ def subscribe():
 
 
 sculpture.loadSculpture('tympani')
-sculpture.doCommand(['addPattern', 'poofers', 'Chase'])
-appMessenger.addBinding('log', globals()['sendNewOutputState'], {'whatChanged' : 'log'})
-appMessenger.addBinding('outputChanged', globals()['sendNewOutputState'], {'whatChanged' : 'outputChanged'})
-
+sculpture.doCommand(['addPattern', 'poofers', 'AllPoof'])
+appMessenger.addBinding('outputChanged', sendNewOutputState, 'outputChanged')
+sculpture.doCommand(['addGlobalInput', {'type' : 'pulse', 'subType' : 'audio'}])
+# sculpture.doCommand(["changePatternInputBinding","poofers","poofersPattern0","poofButton",2,0])
 
 if __name__ == '__main__':
 	app.debug = True

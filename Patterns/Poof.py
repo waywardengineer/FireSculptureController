@@ -1,4 +1,5 @@
 from Patterns.PatternBase import PatternBase
+from ProgramModules.Timers import Timer
 class Chase(PatternBase):
 	def __init__(self, *args):
 		self.inputParams = {
@@ -55,12 +56,15 @@ class Chase(PatternBase):
 		self.sequenceTriggered = True
 
 	def triggerStep(self):
-		if self.inputs.triggerStep:
+		if self.inputs.triggerStep and self.sequenceTriggered:
+			self.updateTriggerFunction()
 			self.position += self.inputs.stepping
 			if self.position > self.gridSize[1]:
-				self.position -= self.gridSize[1]
+				if self.inputs.numberPulses > 1:
+					self.position -= self.gridSize[1]
+				else:
+					self.position = 0
 				self.sequenceTriggered = self.inputs.triggerSequence
-			self.updateTriggerFunction()
 		
 	def triggerSequence(self):
 		if self.inputs.triggerSequence:
@@ -90,15 +94,40 @@ class Chase(PatternBase):
 class AllPoof(PatternBase):
 	def __init__(self, *args):
 		self.inputParams = {
-		'poofButton' : {
-			'descriptionInPattern' : 'Poof!',
-			'type' : 'pulse',
-			'subType' : 'button'
-		}}
+			'poofButton' : {
+				'descriptionInPattern' : 'Poof!',
+				'type' : 'pulse',
+				'subType' : 'button'
+			},
+			'stayOnTime' : {
+				'descriptionInPattern' : 'Milliseconds to stay on for',
+				'type' : 'value',
+				'subType' : 'int',
+				'inputs' : [{
+					'min' : 100,
+					'max' : 1000,
+					'default' : 200
+				}]
+			},
+		}
 		PatternBase.__init__(self, *args)
 		self.patternName = 'Allpoof'
+		self.timer = Timer(False, self.inputs.stayOnTime, self.turnOff)
+		self.poofState = False
 	def poofButton(self):
+		if self.inputs.poofButton:
+			self.poofState = True
+			self.updateTriggerFunction()
+			self.timer.changeInterval(self.inputs.stayOnTime)
+			self.timer.refresh()
+	
+	def turnOff(self):
+		self.poofState = False
 		self.updateTriggerFunction()
 
 	def getState(self, row, col):
-		return self.inputs.poofButton
+		return self.poofState
+		
+	def stop(self):
+		self.timer.stop()
+		PatternBase.stop(self)

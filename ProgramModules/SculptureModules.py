@@ -44,7 +44,7 @@ class SculptureModuleBase():
 		return newInstanceId
 
 	def removePattern(self, patternInstanceId): #remove a pattern instance from the stack
-		self.patterns[patternInstanceId].unBind()
+		self.patterns[patternInstanceId].stop()
 		del self.patterns[patternInstanceId]
 
 	def bindPatternToNewInput(self, patternInstanceId, patternInputId, newPatternParams):
@@ -52,7 +52,7 @@ class SculptureModuleBase():
 	
 	def stop(self):
 		for patternInstanceId in self.patterns:
-			self.patterns[patternInstanceId].unBind()
+			self.patterns[patternInstanceId].stop()
 		self.patterns = {}
 
 		

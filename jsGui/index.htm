@@ -118,7 +118,11 @@
   {{for fields}}
     <label for="{{>id}}">{{>label}}</label>
     {{if input}}
-      <input id="{{>id}}">
+      {{if value}}
+         <input id="{{>id}}" value="{{>value}}">
+      {{else}}
+         <input id="{{>id}}">
+      {{/if}}
     {{else checkbox}}
       <input type="checkbox" id="{{>id}}">
     {{else}}
