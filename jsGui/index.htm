@@ -29,13 +29,20 @@
   <h1>{{>sculptureName}}</h1>
   <div id="sculptureControl" style="height:80%; width:60%; float:left">
     <ul id="sculptureControlTabLabels">
-      <li><a href="#mainModule" onclick="activeTab='mainModule'">Main</a></li>
+      <li><a href="#main_module" onclick="setCurrentModuleView('main_module');">Main</a></li>
       {{for modules}}
-        <li><a href="#{{>moduleId}}_module" onclick="activeTab='{{>moduleId}}_module'">{{>name}}</a></li>
+        <li><a href="#{{>moduleId}}_module" onclick="setCurrentModuleView('{{>moduleId}}')">{{>name}}</a></li>
       {{/for}}
     </ul>
-    <div id="mainModule">
-    </div>
+    <div id="main_module">
+      <button id="addGlobalInputButton">Add new input</button>
+      <select id="globalInputSelector" onchange="showGlobalInput()" size="10">
+      {{for globalInputs}}
+        <option value="{{>value}}">{{>name}}</option>
+      {{/for}}
+      </select>
+      <button id="stopGlobalInputButton">Stop selected input</button>
+   </div>
     {{for modules}}
       <div id="{{>moduleId}}_module">
         <div id="{{>moduleId}}_outputView" class="outputView">
@@ -59,6 +66,7 @@
               <option value="{{>patternInstanceId}}">{{>patternName}}</option>         
             {{/for}}
           </select>
+          <button id="{{>moduleId}}_removePatternButton">Remove selected pattern</button>
         </div>
       </div>
     {{/for}}
@@ -116,6 +124,7 @@
     {{else}}
       god fucking dammit
     {{/if}}
+    <br>
   {{/for}}
 
 </script>

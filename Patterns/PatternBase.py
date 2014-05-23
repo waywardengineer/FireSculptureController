@@ -20,7 +20,7 @@ class PatternBase():
 
 
 	def changeInputBinding(self, patternInputId, inputInstanceId, outputIndexOfInput = 0):
-		self.inputs.replaceInput(patternInputId, self.inputManager.registerUsage(self.instanceId, inputInstanceId, patternInputId), outputIndexOfInput)
+		self.inputs.replaceInput(patternInputId, self.inputManager.registerAndGetInput(self.instanceId, inputInstanceId, patternInputId), outputIndexOfInput)
 		if self.inputParams[patternInputId]['type'] == 'pulse':
 			if patternInputId in self.messengerBindingIds.keys():
 				appMessenger.removeBinding(self.messengerBindingIds[patternInputId])
@@ -35,7 +35,7 @@ class PatternBase():
 		self.messengerBindingIds = {}
 		self.updateTriggerFunction = False
 		inputs = False
-		self.inputManager.unRegisterUsage(self.instanceId)
+		self.inputManager.unRegisterInput(self.instanceId)
 
 
 	def getCurrentStateData(self):

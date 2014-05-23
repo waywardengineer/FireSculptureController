@@ -4,11 +4,11 @@ will be interchangeable
 ''' 
 from ProgramModules.Timers import Timer
 from threading import Thread, Event
-
+from copy import deepcopy
 outputTypes = ['pulse', 'toggle', 'value']
 
 availableInputTypes = {'pulse' : ['timer', 'onOff', 'button'], 'value' : ['', 'int'], 'multi' : ['osc']}
-inputTypeSettings = {
+inputParams = {
 	'TimerPulseInput' : {
 		'longDescription' : 'Timer pulse input, variable timing',
 		'shortDescription' : 'Timer Pulse',
@@ -45,7 +45,7 @@ inputTypeSettings = {
 		'inputs' : [],
 		'host' : '127.0.0.2', 
 		'port' : 8000, 
-		'initInputData' : [['text', 'Host', 'host'], ['int', 'Port', 'port'], ['text', 'Button addresses(separated by space)', 'buttonAddressesString'], ['text', 'Value addresses(separated by space)', 'valueAddressesString']],
+		'initInputData' : [['text', 'Host', 'host'], ['int', 'Port', 'port'], ['text', 'Button addresses(separated by space)', 'pulseAddressString'], ['text', 'Toggle addresses(separated by space)', 'toggleAddressString'], ['text', 'Value addresses(separated by space)', 'valueAddressString']],
 		'callbackAddresses' : {'pulse' : ['/1/button1', '/1/button2', '/1/button3'], 'toggle' : [], 'value' : ['/1/value1', '/1/value2', '/1/value3']}
 	}
 
@@ -80,8 +80,10 @@ class InputCollectionWrapper(object):
 
 class InputBase():
 	def __init__(self, configParams, instanceId):
-		self.defaultParams = inputTypeSettings[self.__class__.__name__]
+		self.defaultParams = deepcopy(inputParams[self.__class__.__name__])
 		self.configParams = dict(self.defaultParams, **configParams)
+		if 'initInputData' in self.configParams.keys():
+			del self.configParams['initInputData']
 		self.outputs = []
 		self.inputs = []
 		self.instanceId = instanceId
@@ -94,7 +96,6 @@ class InputBase():
 
 
 	def setInputValue(self, value, settingIndex = 0):
-		print value
 		self.inputs[settingIndex].setValue(value)
 		self.updateOutputValues()
 
@@ -196,9 +197,15 @@ class OscMultiInput(MultiInput):
 		for outputType in outputTypes:
 			callbackAddresses[outputType] = []
 			key = outputType + 'AddressString'
+			print params
+			print key
 			if key in params.keys():
-				callbacksInStringForm = True
+				print key
+				print  params[key]
 				callbackAddresses[outputType] = params[key].split()
+				print callbackAddresses[outputType]
+				if len(callbackAddresses[outputType]) > 0:
+					callbacksInStringForm = True
 				del params[key]
 		params = dict(self.defaultParams, **params)
 		if callbacksInStringForm:

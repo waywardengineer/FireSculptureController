@@ -36,7 +36,7 @@ class SculptureModuleBase():
 		return data
 
 	def addPattern(self, patternTypeId): # make a pattern live and select all rows by default
-		newInstanceId = self.nextPatternInstanceId
+		newInstanceId = '%sPattern%s' %(self.moduleConfig['id'], self.nextPatternInstanceId)
 		self.patterns[newInstanceId] = self.availablePatternClasses[patternTypeId](self.inputManager, self.gridSize, newInstanceId)
 		self.patternRowSettings[newInstanceId] = [True for i in range(self.gridSize[0])]
 		self.patterns[newInstanceId].bindUpdateTrigger(getattr(self, "doUpdates"))

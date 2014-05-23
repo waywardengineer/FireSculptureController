@@ -10,6 +10,7 @@ import gevent
 from gevent.wsgi import WSGIServer
 from gevent.queue import Queue
 
+from random import randint
 
 class ServerSentEvent(object):
 
@@ -38,13 +39,15 @@ subscriptions = []
 
 def sendNewOutputState(argData):
 	whatChanged = argData['whatChanged']
-	data = {}
+	data = False
 	if whatChanged == 'outputChanged':
 		data = {'outputChanges' : appMessenger.getMessages('outputChanged')}
 	elif whatChanged == 'log':
-		data = {'log' : appMessenger.getMessages('log')}
-	for sub in subscriptions[:]:
-		sub.put(json.dumps(data))
+		pass
+		#data = {'log' : appMessenger.getMessages('log')}
+	if data:
+		for sub in subscriptions[:]:
+			sub.put(json.dumps(data), False)
 
 
 @app.route('/')
@@ -62,7 +65,7 @@ def doCommand():
 	command = requestData[0]
 	result = sculpture.doCommand(requestData)
 	if command == 'loadSculpture':
-		appMessenger.addBinding('outputChanged', globals()['sendNewOutputState'], {'whatChanged' : 'outputChanged'})
+		# appMessenger.addBinding('outputChanged', globals()['sendNewOutputState'], {'whatChanged' : 'outputChanged'})
 		appMessenger.addBinding('log', globals()['sendNewOutputState'], {'whatChanged' : 'log'})
 
 	return jsonify({'command' : command, 'result' : result})
@@ -77,8 +80,10 @@ def subscribe():
 			while True:
 				result = q.get()
 				ev = ServerSentEvent(str(result))
+				# print str(result)
+
 				yield ev.encode()
-		except GeneratorExit: # Or maybe use flask signals
+		except GeneratorExit:
 			subscriptions.remove(q)
 	return Response(gen(), mimetype="text/event-stream")
 

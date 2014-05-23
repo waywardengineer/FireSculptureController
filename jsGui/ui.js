@@ -2,8 +2,9 @@ var settings = {
 	'serverUrl' : '/'
 };
 var allSculptureData = false;
-var activeTab = false;
+var currentView = {'activeTab' : false, 'activeModule' : false}
 var source = new EventSource('/dataStream');
+
 source.onmessage = function (event) {
 	var data = JSON.parse(event.data);
 	if (data.log){
@@ -25,6 +26,15 @@ source.onmessage = function (event) {
 	}
 };
 
+function typesAreCompatible(type1, type2){
+	result = false;
+	if ((type1 == type2) || (type1 == 'pulse' && type2 == 'toggle') ||  (type2 == 'pulse' && type1 == 'toggle')){
+		result = true;
+	}
+	return result;
+
+}
+
 function showRebindDialog(moduleId, patternInstanceId, patternInputId){
 	selectData = {'id' : 'inputSelector', 'onChange' : 'onChange = "showInputParamsForm()"', 'options' : [{'description' : 'Select Input', 'value' : 'none'}]};
 	inputChannelType = allSculptureData.currentSculpture.modules[moduleId].patterns[patternInstanceId].inputs[patternInputId].type;
@@ -35,8 +45,8 @@ function showRebindDialog(moduleId, patternInstanceId, patternInputId){
 		$.each(allSculptureData.inputs, function(inputInstanceId, inputData){
 			if (inputData.type == 'multi'){
 				$.each(inputData.outputs, function(outputIndex, outputData){
-					if (outputData.type == inputChannelType){
-						selectData.options.push({'description' : "(Running)" + inputData.description + ' ' + outputData.description, 'value' : JSON.stringify(['running', inputInstanceId , outputIndex])});
+					if (typesAreCompatible(outputData.type, inputChannelType) ){
+						selectData.options.push({'description' : "(Running)" + inputData.shortDescription + ' ' + outputData.description, 'value' : JSON.stringify(['running', inputInstanceId , outputIndex])});
 					}
 				});
 			}
@@ -63,10 +73,36 @@ function showRebindDialog(moduleId, patternInstanceId, patternInputId){
 		}
 	});
 }
+function showGlobalInputDialog(){
+	selectData = {'id' : 'inputSelector', 'onChange' : 'onChange = "showInputParamsForm()"', 'options' : [{'description' : 'Select Input', 'value' : 'none'}]};
+	$.each(allSculptureData.availableGlobalInputs, function(typeIndex, typeData){
+		selectData.options.push({'description' : allSculptureData.availableInputTypes[typeData[0]][typeData[1]].longDescription, 'value' : JSON.stringify(['new', typeData[0], typeData[1]])});
+	});
+	$('#dialog').append($('#selectTemplate').render(selectData));
+	$('#dialog').append('<div id="dialogInputs"></div>');
+	$('#dialog').dialog({
+		autoOpen: true,
+		height: 300,
+		width: 350,
+		modal: true,
+		buttons: {
+			"Update": function() {
+				doNewInputBinding('main');
+				$(this).dialog("close");
+			},
+			"Cancel": function() {
+				$(this).dialog("close");
+			}
+		},
+		close: function(event, ui) {
+			$(this).empty().dialog('destroy');
+		}
+	});
+}
 function doNewInputBinding(moduleId, patternInstanceId, patternInputId){
 	values = JSON.parse($('#inputSelector').val());
 	if (values[0] == 'running'){
-		doCommand(['changePatternInputBinding', moduleId, parseInt(patternInstanceId), patternInputId, parseInt(values[1]), parseInt(values[2])])
+		doCommand(['changePatternInputBinding', moduleId, patternInstanceId, patternInputId, parseInt(values[1]), parseInt(values[2])])
 	}
 	else if (values[0] == 'new'){
 		params = {'type' : values[1], 'subType' : values[2], 'inputs' : []}
@@ -109,8 +145,14 @@ function doNewInputBinding(moduleId, patternInstanceId, patternInputId){
 			}
 			params.inputs.push(configData)
 		});
-		
-		doCommand(['bindPatternToNewInput', moduleId, parseInt(patternInstanceId), patternInputId, $.extend(true, inputTypeData, params)]);
+		params = $.extend(true, inputTypeData, params);
+		delete params.initInputData;
+		if (moduleId == 'main'){
+			doCommand(['addGlobalInput', params]);
+		}
+		else {
+			doCommand(['bindPatternToNewInput', moduleId, patternInstanceId, patternInputId, params]);
+		}
 	}
 }
 
@@ -121,7 +163,7 @@ function showInputParamsForm(){
 		inputTypeData = allSculptureData.availableInputTypes[values[1]][values[2]];
 		if (inputTypeData.initInputData){
 			$.each(inputTypeData.initInputData, function (paramIndex, paramData){
-				fieldData = {"id" : "inputDefinition" + paramData[2], "label" : paramData[1]}
+				fieldData = {"id" : "inputDefinitionMainParam" + paramData[2], "label" : paramData[1]}
 				if (paramData[0] == 'text' || paramData[0] == 'int'){
 					fieldData['input'] = true;
 				}
@@ -155,6 +197,12 @@ function doInit(){
 	reloadData();
 }
 
+function setCurrentModuleView(moduleId){
+	currentView.activePattern = false;
+	currentView.activeModule = moduleId
+
+}
+
 function reloadData(){
 	$.ajax(settings.serverUrl + 'getData', {
 		dataType: 'json'
@@ -174,14 +222,32 @@ function buildAll(){
 		$.each( allSculptureData.currentSculpture.modules, function( moduleId, moduleData ) {
 			$('#' + moduleId + '_patternChoices').menu();
 			$('#' + moduleId + '_patternSelection').menu();
+			$('#' + moduleId + '_removePatternButton').button().click(function(e){
+				patternId = $('#' + moduleId + '_patternSelection').val();
+				if (patternId && patternId != 'none'){
+					doCommand(['removePattern', moduleId, patternId]);
+				}
+			});
+				
 		});
 		$('.pooferDisplay').button();
-		if (activeTab){
-			$('#sculptureControl').tabs({ active : $("#sculptureControl>div").index($("#" + activeTab)) });
+		if (currentView.activeModule){
+			$('#sculptureControl').tabs({ active : $("#sculptureControl>div").index($("#" + currentView.activeModule + '_module')) });
 		}
 		else{
 			$('#sculptureControl').tabs();
 		}
+		if (currentView.activePattern){
+			$('#' + currentView.activeModule + '_patternSelection').val(currentView.activePattern);
+			editPattern(currentView.activeModule);
+		}
+		$('#addGlobalInputButton').button().click(function(e){
+			showGlobalInputDialog()
+		});
+		$('#stopGlobalInputButton').button().click(function(e){
+			stopGlobalInput()
+		});
+		$('#globalInputSelector').menu();
 	}
 	else {
 		data = {"sculptures" : []};
@@ -193,6 +259,13 @@ function buildAll(){
 	}
 	$('#mainDiv').css('height', $(window).height() * 0.7 + 'px');
 	$('#logDiv').css('height', $(window).height() * 0.25 + 'px');
+}
+
+function stopGlobalInput(){
+	selectedInput = $('#globalInputSelector').val()
+	if (selectedInput &&  selectedInput != 'none'){
+		doCommand(['removeGlobalInput', parseInt(selectedInput)]);
+	}
 }
 
 function makeSculptureControllerTemplateData(){
@@ -216,6 +289,11 @@ function makeSculptureControllerTemplateData(){
 			templateModuleData.rows.push(templateRowData);
 		});
 		data.modules.push(templateModuleData);
+	});
+	data['globalInputs'] = []
+	$.each(allSculptureData.globalInputs, function (index, inputInstanceId){
+		data.globalInputs.push({'value' : inputInstanceId.toString(), 'name' : allSculptureData.inputs[inputInstanceId].shortDescription})
+		
 	});
 	return data;
 }
@@ -263,33 +341,59 @@ function buildInputControls(inputInstanceId, inputData){
 		});
 		$.each( inputData.outputs, function( outputIndex, outputData ) {
 			
-			$(htmlParentId).append('<div id="inputInstance' + inputInstanceId + '_output' + outputIndex + '_reBindDiv"></div>');
+			$(htmlParentId).append('<div id="inputInstance' + inputInstanceId + '_output' + outputIndex + '_div"></div>');
 		});
 	}
 }
-function editPattern(moduleId){
-	patternInstanceId = $('#' + moduleId + '_patternSelection').val();
+
+function showGlobalInput(){
+	hideAllInputs();
+	inputInstanceId = $('#globalInputSelector').val();
+	if (inputInstanceId != 'none'){
+		inputData = allSculptureData.inputs[inputInstanceId]
+		$('#inputInstance' + inputInstanceId + '_div').css("display", "block");
+		$('#inputInstance' + inputInstanceId + '_description').html(inputData.shortDescription);
+		$.each(inputData.outputs, function(outputIndex, outputData){
+			idPrefix = 'inputInstance' + inputInstanceId + '_output' + outputIndex + '_'
+			html = '<button id="' + idPrefix + 'Button">' + outputData.description + '</button>';
+			$('#inputInstance' + inputInstanceId + '_output' + outputIndex + '_div').html(html);
+			$('#' + idPrefix + 'Button').button();
+		});
+	}
+}
+
+function hideAllInputs(){
 	$.each(allSculptureData.inputs, function(inputInstanceId, inputData){
 		$('#inputInstance' + inputInstanceId + '_div').css("display", "none");
 		$.each( inputData.outputs, function( outputIndex, outputData ) {
-			$('#inputInstance' + inputInstanceId + '_output' + outputIndex + '_reBindDiv').html();
+			$('#inputInstance' + inputInstanceId + '_output' + outputIndex + '_div').html();
 		});
 	});
-	$.each(allSculptureData.currentSculpture.modules[moduleId].patterns[patternInstanceId].inputs, function(patternInputId, patternInputData){
-		idPrefix  = 'inputInstance' + patternInputData.inputInstanceId + '_';
-		$('#' + idPrefix + 'div').css("display", "block");
-		$('#' + idPrefix + 'description').html(patternInputData.description);
-		$.each(allSculptureData.inputs[patternInputData.inputInstanceId].outputs, function(outputIndex, outputData){
-			if (outputIndex == patternInputData.outputIndexOfInput || patternInputData.type=='multi'){
-				idPrefix = 'inputInstance' + patternInputData.inputInstanceId + '_output' + outputIndex + '_reBind'
-				html = '<button id="' + idPrefix + 'Button">' + allSculptureData.inputs[patternInputData.inputInstanceId].shortDescription + ' ' + outputData.description + '</button>';
-				$('#' + idPrefix + 'Div').html(html);
-				$('#' + idPrefix + 'Button').button().click(function(e){
-					showRebindDialog(moduleId, patternInstanceId, patternInputId);
-				});
-			}
+
+}
+
+
+function editPattern(moduleId){
+	hideAllInputs();
+	patternInstanceId = $('#' + moduleId + '_patternSelection').val();
+	if (patternInstanceId && patternInstanceId != 'none'){
+		currentView.activePattern = patternInstanceId
+		$.each(allSculptureData.currentSculpture.modules[moduleId].patterns[patternInstanceId].inputs, function(patternInputId, patternInputData){
+			idPrefix  = 'inputInstance' + patternInputData.inputInstanceId + '_';
+			$('#' + idPrefix + 'div').css("display", "block");
+			$('#' + idPrefix + 'description').html(patternInputData.description);
+			$.each(allSculptureData.inputs[patternInputData.inputInstanceId].outputs, function(outputIndex, outputData){
+				if (outputIndex == patternInputData.outputIndexOfInput || patternInputData.type=='multi'){
+					idPrefix = 'inputInstance' + patternInputData.inputInstanceId + '_output' + outputIndex + '_'
+					html = '<button id="' + idPrefix + 'Button">' + allSculptureData.inputs[patternInputData.inputInstanceId].shortDescription + ' ' + outputData.description + '</button>';
+					$('#' + idPrefix + 'div').html(html);
+					$('#' + idPrefix + 'Button').button().click(function(e){
+						showRebindDialog(moduleId, patternInstanceId, patternInputId);
+					});
+				}
+			});
 		});
-	});
+	}
 
 }
 function makeHtml(tagData){
@@ -325,7 +429,7 @@ function doCommand(command){
 function handleCommandResult(result){
 	resultStr = JSON.stringify(result)
 	//$('#logDiv').prepend('Result recieved:' + resultStr + '<br>');
-	if ($.inArray(result.command, ['loadSculpture', 'addPattern', 'changePatternInputBinding', 'bindPatternToNewInput']) > -1){
+	if ($.inArray(result.command, ['removePattern', 'loadSculpture', 'addPattern', 'changePatternInputBinding', 'bindPatternToNewInput', 'addGlobalInput', 'removeGlobalInput']) > -1){
 		reloadData();
 	}
 }

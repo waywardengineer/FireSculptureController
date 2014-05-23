@@ -1,5 +1,6 @@
 import json
 import os
+import inspect
 
 from ProgramModules.DataChannelManager import DataChannelManager
 from ProgramModules.InputManager import InputManager
@@ -14,6 +15,9 @@ class SculptureController():
 		self.sculptureDefinitions = {}
 		self.sculptureModules = {}
 		self.globalInputs = {}
+		self.inputManager = False
+		self.dataChannelManager = False
+		self.availableGlobalInputs = [['multi', 'osc']]
 		for definitionFileName in os.listdir(definitionFileDirectory):
 			try:
 				definition = json.load(open("%s/%s" %(definitionFileDirectory, definitionFileName)))
@@ -21,8 +25,10 @@ class SculptureController():
 			except:
 				pass
 		self.globalConfig = json.load(open(configFileName))
-			
+		self.availableInputs = {}
+		self.methodList = [m[0] for m in inspect.getmembers(self, predicate=inspect.ismethod)]
 		self.doReset()
+	
 
 
 
@@ -31,11 +37,15 @@ class SculptureController():
 			self.sculptureModules[moduleId].stop()
 		for inputInstanceId in self.globalInputs:
 			self.globalInputs[inputInstanceId].stop()
-		self.globalInputs = {}
-		self.sculptureModules = {}
+		if self.inputManager:
+			self.inputManager.unRegisterInput('main')
+		if self.dataChannelManager:
+			self.dataChannelManager.stop()
 		self.dataChannelManager = False
 		self.inputManager = False
 		self.sculptureConfig = False
+		self.sculptureModules = {}
+		self.globalInputs = {}
 		appMessenger.doReset()
 		
 
@@ -52,9 +62,8 @@ class SculptureController():
 			sculptureModuleClass = getattr(SculptureModules, moduleConfig['moduleType'] + 'Module')
 			self.sculptureModules[moduleId] = sculptureModuleClass(self.dataChannelManager, self.inputManager, moduleConfig)
 		appMessenger.addBinding('outputChanged', getattr(self, 'getCurrentOutputState'))
-		for inputDefinition in self.globalConfig['inputs']:
-			newInputId = self.inputManager.createNewInput(inputDefinition)
-			self.globalInputs[newInputId] = (self.inputManager.registerUsage('main', newInputId))
+
+
 	def setInputValue(self, inputInstanceId, *args):
 		inputObj = self.inputManager.getInputObj(inputInstanceId)
 		inputObj.setInputValue(*args)
@@ -62,7 +71,7 @@ class SculptureController():
 
 	def doCommand(self, command):
 		functionName = command[0]
-		if functionName in ['setInputValue', 'getCurrentStateData', 'getCurrentOutputState', 'loadSculpture']:
+		if functionName in self.methodList:
 			command.pop(0)
 			function = getattr(self, functionName)
 			return function(*command)
@@ -86,11 +95,19 @@ class SculptureController():
 			for moduleId in self.sculptureConfig['modules']:
 				data['currentSculpture']['modules'][moduleId] = dict(self.sculptureConfig['modules'][moduleId], **self.sculptureModules[moduleId].getCurrentStateData())
 			data = dict(data, **self.inputManager.getCurrentStateData())
-			
 		else:
 			data = {'sculptures' : {}}
 			for sculptureId in self.sculptureDefinitions:
 				data['sculptures'][sculptureId] = self.sculptureDefinitions[sculptureId]
+		data['globalInputs'] = self.globalInputs.keys()
+		data['availableGlobalInputs'] = self.availableGlobalInputs
 		return data
 
+	def addGlobalInput(self, inputParams):
+		newInputId = self.inputManager.createNewInput(inputParams)
+		self.globalInputs[newInputId] = self.inputManager.registerAndGetInput('main', newInputId)
+
+	def removeGlobalInput(self, inputInstanceId):
+		self.inputManager.unRegisterInput('main', inputInstanceId)
+		del self.globalInputs[inputInstanceId]
 

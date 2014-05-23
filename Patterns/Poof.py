@@ -2,52 +2,52 @@ from Patterns.PatternBase import PatternBase
 class Chase(PatternBase):
 	def __init__(self, *args):
 		self.inputParams = {
-						'triggerStep' : {
-							'descriptionInPattern' : 'Trigger next step in sequence',
-							'type' : 'pulse',
-							'subType' : 'timer',
-							'inputs' : [{
-								'min' : 100,
-								'max' : 3000, 
-								'default' : 2000
-							}]
-						},
-						'triggerSequence' : {
-							'descriptionInPattern' : 'Trigger chase',
-							'type' : 'pulse',
-							'subType' : 'onOff'
-						},
-						'numberOn' : {
-							'descriptionInPattern' : 'Number of poofers on at once',
-							'type' : 'value',
-							'subType' : 'int',
-							'inputs' : [{
-								'min' : 1,
-								'max' : 5,
-								'default' : 2
-							}]
-						},
-						'stepping' : {
-							'descriptionInPattern' : 'Number of poofers to jump per step',
-							'type' : 'value',
-							'subType' : 'int',
-							'inputs' : [{
-								'min' : 1,
-								'max' : 5,
-								'default' : 1
-							}]
-						},
-						'numberPulses' : {
-							'descriptionInPattern' : 'Number of pulses chasing each other',
-							'type' : 'value',
-							'subType' : 'int',
-							'inputs' : [{
-								'min' : 1,
-								'max' : 3,
-								'default' : 1
-							}]
-						}
-					}
+			'triggerStep' : {
+				'descriptionInPattern' : 'Trigger next step in sequence',
+				'type' : 'pulse',
+				'subType' : 'timer',
+				'inputs' : [{
+					'min' : 100,
+					'max' : 3000, 
+					'default' : 200
+				}]
+			},
+			'triggerSequence' : {
+				'descriptionInPattern' : 'Trigger chase',
+				'type' : 'pulse',
+				'subType' : 'onOff'
+			},
+			'numberOn' : {
+				'descriptionInPattern' : 'Number of poofers on at once',
+				'type' : 'value',
+				'subType' : 'int',
+				'inputs' : [{
+					'min' : 1,
+					'max' : 5,
+					'default' : 2
+				}]
+			},
+			'stepping' : {
+				'descriptionInPattern' : 'Number of poofers to jump per step',
+				'type' : 'value',
+				'subType' : 'int',
+				'inputs' : [{
+					'min' : 1,
+					'max' : 5,
+					'default' : 1
+				}]
+			},
+			'numberPulses' : {
+				'descriptionInPattern' : 'Number of pulses chasing each other',
+				'type' : 'value',
+				'subType' : 'int',
+				'inputs' : [{
+					'min' : 1,
+					'max' : 3,
+					'default' : 1
+				}]
+			}
+		}
 		PatternBase.__init__(self, *args)
 		self.patternName = 'Poofer Chase'
 
@@ -64,7 +64,6 @@ class Chase(PatternBase):
 		
 	def triggerSequence(self):
 		if self.inputs.triggerSequence:
-			print('ok')
 			self.inputs.doCommand(['triggerStep', 'refresh'])
 			self.position = 0
 			self.sequenceTriggered = True
@@ -89,5 +88,17 @@ class Chase(PatternBase):
 		return result
 		
 class AllPoof(PatternBase):
-	def foo():
-		pass
+	def __init__(self, *args):
+		self.inputParams = {
+		'poofButton' : {
+			'descriptionInPattern' : 'Poof!',
+			'type' : 'pulse',
+			'subType' : 'button'
+		}}
+		PatternBase.__init__(self, *args)
+		self.patternName = 'Allpoof'
+	def poofButton(self):
+		self.updateTriggerFunction()
+
+	def getState(self, row, col):
+		return self.inputs.poofButton

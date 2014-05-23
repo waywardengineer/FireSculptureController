@@ -17,8 +17,8 @@ class InputManager():
 					className = subType[0].upper() + subType[1:] + inputType[0].upper() + inputType[1:] + 'Input'
 				else:
 					className = inputType[0].upper() + inputType[1:] + 'Input'
-				if not ('unavailable' in self.inputModules.inputTypeSettings[className].keys()):
-					self.availableInputTypes[inputType][subType] = self.inputModules.inputTypeSettings[className]
+				if not ('unavailable' in self.inputModules.inputParams[className].keys()):
+					self.availableInputTypes[inputType][subType] = self.inputModules.inputParams[className]
 
 	def buildInputCollection(self, inputParams, patternId):
 		inputDict = {}
@@ -29,7 +29,7 @@ class InputManager():
 			else:
 				outputIndexOfInput = 0
 			inputDict[inputChannelId] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outputIndexOfInput' : outputIndexOfInput}
-			self.registerUsage(patternId, newInputInstanceId, inputChannelId)
+			self.registerAndGetInput(patternId, newInputInstanceId, inputChannelId)
 		InputCollectionWrapper = getattr(self.inputModules, "InputCollectionWrapper")
 		return InputCollectionWrapper(inputDict)
 
@@ -43,16 +43,16 @@ class InputManager():
 		self.inputInstances[newInputInstanceId] = inputClass(params, newInputInstanceId)
 		return newInputInstanceId
 
-	def registerUsage(self, userId, inputInstanceId, inputChannelId = False):
+	def registerAndGetInput(self, userId, inputInstanceId, inputChannelId = False):
 		if inputChannelId:
-			self.unRegisterUsage(userId, inputChannelId = inputChannelId)
+			self.unRegisterInput(userId, inputChannelId = inputChannelId)
 		if not inputInstanceId in self.inputInstanceUses.keys():
 			self.inputInstanceUses[inputInstanceId] = []
 		self.inputInstanceUses[inputInstanceId].append([userId, inputChannelId])
 		return self.getInputObj(inputInstanceId)
 
 
-	def unRegisterUsage(self, userId, inputInstanceId = False, inputChannelId = False):
+	def unRegisterInput(self, userId, inputInstanceId = False, inputChannelId = False):
 		def checkItem(l, userId, inputChannelId):
 			return userId == l[0] and (not inputChannelId or inputChannelId == l[1])
 		def unRegisterForInput(userId, inputInstanceId, inputChannelId):
