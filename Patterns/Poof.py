@@ -8,9 +8,9 @@ class Chase(PatternBase):
 				'type' : 'pulse',
 				'subType' : 'timer',
 				'inputs' : [{
-					'min' : 100,
+					'min' : 50,
 					'max' : 3000, 
-					'default' : 300
+					'default' : 100
 				}]
 			},
 			'triggerSequence' : {

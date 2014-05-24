@@ -169,6 +169,7 @@ class TimerPulseInput(InputBase):
 		self.timer.refresh()
 
 	def sendPulse(self):
+		print 'sendPulse'
 		self.outputs[0].setValue(True)
 
 
@@ -294,7 +295,7 @@ class OscMultiInput(MultiInput):
 
 class InputOutputParam():
 	def __init__(self, params, parentId = 0, indexId = 0):
-		defaultParams = {'description' : '', 'type' : 'value', 'subtype' : False, 'min' : False, 'max' : False, 'default' : 0, 'sendMessageOnChange' : False, 'toggleTimeOut' : 10}
+		defaultParams = {'description' : '', 'type' : 'value', 'subtype' : False, 'min' : False, 'max' : False, 'default' : 0, 'sendMessageOnChange' : False, 'toggleTimeOut' : 30}
 		self.params = dict(defaultParams, **params)
 		self.parentId = parentId
 		self.indexId = indexId
@@ -307,13 +308,14 @@ class InputOutputParam():
 			constrainValueFunctionName = 'constrain' + type[0].upper() + type[1:]
 		self.constrainValueFunction = getattr(self, constrainValueFunctionName)
 		self.value = False
-		self.setValue(self.params['default'])
+		if self.params['type'] == 'value':
+			self.setValue(self.params['default'])
 	def getValue(self):
 		return self.value
 	def setValue(self, newValue):
-		print newValue
+		# print newValue
 		newValue = self.constrainValueFunction(newValue)
-		if not self.value == newValue:
+		if (not self.value == newValue) or self.params['type'] == 'pulse':
 			self.value = newValue
 			if self.params['sendMessageOnChange']:
 				appMessenger.putMessage("output%s_%s" %(self.parentId, self.indexId), self.value)

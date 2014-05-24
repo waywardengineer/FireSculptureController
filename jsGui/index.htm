@@ -62,6 +62,7 @@
         </select>
         <div style="float:left;" id="{{>moduleId}}_patternView" class="patternView">
           <select id="{{>moduleId}}_patternSelection" onChange="editPattern('{{>moduleId}}')" class="activePatternList" size="10">
+            <option value="none">None</option>
             {{for patterns}}
               <option value="{{>patternInstanceId}}">{{>patternName}}</option>         
             {{/for}}

@@ -99,6 +99,7 @@ class SculptureController():
 			for moduleId in self.sculptureConfig['modules']:
 				data['currentSculpture']['modules'][moduleId] = dict(self.sculptureConfig['modules'][moduleId], **self.sculptureModules[moduleId].getCurrentStateData())
 			data = dict(data, **self.inputManager.getCurrentStateData())
+			data['appMessenger'] = appMessenger.getCurrentStateData()
 		else:
 			data = {'sculptures' : {}}
 			for sculptureId in self.sculptureDefinitions:

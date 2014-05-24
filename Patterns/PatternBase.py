@@ -26,7 +26,7 @@ class PatternBase():
 				appMessenger.removeBinding(self.messengerBindingIds[patternInputId])
 				del self.messengerBindingIds[patternInputId]
 			newBindingId = appMessenger.addBinding('output%s_%s' %(inputInstanceId, outputIndexOfInput), getattr(self, patternInputId))
-			self.messengerBindingIds[inputInstanceId] = newBindingId
+			self.messengerBindingIds[patternInputId] = newBindingId
 
 
 	def stop(self):
@@ -43,6 +43,7 @@ class PatternBase():
 		for patternInputId in self.inputParams:
 			inputBinding = self.inputs.getBinding(patternInputId) 
 			data['inputs'][patternInputId] = {'type' : self.inputParams[patternInputId]['type'], 'inputInstanceId' : inputBinding[0], 'outputIndexOfInput' : inputBinding[1], 'description' : self.inputParams[patternInputId]['descriptionInPattern']}
+		data['messengerBindingIds'] = self.messengerBindingIds
 		return data
 	
 

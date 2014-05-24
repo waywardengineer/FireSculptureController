@@ -43,9 +43,6 @@ function showRebindDialog(moduleId, patternInstanceId, patternInputId){
 	});
 	if (inputChannelType != 'multi'){
 		$.each(allSculptureData.inputs, function(inputInstanceId, inputData){
-			$('#logDiv').prepend(inputInstanceId + '<br>')
-			$('#logDiv').prepend(JSON.stringify(allSculptureData.globalInputs) + '<br>');
-			
 			if (inputData.type == 'multi' || $.inArray(parseInt(inputInstanceId), allSculptureData.globalInputs) > -1){
 				$.each(inputData.outputs, function(outputIndex, outputData){
 					if (typesAreCompatible(outputData.type, inputChannelType) ){

@@ -52,4 +52,8 @@ class Messenger():
 	def doReset(self):
 		self.channels = {}
 		self.nextBindingId = 1
-
+	def getCurrentStateData(self):
+		data = {}
+		for channelId in self.channels:
+			data[channelId] = self.channels[channelId]['bindings'].keys()
+		return data
