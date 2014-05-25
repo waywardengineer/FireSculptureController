@@ -6,10 +6,21 @@ from ProgramModules.DataChannelManager import DataChannelManager
 from ProgramModules.InputManager import InputManager
 from ProgramModules import SculptureModules
 from ProgramModules import Inputs
+from ProgramModules.Messenger import Messenger
+
+class SafeModeController():
+	def __init__(self):
+		self.safeMode = True
+	def isSet(self):
+		return self.safeMode
+	def set(self, value):
+		self.safeMode = value
 
 
 class SculptureController():
 	def __init__(self):
+		__builtins__['appMessenger'] = Messenger()
+		__builtins__['safeMode'] = SafeModeController()
 		configFileName = 'config.json'
 		definitionFileDirectory = 'sculptureDefinitions'
 		self.sculptureDefinitions = {}
@@ -95,7 +106,7 @@ class SculptureController():
 	
 	def getCurrentStateData(self, sculptureId = False, moduleId = False, *args): 
 		if self.sculptureConfig:
-			data = {'currentSculpture' : self.sculptureConfig.copy()}
+			data = {'currentSculpture' : self.sculptureConfig.copy(), 'safeMode' : safeMode.isSet()}
 			for moduleId in self.sculptureConfig['modules']:
 				data['currentSculpture']['modules'][moduleId] = dict(self.sculptureConfig['modules'][moduleId], **self.sculptureModules[moduleId].getCurrentStateData())
 			data = dict(data, **self.inputManager.getCurrentStateData())
@@ -115,4 +126,7 @@ class SculptureController():
 	def removeGlobalInput(self, inputInstanceId):
 		self.inputManager.unRegisterInput('main', inputInstanceId)
 		del self.globalInputs[inputInstanceId]
+		
+	def setSafeMode(self, value):
+		safeMode.set(value)
 

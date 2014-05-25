@@ -169,7 +169,6 @@ class TimerPulseInput(InputBase):
 		self.timer.refresh()
 
 	def sendPulse(self):
-		print 'sendPulse'
 		self.outputs[0].setValue(True)
 
 

@@ -1,16 +1,10 @@
 from SculptureController import SculptureController
-from ProgramModules.Messenger import Messenger
-
 
 from flask import Flask, request, jsonify, Response
 import json
-app = Flask(__name__,  static_folder='jsGui', static_url_path='/jsGui')
-
 import gevent
 from gevent.wsgi import WSGIServer
 from gevent.queue import Queue
-
-from random import randint
 
 class ServerSentEvent(object):
 
@@ -32,10 +26,11 @@ class ServerSentEvent(object):
 		
 		return "%s\n\n" % "\n".join(lines)
 
-appMessenger = Messenger()
-setattr(__builtins__, 'appMessenger', appMessenger)
+app = Flask(__name__,  static_folder='jsGui', static_url_path='/jsGui')
 sculpture = SculptureController()
 subscriptions = []
+
+
 
 def sendNewOutputState(whatChanged):
 	data = {whatChanged : appMessenger.getMessages(whatChanged)}
