@@ -14,8 +14,16 @@ body{
   height:50px;
   color: #FFC98D;
   font-variant:small-caps;
-  font-size: 12px;
+  font-size: 14px;
   padding: 0px 10px 0px 10px;
+}
+.descriptionText{
+  color: #FFC98D;
+  font-variant:small-caps;
+  font-size: 14px;
+}
+.rebindButton{
+  font-size:12px !important;
 }
 .pooferDisplayLabel.ui-state-active{
   background: #FFC98D !important; 

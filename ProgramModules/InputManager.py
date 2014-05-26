@@ -1,6 +1,6 @@
 ''' Builds collections of input objects based on defaults. Manages uses: Inputs 
 can be used by multiple things, so this keeps track of who's using what and deletes unused inputs'''
-
+from ProgramModules import utils
 
 class InputManager():
 	def __init__ (self, dataChannelManager):
@@ -13,10 +13,7 @@ class InputManager():
 		for inputType in self.inputModules.availableInputTypes:
 			self.availableInputTypes[inputType] = {}
 			for subType in self.inputModules.availableInputTypes[inputType]:
-				if len(subType) > 1:
-					className = subType[0].upper() + subType[1:] + inputType[0].upper() + inputType[1:] + 'Input'
-				else:
-					className = inputType[0].upper() + inputType[1:] + 'Input'
+				className = utils.makeCamelCase([subType, inputType, 'input'], True)
 				if not ('unavailable' in self.inputModules.inputParams[className].keys()):
 					self.availableInputTypes[inputType][subType] = self.inputModules.inputParams[className]
 
@@ -34,12 +31,9 @@ class InputManager():
 		return InputCollectionWrapper(inputDict)
 
 	def createNewInput(self, params):
-		typeName = params['type']
-		subTypeName = params['subType']
 		newInputInstanceId = self.nextInputInstanceId
 		self.nextInputInstanceId += 1
-		inputClassName = subTypeName[0].upper() + subTypeName[1:] + typeName[0].upper() + typeName[1:] + 'Input'
-		inputClass = getattr(self.inputModules, inputClassName)
+		inputClass = getattr(self.inputModules, utils.makeCamelCase([params['subType'], params['type'], 'input'], True))
 		self.inputInstances[newInputInstanceId] = inputClass(params, newInputInstanceId)
 		return newInputInstanceId
 

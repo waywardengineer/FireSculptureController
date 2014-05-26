@@ -2,7 +2,7 @@ var settings = {
 	'serverUrl' : '/'
 };
 var allSculptureData = false;
-var currentView = {'activeTab' : false, 'activeModule' : false, activePatterns : {}}
+var currentView = {'activeTab' : false, 'activeModule' : false, activeSections : {}, sculptureIsLoaded:false}
 var source = new EventSource('/dataStream');
 
 source.onmessage = function (event) {
@@ -43,8 +43,9 @@ function showRebindDialog(moduleId, patternInstanceId, patternInputId){
 	});
 	if (inputChannelType != 'multi'){
 		$.each(allSculptureData.inputs, function(inputInstanceId, inputData){
-			if (inputData.type == 'multi' || $.inArray(inputInstanceId, allSculptureData.globalInputs) > -1){
+			if ($.inArray(parseInt(inputInstanceId), allSculptureData.globalInputs) > -1){
 				$.each(inputData.outputs, function(outputIndex, outputData){
+					$('#logDiv').prepend(outputIndex + '<br>');
 					if (typesAreCompatible(outputData.type, inputChannelType) ){
 						selectData.options.push({'description' : "(Running)" + inputData.shortDescription + ' ' + outputData.description, 'value' : JSON.stringify(['running', inputInstanceId , outputIndex])});
 					}
@@ -99,6 +100,7 @@ function showGlobalInputDialog(){
 		}
 	});
 }
+
 function doNewInputBinding(moduleId, patternInstanceId, patternInputId){
 	values = JSON.parse($('#inputSelector').val());
 	if (values[0] == 'running'){
@@ -126,23 +128,30 @@ function doNewInputBinding(moduleId, patternInstanceId, patternInputId){
 		$.each(inputTypeData.inputs, function (inputIndex, inputData){
 			configData = {}
 			if (inputData.initInputData){
-				$.each(inputData.initInputData, function (paramIndex, paramData){
-					formInputId = '#inputDefinitionInputParam' + inputIndex + paramData[2];
-					data = false;
-					switch (paramData[0]){
-						case 'text':
-							data = $(formInputId).val();
-						break;
-						case 'int':
-							data = parseInt($(formInputId).val());
-						break;
-						case 'bool':
-							data = $(formInputId).is(":checked");
-						break;
-					}
-					configData[paramData[2]] = data;
-				});
+				paramsData = inputData.initInputData;
 			}
+			else if (inputData.type == 'value'){
+				paramsData = [['int', 'Minimum', 'min'], ['int', 'Maximum', 'max']]
+			}
+			else {
+				paramsData = []
+			}
+			$.each(paramsData, function (paramIndex, paramData){
+				formInputId = '#inputDefinitionInputParam' + inputIndex + paramData[2];
+				data = false;
+				switch (paramData[0]){
+					case 'text':
+						data = $(formInputId).val();
+					break;
+					case 'int':
+						data = parseInt($(formInputId).val());
+					break;
+					case 'bool':
+						data = $(formInputId).is(":checked");
+					break;
+				}
+				configData[paramData[2]] = data;
+			});
 			params.inputs.push(configData)
 		});
 		params = $.extend(true, inputTypeData, params);
@@ -166,10 +175,9 @@ function showInputParamsForm(){
 				fieldData = {"id" : "inputDefinitionMainParam" + paramData[2], "label" : paramData[1]}
 				if (paramData[0] == 'text' || paramData[0] == 'int'){
 					fieldData['input'] = true;
-					if (inputTypeData[paramData[2]]){
+					if (inputTypeData[paramData[2]] != undefined){
 						fieldData['value'] = inputTypeData[paramData[2]];
 					}
-					
 				}
 				else if (paramData[0] == 'bool'){
 					fieldData['checkbox'] = true;
@@ -179,17 +187,38 @@ function showInputParamsForm(){
 		}
 		$.each(inputTypeData.inputs, function (inputIndex, inputData){
 			if (inputData.initInputData){
-				$.each(inputData.initInputData, function (paramIndex, paramData){
-					fieldData = {"id" : "inputDefinitionInputParam" + inputIndex + paramData[2], "label" : paramData[1]}
-					if (paramData[0] == 'text' || paramData[0] == 'int'){
-						fieldData['input'] = true;
-					}
-					else if (paramData[0] == 'bool'){
-						fieldData['checkbox'] = true;
-					}
-					formFields.push(fieldData);
-				});
+				paramsData = inputData.initInputData;
 			}
+			else if (inputData.type == 'value'){
+				paramsData = [['int', 'Minimum', 'min'], ['int', 'Maximum', 'max']]
+			}
+			else {
+				paramsData = []
+			}
+			$.each(paramsData, function (paramIndex, paramData){
+				fieldData = {"id" : "inputDefinitionInputParam" + inputIndex + paramData[2], "label" : inputData.description + ':' + paramData[1]}
+				if (paramData[2] in inputData){
+					paramDefault = inputData[paramData[2]];
+					if (typeof(paramDefault) == 'number'){
+						fieldData['value'] = paramDefault.toString();
+					}
+					else if (typeof(paramDefault) == 'boolean'){
+						if (paramDefault){
+							fieldData['value'] = true;
+						}
+					}
+					else {
+						fieldData['value'] = paramDefault;
+					}
+				}
+				if (paramData[0] == 'text' || paramData[0] == 'int'){
+					fieldData['input'] = true;
+				}
+				else if (paramData[0] == 'bool'){
+					fieldData['checkbox'] = true;
+				}
+				formFields.push(fieldData);
+			});
 		});
 	}
 	$('#dialogInputs').html($('#formFieldsTemplate').render({'fields' : formFields}));
@@ -203,9 +232,8 @@ function doInit(){
 
 function setCurrentModuleView(moduleId){
 	currentView.activeModule = moduleId;
-	if (currentView.activePatterns[moduleId]){
-		showPatternDetails(moduleId, (currentView.activePatterns[moduleId]));
-	
+	if (currentView.activeSections[moduleId]){
+		$('#' + currentView.activeSections[moduleId] + '_heading').click();
 	}
 }
 
@@ -219,9 +247,16 @@ function reloadData(){
 }
 
 function buildAll(){
-	$('#mainDiv').html('');
 	if (allSculptureData.currentSculpture){
+		if (currentView.sculptureIsLoaded){
+			$('#logStorage').html($('#logDiv').html());
+		}
+		$('#mainDiv').html('');
 		$('#mainDiv').append($('#sculptureControllerTemplate').render(makeSculptureControllerTemplateData()));
+		if (currentView.sculptureIsLoaded){
+			$('#logDiv').html($('#logStorage').html());
+		}
+		$('#inputs').detach().appendTo('#storageDiv');
 		$.each( allSculptureData.inputs, function( inputInstanceId, inputData ) {
 			buildInputControls(inputInstanceId, inputData);
 		});
@@ -255,14 +290,14 @@ function buildAll(){
 		$('#addGlobalInputButton').button().click(function(e){
 			showGlobalInputDialog()
 		});
-		$('.globalInputButton').button().click(function(){
+		$('.globalInputButton').button({icons : {primary:"ui-icon-notice"}}).click(function(){
 			doCommand(['removeGlobalInput', parseInt(this.id.split('_')[1])]);
 		});
 		$('.toggleRowButton').button().click(function(){
 			parts = this.id.split('_');
 			doCommand(['toggleRowSelection', parts[0], parts[1], parseInt(parts[2])]);
 		});
-		$('.removePatternButton').button().click(function(){
+		$('.removePatternButton').button({icons : {primary:"ui-icon-notice"}}).click(function(){
 			parts = this.id.split('_');
 			doCommand(['removePattern', parts[0], parts[1]]);
 		});
@@ -273,8 +308,9 @@ function buildAll(){
 		$('#safeModeOff').click(function(e){
 			doCommand(['setSafeMode', false]);
 		});
-			
-			
+		if (currentView.activeModule){
+			setCurrentModuleView(currentView.activeModule);
+		}
 	}
 	else {
 		data = {"sculptures" : []};
@@ -376,17 +412,19 @@ function buildInputControls(inputInstanceId, inputData){
 function showGlobalInput(inputInstanceId){
 	hideAllInputs();
 	inputData = allSculptureData.inputs[inputInstanceId];
+	currentView.activeSections['main'] = inputInstanceId
 	$('#inputs').detach().appendTo('#globalInput_' + inputInstanceId);
 	$('#inputInstance' + inputInstanceId + '_div').css("display", "block");
 	$('#inputInstance' + inputInstanceId + '_description').html(inputData.shortDescription);
 	$('#inputInstance' + inputInstanceId + '_outputs').html('<ul>');
 	$.each(inputData.outputs, function(outputIndex, outputData){
-		$('#inputInstance' + inputInstanceId + '_outputs').append('<li>' + outputData.description + '</li>');
+		$('#inputInstance' + inputInstanceId + '_outputs').append('<li class="descriptionText">' + outputData.description + '</li>');
 	});
-	$('#inputInstance' + inputInstanceId + '_outputs').html('</ul>');
+	$('#inputInstance' + inputInstanceId + '_outputs').append('</ul>');
 }
 
 function hideAllInputs(){
+
 	$.each(allSculptureData.inputs, function(inputInstanceId, inputData){
 		$('#inputInstance' + inputInstanceId + '_div').css("display", "none");
 		$.each( inputData.outputs, function( outputIndex, outputData ) {
@@ -399,7 +437,7 @@ function hideAllInputs(){
 
 function showPatternDetails(moduleId, patternInstanceId){
 	hideAllInputs();
-	currentView.activePatterns[moduleId] = patternInstanceId
+	currentView.activeSections[moduleId] = patternInstanceId
 	$('#inputs').detach().appendTo('#' + moduleId + '_pattern' + patternInstanceId);
 	$.each(allSculptureData.currentSculpture.modules[moduleId].patterns[patternInstanceId].inputs, function(patternInputId, patternInputData){
 		idPrefix  = 'inputInstance' + patternInputData.inputInstanceId + '_';
@@ -407,16 +445,15 @@ function showPatternDetails(moduleId, patternInstanceId){
 		$('#' + idPrefix + 'description').html(patternInputData.description);
 		$.each(allSculptureData.inputs[patternInputData.inputInstanceId].outputs, function(outputIndex, outputData){
 			if (outputIndex == patternInputData.outputIndexOfInput || patternInputData.type=='multi'){
-				html = '<span class="inputDescription">' + allSculptureData.inputs[patternInputData.inputInstanceId].shortDescription + ' ' + outputData.description + '</span>';
-				html += '<button id="' + moduleId + '_' + patternInstanceId + '_' + patternInputId + '_rebindButton" class="rebindButton">Change Type</button>';
+				html = '<span class="inputDescription">Current type:<br>' + allSculptureData.inputs[patternInputData.inputInstanceId].shortDescription + ' ' + outputData.description + '</span>';
+				html += '<button id="' + moduleId + '_' + patternInstanceId + '_' + patternInputId + '_rebindButton" class="rebindButton">Change</button>';
 				$('#inputInstance' + patternInputData.inputInstanceId + '_outputs').html(html);
 			}
 		});
-		$('.rebindButton').button().click(function(e){
-			parts = this.id.split('_');
-			showRebindDialog(parts[0], parts[1], parts[2]);
-		});
-
+	});
+	$('.rebindButton').button().click(function(e){
+		var parts = this.id.split('_');
+		showRebindDialog(parts[0], parts[1], parts[2]);
 	});
 
 }
@@ -439,10 +476,15 @@ function doCommand(command){
 }
 function handleCommandResult(result){
 	resultStr = JSON.stringify(result)
+
 	//$('#logDiv').prepend('Result recieved:' + resultStr + '<br>');
 	if ($.inArray(result.command, ['removePattern', 'loadSculpture', 'addPattern', 'changePatternInputBinding', 'bindPatternToNewInput', 'addGlobalInput', 'removeGlobalInput']) > -1){
+		if (allSculptureData.currentSculpture){
+			currentView.sculptureIsLoaded = true;
+		}
 		reloadData();
 	}
+
 }
 function addPattern(moduleId){
 	inputId = '#' + moduleId + '_patternChoices';
@@ -452,11 +494,11 @@ function addPattern(moduleId){
 	}
 }
 function setInputValue(inputInstanceId, settingIndex){
-	htmlId = '#inputInstance' + inputInstanceId + '_setting' + settingIndex;
+	htmlId = '#inputInstance' + inputInstanceId + '_input' + settingIndex;
 	doCommand(['setInputValue', parseInt(inputInstanceId), $(htmlId).val(), parseInt(settingIndex)]);
 }
 function setInputToggle(inputInstanceId, settingIndex){
-	htmlId = '#inputInstance' + inputInstanceId + '_setting' + settingIndex;
+	htmlId = '#inputInstance' + inputInstanceId + '_input' + settingIndex;
 	doCommand(['setInputValue', parseInt(inputInstanceId), $(htmlId).is(":checked"), parseInt(settingIndex)]);
 }
 function updateStatusDisplay(){

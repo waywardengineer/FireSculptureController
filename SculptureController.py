@@ -48,6 +48,7 @@ class SculptureController():
 
 
 	def doReset(self):
+		appMessenger.doReset()
 		for moduleId in self.sculptureModules:
 			self.sculptureModules[moduleId].stop()
 		for inputInstanceId in self.globalInputs:

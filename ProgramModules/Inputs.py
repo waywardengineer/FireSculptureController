@@ -3,8 +3,9 @@ keyboard bindings, timers, audio pulse thingeys, etc. There will be several broa
 will be interchangeable
 ''' 
 from ProgramModules.Timers import Timer
+from ProgramModules import utils
+
 from threading import Thread, Event
-from copy import deepcopy
 outputTypes = ['pulse', 'toggle', 'value']
 import json
 import time
@@ -13,31 +14,31 @@ inputParams = {
 	'TimerPulseInput' : {
 		'longDescription' : 'Timer pulse input, variable timing',
 		'shortDescription' : 'Timer Pulse',
-		'inputs' : [{'type' : 'value', 'description' : 'Interval(ms)', 'initInputData' : [['int', 'Maximum time(ms)', 'max'], ['int', 'Minimum time(ms)', 'min']]}],
+		'inputs' : [{'type' : 'value', 'subType' : 'int', 'description' : 'Interval(ms)', 'max' : 2000, 'min' : 50}],
 		'outputs' : [{'type' : 'pulse', 'sendMessageOnChange' : True}]
 	},
 	'OnOffPulseInput' : {
 		'longDescription' : 'On/off toggle control',
-		'shortDescription' : 'On/off control',
+		'shortDescription' : 'On/off switch',
 		'inputs' : [{'type' : 'toggle', 'description' : '', 'default' : True}],
 		'outputs' : [{'type' : 'toggle', 'sendMessageOnChange' : True}]
 	},
 	'ButtonPulseInput' : {
 		'longDescription' : 'On/off instantaneous button control',
-		'shortDescription' : 'Button Pulse control',
+		'shortDescription' : 'Button',
 		'inputs' : [{'type' : 'pulse', 'description' : '', 'default' : False}],
 		'outputs' : [{'type' : 'pulse', 'sendMessageOnChange' : True, 'toggleTimeOut' : 20}]
 	},
 	'ValueInput' : {
 		'longDescription' : 'Variable value input, can be decimal',
 		'shortDescription' : 'Value setting',
-		'inputs' : [{'type' : 'value', 'description' : 'Value', 'default' : 0, 'min' : 0, 'max' : 100}],
+		'inputs' : [{'type' : 'value', 'description' : '', 'default' : 0, 'min' : 0, 'max' : 100}],
 		'outputs' : [{'type' : 'value'}]
 	},
 	'IntValueInput' : {
 		'longDescription' : 'Variable value input, integer',
 		'shortDescription' : 'Value setting',
-		'inputs' : [{'type' : 'value', 'subType' : 'int', 'description' : 'Value', 'default' : 0, 'min' : 0, 'max' : 100}],
+		'inputs' : [{'type' : 'value', 'subType' : 'int', 'description' : '', 'default' : 0, 'min' : 0, 'max' : 100}],
 		'outputs' : [{'type' : 'value'}]
 	},
 	'OscMultiInput' : {
@@ -51,7 +52,7 @@ inputParams = {
 	},
 	'AudioPulseInput' : {
 		'longDescription' : 'Audio responsive pulse input',
-		'shortDescription' : 'Audio Pulse control',
+		'shortDescription' : 'Audio Pulse',
 		'inputs' : [{'type' : 'value', 'description' : 'Sensitivity', 'default' : 1000, 'min' : 1000, 'max' : 10000}],
 		'outputs' : [{'type' : 'pulse', 'sendMessageOnChange' : True}]
 	},
@@ -95,8 +96,7 @@ class InputCollectionWrapper(object):
 
 class InputBase():
 	def __init__(self, configParams, instanceId):
-		self.defaultParams = deepcopy(inputParams[self.__class__.__name__])
-		self.configParams = dict(self.defaultParams, **configParams)
+		self.configParams = utils.extendSettings(inputParams[self.__class__.__name__], configParams)
 		if 'initInputData' in self.configParams.keys():
 			del self.configParams['initInputData']
 		self.outputs = []
@@ -217,7 +217,6 @@ class OscMultiInput(MultiInput):
 			self.server.close()
 
 	def __init__(self, params, *args):
-		self.defaultParams = deepcopy(inputParams[self.__class__.__name__])
 		callbackAddresses = {}
 		callbacksInStringForm = False
 		for outputType in outputTypes:
@@ -228,7 +227,7 @@ class OscMultiInput(MultiInput):
 				if len(callbackAddresses[outputType]) > 0:
 					callbacksInStringForm = True
 				del params[key]
-		params = dict(self.defaultParams, **params)
+		# params = dict(self.defaultParams, **params)
 		if callbacksInStringForm:
 			params['callbackAddresses'] = callbackAddresses
 		params['outputs'] = []
@@ -294,21 +293,15 @@ class OscMultiInput(MultiInput):
 
 class InputOutputParam():
 	def __init__(self, params, parentId = 0, indexId = 0):
-		defaultParams = {'description' : '', 'type' : 'value', 'subtype' : False, 'min' : False, 'max' : False, 'default' : 0, 'sendMessageOnChange' : False, 'toggleTimeOut' : 30}
+		defaultParams = {'description' : '', 'type' : 'value', 'subtype' : '', 'min' : 0, 'max' : 100, 'default' : 0, 'sendMessageOnChange' : False, 'toggleTimeOut' : 30}
 		self.params = dict(defaultParams, **params)
 		self.parentId = parentId
 		self.indexId = indexId
-		type = self.params['type']
-		subType = self.params['subtype']
 		self.timer = False
-		if self.params['subtype']:
-			constrainValueFunctionName = 'constrain' + subtype[0].upper() + subtype[1:] + type[0].upper() + type[1:] 
-		else:
-			constrainValueFunctionName = 'constrain' + type[0].upper() + type[1:]
-		self.constrainValueFunction = getattr(self, constrainValueFunctionName)
+		self.constrainValueFunction = getattr(self, utils.makeCamelCase(['constrain', self.params['subtype'], self.params['type']]))
 		self.value = False
 		if self.params['type'] == 'value':
-			self.setValue(self.params['default'])
+			self.value = self.constrainValueFunction(self.params['default'])
 	def getValue(self):
 		return self.value
 	def setValue(self, newValue):

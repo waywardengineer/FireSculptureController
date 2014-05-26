@@ -65,13 +65,15 @@ class Chase(PatternBase):
 				else:
 					self.position = 0
 				self.sequenceTriggered = self.inputs.triggerSequence
+				if not self.sequenceTriggered:
+					self.updateTriggerFunction()
+
 		
 	def triggerSequence(self):
 		if self.inputs.triggerSequence:
 			self.inputs.doCommand(['triggerStep', 'refresh'])
 			self.position = 0
 			self.sequenceTriggered = True
-			
 			
 	def getState(self, row, col):
 		result = False
@@ -100,13 +102,14 @@ class AllPoof(PatternBase):
 				'subType' : 'button'
 			},
 			'stayOnTime' : {
-				'descriptionInPattern' : 'Milliseconds to stay on for',
+				'descriptionInPattern' : 'Time to stay on for',
 				'type' : 'value',
 				'subType' : 'int',
 				'inputs' : [{
 					'min' : 100,
 					'max' : 1000,
-					'default' : 200
+					'default' : 200,
+					'description' : 'Milliseconds'
 				}]
 			},
 		}

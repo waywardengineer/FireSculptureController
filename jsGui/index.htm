@@ -21,14 +21,17 @@
 <body>
   <div id="mainDiv"></div>
   <div id="dialog"></div>
+  <div id="storageDiv" style="display:none">
+  <div id="logStorage"></div>
+  </div>
 </body>
 
 
 <script id="sculptureControllerTemplate" type="text/x-jsrender">
   <h1 style="display:block; float:left;">{{>sculptureName}}</h1>
   <div id="safeButtonDiv" style="float:right; margin:15px 150px 0px 0px;">
-    <input type="radio" id="safeModeOn" name="radio" value="on" {{if safeMode}}checked="checked"{{/if}}><label for="safeModeOn">Safe</label>
-    <input type="radio" id="safeModeOff" name="radio" value="off" {{if safeMode}} {{else}}checked="checked"{{/if}}><label for="safeModeOff">Run</label>
+    <input type="radio" id="safeModeOn" name="radio" value="on" {{if safeMode}}checked="checked"{{/if}}><label for="safeModeOn" style="width:100px;">Safe</label>
+    <input type="radio" id="safeModeOff" name="radio" value="off" {{if safeMode}} {{else}}checked="checked"{{/if}}><label for="safeModeOff" style="width:100px;">Run</label>
   </div>
   <div style="clear:both; height:0px; overflow:hidden;">&nbsp;</div>
   <div id="sculptureControl" style="height:100%; width:70%; float:left;">
@@ -42,7 +45,7 @@
       <button id="addGlobalInputButton">Add new input</button>
       <div id="globalInputs" class="accordion">
         {{for globalInputs}}
-          <h3 onclick="showGlobalInput({{>value}})">{{>name}} input</h3>
+          <h3 id="{{>value}}_heading" onclick="showGlobalInput({{>value}})">{{>name}} input</h3>
           <div id="globalInput_{{>value}}">
             <div style="float:right; height:300px;">
              <button id="stopGlobalInputButton_{{>value}}" class="globalInputButton">Stop input</button>
@@ -50,23 +53,7 @@
           </div>
         {{/for}}
       </div>
-      <div id="inputs" style="float:left; height:80%; width:80%; overflow:auto; margin: 0px 0px 0px 15px;" class="ui-widget ui-widget-content ui-corner-all">
-        {{for inputs}}
-          <div style="display:none; text-align:center; float:left; height:200px;" id="inputInstance{{>inputInstanceId}}_div">
-            <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_description" style="width:125px;"></span>
-            {{for inputs}}
-              <div class="ui-widget ui-widget-content ui-corner-all" style="height:100px; width:100px; margin:0px 12px 0px 12px;">
-                <div id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_container"></div>
-                <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_description"></span>
-              </div>
-            {{/for}}
-            <div id="inputInstance{{>inputInstanceId}}_outputs" style="width:125px;">
-            </div>
-            
-          </div>
-        {{/for}}
-      </div>
-   </div>
+    </div>
     {{for modules}}
       <div id="{{>moduleId}}_module">
         <div id="{{>moduleId}}_outputView" class="outputView">
@@ -97,10 +84,10 @@
         </select>
         <div id="{{>moduleId}}_patterns" class="accordion">
           {{for patterns}}
-            <h3 onclick="showPatternDetails('{{>moduleId}}', '{{>patternInstanceId}}')">{{>patternName}} pattern</h3>
+            <h3 id="{{>patternInstanceId}}_heading" onclick="showPatternDetails('{{>moduleId}}', '{{>patternInstanceId}}')">{{>patternName}} pattern</h3>
             <div id="{{>moduleId}}_pattern{{>patternInstanceId}}">
               <div style="float:right; height:300px;">
-                <button id="{{>moduleId}}_{{>patternInstanceId}}_removePattern" class="removePatternButton">Remove pattern</button>
+                <button id="{{>moduleId}}_{{>patternInstanceId}}_removePattern" class="removePatternButton ui-icon-notice" style="margin-bottom:20px;">Remove pattern</button>
                 {{for rowSettings}}
                   <br>
                   <input type="checkbox" id="{{>moduleId}}_{{>patternInstanceId}}_{{>rowIndex}}_toggleRow" {{if enabled}}checked = "checked"{{/if}} class="toggleRowButton">
@@ -114,6 +101,22 @@
     {{/for}}
   </div>
   <div id="logDiv" style="float:left; width:25%; height:100%; overflow-x:hidden; overflow-y:auto; margin: 0px 0px 0px 15px; padding:1px;" class=" ui-widget ui-widget-content ui-corner-all"></div>
+  </div>
+  <div id="inputs" style="float:left; height:100%; width:80%; overflow:auto; margin: 0px 0px 0px 15px; align:center;" class="ui-widget ui-widget-content ui-corner-all">
+    {{for inputs}}
+      <div style="display:none; text-align:center; float:left; height:200px;" id="inputInstance{{>inputInstanceId}}_div">
+        <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_description" style="width:125px;"></span>
+        {{for inputs}}
+          <div class="ui-widget ui-widget-content ui-corner-all" style="height:100px; width:100px; margin:0px 12px 0px 12px; padding:10px 0px 0px 0px">
+            <div id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_container"></div>
+            <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_description"></span>
+          </div>
+        {{/for}}
+        <div id="inputInstance{{>inputInstanceId}}_outputs" style="width:125px;">
+        </div>
+      </div>
+    {{/for}}
+  </div>
 </script>
 
 <script id="sculptureChooserTemplate" type="text/x-jsrender">
@@ -131,10 +134,10 @@
   <input id="{{>id}}" value="{{>currentValue}}" data-width="75" data-height="75" data-max="{{>max}}" data-min="{{>min}}" data-skin="tron" class="knob" data-thickness=".2"> 
 </script>
 <script id="checkButtonTemplate" type="text/x-jsrender">
-  <input id="{{>id}}" {{>checked}} type="checkbox"><label for="{{>id}}" style="width:50px; height:50px;"> </label>
+  <input id="{{>id}}" {{>checked}} type="checkbox"><label for="{{>id}}" style="width:75px; height:75px;"> </label>
 </script>
 <script id="buttonTemplate" type="text/x-jsrender">
-  <button id="{{>id}}" style="width:50px; height:50px;"></button>
+  <button id="{{>id}}" style="width:75px; height:75px;"></button>
 </script>
 
 <script id="selectTemplate" type="text/x-jsrender">
@@ -147,7 +150,7 @@
 </script>
 <script id="formFieldsTemplate" type="text/x-jsrender">
   {{for fields}}
-    <label for="{{>id}}">{{>label}}</label>
+    <label for="{{>id}}">{{>label}}</label><br>
     {{if input}}
       {{if value}}
          <input id="{{>id}}" value="{{>value}}">
