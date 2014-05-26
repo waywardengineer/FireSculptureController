@@ -493,7 +493,7 @@ function addPattern(moduleId){
 }
 function setInputValue(inputInstanceId, settingIndex){
 	htmlId = '#inputInstance' + inputInstanceId + '_input' + settingIndex;
-	doCommand(['setInputValue', parseInt(inputInstanceId), $(htmlId).val(), parseInt(settingIndex)]);
+	doCommand(['setInputValue', parseInt(inputInstanceId), parseInt($(htmlId).val()), parseInt(settingIndex)]);
 }
 function setInputToggle(inputInstanceId, settingIndex){
 	htmlId = '#inputInstance' + inputInstanceId + '_input' + settingIndex;

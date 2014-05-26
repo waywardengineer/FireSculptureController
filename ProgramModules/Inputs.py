@@ -33,13 +33,13 @@ inputParams = {
 		'longDescription' : 'Variable value input, can be decimal',
 		'shortDescription' : 'Value setting',
 		'inputs' : [{'type' : 'value', 'description' : '', 'default' : 0, 'min' : 0, 'max' : 100}],
-		'outputs' : [{'type' : 'value'}]
+		'outputs' : [{'type' : 'value', 'min' : False, 'max' : False}]
 	},
 	'IntValueInput' : {
 		'longDescription' : 'Variable value input, integer',
 		'shortDescription' : 'Value setting',
 		'inputs' : [{'type' : 'value', 'subType' : 'int', 'description' : '', 'default' : 0, 'min' : 0, 'max' : 100}],
-		'outputs' : [{'type' : 'value'}]
+		'outputs' : [{'type' : 'value', 'min' : False, 'max' : False}]
 	},
 	'OscMultiInput' : {
 		'longDescription' : 'OpenSoundControl server', 
@@ -67,9 +67,8 @@ except:
 try:
 	import pyaudio
 	import sys
-	from numpy import *
-	from numpy.fft import *
-	from struct import *
+	import numpy 
+	import struct
 except:
 	inputTypeSettings['AudioPulseInput']['unavailable'] = True
 
@@ -293,20 +292,18 @@ class OscMultiInput(MultiInput):
 
 class InputOutputParam():
 	def __init__(self, params, parentId = 0, indexId = 0):
-		defaultParams = {'description' : '', 'type' : 'value', 'subtype' : '', 'min' : 0, 'max' : 100, 'default' : 0, 'sendMessageOnChange' : False, 'toggleTimeOut' : 30}
-		self.params = dict(defaultParams, **params)
+		defaultParams = {'description' : '', 'type' : 'value', 'subType' : '', 'min' : 0, 'max' : 100, 'default' : 0, 'sendMessageOnChange' : False, 'toggleTimeOut' : 30}
+		self.params = utils.extendSettings(defaultParams, params)
 		self.parentId = parentId
 		self.indexId = indexId
 		self.timer = False
-		self.constrainValueFunction = getattr(self, utils.makeCamelCase(['constrain', self.params['subtype'], self.params['type']]))
+		self.constrainValueFunction = getattr(self, utils.makeCamelCase(['constrain', self.params['subType'], self.params['type']]))
 		self.value = False
 		if self.params['type'] == 'value':
 			self.value = self.constrainValueFunction(self.params['default'])
 	def getValue(self):
 		return self.value
 	def setValue(self, newValue):
-		# print newValue
-		newValue = self.constrainValueFunction(newValue)
 		if (not self.value == newValue) or self.params['type'] == 'pulse':
 			self.value = newValue
 			if self.params['sendMessageOnChange']:
@@ -320,15 +317,15 @@ class InputOutputParam():
 	def constrainValue(self, value):
 		value = float(value)
 		if self.params['min']:
-			if value < self.params['min']:
-				value = self.params['min']
+			if value < float(self.params['min']):
+				value = float(self.params['min'])
 		if self.params['max']:
-			if value > self.params['max']:
-				value = self.params['max']
+			if value > float(self.params['max']):
+				value = float(self.params['max'])
 		return value
 	def constrainIntValue(self, value):
-		value = int(float(self.constrainValue(value)) + 0.5)
-		return value
+		return int(self.constrainValue(value) + 0.5)
+		
 	def constrainPulse(self, value):
 		if value:
 			return True
@@ -394,7 +391,7 @@ class AudioPulseInput(InputBase):
 					time.sleep(0.01)
 				if i>2 and data:
 					i = 0
-					buff = array(unpack_from('1024h',data))
+					buff = numpy.array(struct.unpack_from('1024h',data))
 					bdata = range(len(self.bands))    
 					self.callBackFunction(bands=bdata, value = buff.std())
 					time.sleep(0.01)

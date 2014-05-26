@@ -55,9 +55,6 @@ class SculptureModuleBase():
 		for patternInstanceId in self.patterns:
 			self.patterns[patternInstanceId].stop()
 		self.patterns = {}
-
-		
-	
 	
 	def doCommand(self, command):
 		functionName = command.pop(0)
@@ -74,6 +71,7 @@ class PooferModule(SculptureModuleBase):
 		SculptureModuleBase.__init__ (self, *args)
 		self.currentOutputState = [[False for j in range(self.gridSize[1])] for i in range(self.gridSize[0])]
 		self.enabledStatus = [[True for j in range(self.gridSize[1])] for i in range(self.gridSize[0])]
+		safeMode.addBinding(self.doUpdates);
 
 	def doUpdates(self): #Check the pattern state and send data out
 		data = []

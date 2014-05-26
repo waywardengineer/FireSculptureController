@@ -119,10 +119,10 @@ class AllPoof(PatternBase):
 		self.poofState = False
 	def poofButton(self):
 		if self.inputs.poofButton:
-			self.poofState = True
-			self.updateTriggerFunction()
 			self.timer.changeInterval(self.inputs.stayOnTime)
 			self.timer.refresh()
+			self.poofState = True
+			self.updateTriggerFunction()
 	
 	def turnOff(self):
 		self.poofState = False

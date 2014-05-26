@@ -1,58 +1,46 @@
 from threading import Thread, Event
-
+import time
 class Timer():
 	class TimerThread(Thread):
-		def __init__(self, parent, interval):
+		def __init__(self, parent):
 			Thread.__init__(self)
 			self.parent = parent
-			self.waitEvent = Event()
-			self.functionQueued = True
-			self.interval = interval
 		def run(self):
-			if self.parent.repeating:
-				self.parent.doFunction()
 			while not self.parent.stopEvent.isSet():
-				self.waitEvent.wait(self.interval / 1000.)
-				if self.functionQueued:
-					self.parent.doFunction()
-					self.functionQueued = False
-				if self.parent.repeating:
-					self.restartInternal()
-					
-		def restartInternal(self):
-			self.waitEvent.clear()
-			self.functionQueued = True
+				self.parent.waitEvent.wait(self.parent.interval / 1000.)
+				self.parent.doFunction()
 		
-		
-		def restartExternal(self):
-			self.functionQueued = False
-			self.waitEvent.set()
-			self.restartInternal()
-
-
-					
 	def __init__(self, repeating, interval, function, args = False):
 		self.function = function
 		self.repeating = repeating
 		self.args = args
 		self.stopEvent = Event()
-		self.thread = Timer.TimerThread(self, interval)
+		self.waitEvent = Event()
+		self.thread = Timer.TimerThread(self)
+		self.interval = interval
+		self.functionQueue = 1
 		self.thread.start()
 
 	def stop(self):
-		self.fireFunction = False
+		self.functionQueue = -1
 		self.repeating = False
-		self.thread.waitEvent.set()
+		self.waitEvent.set()
 		self.stopEvent.set()
 	
 	
 	def refresh(self):
-		self.thread.restartExternal()
-	
+		self.functionQueue = 1
+		self.waitEvent.set()
+		self.waitEvent.clear()
+		
 	def changeInterval(self, interval):
-		self.thread.interval = interval
+		self.interval = interval
+		
 	def doFunction(self):
-		if self.args:
-			self.function(*self.args)
-		else:
-			self.function()
+		if self.functionQueue == 0 or self.repeating:
+			if self.args:
+				self.function(*self.args)
+			else:
+				self.function()
+		if self.functionQueue > -1:
+			self.functionQueue -= 1
