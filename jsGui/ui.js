@@ -45,7 +45,6 @@ function showRebindDialog(moduleId, patternInstanceId, patternInputId){
 		$.each(allSculptureData.inputs, function(inputInstanceId, inputData){
 			if ($.inArray(parseInt(inputInstanceId), allSculptureData.globalInputs) > -1){
 				$.each(inputData.outputs, function(outputIndex, outputData){
-					$('#logDiv').prepend(outputIndex + '<br>');
 					if (typesAreCompatible(outputData.type, inputChannelType) ){
 						selectData.options.push({'description' : "(Running)" + inputData.shortDescription + ' ' + outputData.description, 'value' : JSON.stringify(['running', inputInstanceId , outputIndex])});
 					}
@@ -256,7 +255,6 @@ function buildAll(){
 		if (currentView.sculptureIsLoaded){
 			$('#logDiv').html($('#logStorage').html());
 		}
-		$('#inputs').detach().appendTo('#storageDiv');
 		$.each( allSculptureData.inputs, function( inputInstanceId, inputData ) {
 			buildInputControls(inputInstanceId, inputData);
 		});

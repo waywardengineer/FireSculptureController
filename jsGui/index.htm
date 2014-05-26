@@ -102,20 +102,22 @@
   </div>
   <div id="logDiv" style="float:left; width:25%; height:100%; overflow-x:hidden; overflow-y:auto; margin: 0px 0px 0px 15px; padding:1px;" class=" ui-widget ui-widget-content ui-corner-all"></div>
   </div>
-  <div id="inputs" style="float:left; height:100%; width:80%; overflow:auto; margin: 0px 0px 0px 15px; align:center;" class="ui-widget ui-widget-content ui-corner-all">
-    {{for inputs}}
-      <div style="display:none; text-align:center; float:left; height:200px;" id="inputInstance{{>inputInstanceId}}_div">
-        <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_description" style="width:125px;"></span>
-        {{for inputs}}
-          <div class="ui-widget ui-widget-content ui-corner-all" style="height:100px; width:100px; margin:0px 12px 0px 12px; padding:10px 0px 0px 0px">
-            <div id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_container"></div>
-            <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_description"></span>
+  <div style="display:none;">
+    <div id="inputs" style="float:left; height:100%; width:80%; overflow:auto; margin: 0px 0px 0px 15px; align:center;" class="ui-widget ui-widget-content ui-corner-all">
+      {{for inputs}}
+        <div style="display:none; text-align:center; float:left; height:200px;" id="inputInstance{{>inputInstanceId}}_div">
+          <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_description" style="width:125px;"></span>
+          {{for inputs}}
+            <div class="ui-widget ui-widget-content ui-corner-all" style="height:100px; width:100px; margin:0px 12px 0px 12px; padding:10px 0px 0px 0px">
+              <div id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_container"></div>
+              <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_description"></span>
+            </div>
+          {{/for}}
+          <div id="inputInstance{{>inputInstanceId}}_outputs" style="width:125px;">
           </div>
-        {{/for}}
-        <div id="inputInstance{{>inputInstanceId}}_outputs" style="width:125px;">
         </div>
-      </div>
-    {{/for}}
+      {{/for}}
+    </div>
   </div>
 </script>
 
