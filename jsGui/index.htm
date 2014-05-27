@@ -91,8 +91,9 @@
           {{for patterns}}
             <h3 id="{{>patternInstanceId}}_heading" onclick="showPatternDetails('{{>moduleId}}', '{{>patternInstanceId}}')">{{>patternName}} pattern</h3>
             <div id="{{>moduleId}}_pattern{{>patternInstanceId}}">
-              <div style="float:right; height:300px;">
-                <button id="{{>moduleId}}_{{>patternInstanceId}}_removePattern" class="removePatternButton ui-icon-notice" style="margin-bottom:20px;">Remove pattern</button>
+              <div style="float:left; width:0px; height:300px;"></div>
+              <div style="float:right; text-align:center; height:200px; width:125px; margin:10px; padding:5px" class="ui-widget ui-widget-content ui-corner-all">
+                <button id="{{>moduleId}}_{{>patternInstanceId}}_removePattern" class="removePatternButton" style="margin-bottom:20px;">Remove pattern</button>
                 {{for rowSettings}}
                   <br>
                   <input type="checkbox" id="{{>moduleId}}_{{>patternInstanceId}}_{{>rowIndex}}_toggleRow" {{if enabled}}checked = "checked"{{/if}} class="toggleRowButton">
@@ -108,17 +109,17 @@
   <div id="logDiv" style="float:left; width:25%; height:100%; overflow-x:hidden; overflow-y:auto; margin: 0px 0px 0px 15px; padding:1px;" class=" ui-widget ui-widget-content ui-corner-all"></div>
   </div>
   <div style="display:none;">
-    <div id="inputs" style="float:left; height:100%; width:80%; overflow:auto; margin: 0px 0px 0px 15px; align:center;" class="ui-widget ui-widget-content ui-corner-all">
+    <div id="inputs" style="margin:0px; padding:0px;">
       {{for inputs}}
-        <div style="display:none; text-align:center; float:left; height:200px;" id="inputInstance{{>inputInstanceId}}_div">
-          <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_description" style="width:125px;"></span>
+        <div style="display:none;" id="inputInstance{{>inputInstanceId}}_div" class="ui-widget ui-widget-content ui-corner-all ui-state-active inputOuterWrapper">
+          <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_description" style="width:100px;"></span>
           {{for inputs}}
-            <div class="ui-widget ui-widget-content ui-corner-all" style="height:100px; width:100px; margin:0px 12px 0px 12px; padding:10px 0px 0px 0px">
+            <div class="ui-widget ui-widget-content ui-corner-all inputControlWrapper">
               <div id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_container"></div>
-              <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_description"></span>
+              <span class="inputControlDescription" id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_description"></span>
             </div>
           {{/for}}
-          <div id="inputInstance{{>inputInstanceId}}_outputs" style="width:125px;">
+          <div id="inputInstance{{>inputInstanceId}}_outputs" class="inputOuputWrapper">
           </div>
         </div>
       {{/for}}

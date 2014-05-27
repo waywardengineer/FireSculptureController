@@ -226,7 +226,6 @@ class OscMultiInput(MultiInput):
 				if len(callbackAddresses[outputType]) > 0:
 					callbacksInStringForm = True
 				del params[key]
-		# params = dict(self.defaultParams, **params)
 		if callbacksInStringForm:
 			params['callbackAddresses'] = callbackAddresses
 		params['outputs'] = []
@@ -298,9 +297,7 @@ class InputOutputParam():
 		self.indexId = indexId
 		self.timer = False
 		self.constrainValueFunction = getattr(self, utils.makeCamelCase(['constrain', self.params['subType'], self.params['type']]))
-		self.value = False
-		if self.params['type'] == 'value':
-			self.value = self.constrainValueFunction(self.params['default'])
+		self.value = self.constrainValueFunction(self.params['default'])
 	def getValue(self):
 		return self.value
 	def setValue(self, newValue):

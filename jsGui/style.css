@@ -7,15 +7,35 @@ body{
   font-size: 75%;
   color:#87CEEB;
 }
-#logDiv{
-}
-.inputDescription{
+.inputDescription, .inputControlDescription{
   display:block;
   height:50px;
   color: #87CEEB;
   font-variant:small-caps;
-  font-size: 14px;
+  font-size: 12px;
   padding: 0px 10px 0px 10px;
+}
+.inputDescription{
+  width:100px;
+}
+.inputControlDescription{
+  width:80px;
+}
+.inputControlWrapper{
+ height:100px;
+ width:100px;
+ margin:0px 10px 0px 10px;
+ padding:10px 0px 0px 0px;
+}
+.inputOuterWrapper{
+  text-align:center;
+  float:left;
+  height:200px;
+  margin:10px;
+}
+.inputOutputWrapper{
+  width:100px;
+  height:100px;
 }
 .descriptionText{
   color: #87CEEB;
@@ -43,9 +63,3 @@ body{
 .toggleRowLabel.ui-state-active span{
   color: #FFCD4D !important; 
 }
-.ui-tabs-vertical { width: 55em; }
-.ui-tabs-vertical .ui-tabs-nav { padding: .2em .1em .2em .2em; float: left; width: 12em; }
-.ui-tabs-vertical .ui-tabs-nav li { clear: left; width: 100%; border-bottom-width: 1px !important; border-right-width: 0 !important; margin: 0 -1px .2em 0; }
-.ui-tabs-vertical .ui-tabs-nav li a { display:block; }
-.ui-tabs-vertical .ui-tabs-nav li.ui-tabs-active { padding-bottom: 0; padding-right: .1em; border-right-width: 1px; border-right-width: 1px; }
-.ui-tabs-vertical .ui-tabs-panel { padding: 1em; float: right; width: 40em;}

@@ -299,7 +299,7 @@ function buildAll(){
 			doCommand(['toggleRowSelection', parts[0], parts[1], parseInt(parts[2])]);
 			$('label[for="' + this.id + '"] > .ui-button-text').html('Row ' + parts[2] + ($('#' + this.id).is(":checked")?' Enabled':' Disabled'));
 		});
-		$('.removePatternButton').button({icons : {primary:"ui-icon-notice"}}).click(function(){
+		$('.removePatternButton').button().click(function(){
 			parts = this.id.split('_');
 			doCommand(['removePattern', parts[0], parts[1]]);
 		});
