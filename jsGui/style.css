@@ -12,21 +12,36 @@ body{
 .inputDescription{
   display:block;
   height:50px;
-  color: #FFC98D;
+  color: #87CEEB;
   font-variant:small-caps;
   font-size: 14px;
   padding: 0px 10px 0px 10px;
 }
 .descriptionText{
-  color: #FFC98D;
+  color: #87CEEB;
   font-variant:small-caps;
   font-size: 14px;
 }
 .rebindButton{
   font-size:12px !important;
 }
+.pooferDisplayLabel, .enableControlLabel{
+  width:15px;
+  height:15px;
+  margin:0px -2px 0px 0px !important;
+}
 .pooferDisplayLabel.ui-state-active{
-  background: #FFC98D !important; 
+  background: #FFCD4D !important; 
+}
+.enableControlLabel.ui-state-active,  .inputControl.ui-state-active{
+  background: #55CCFF !important; 
+  border-color: #55CCFF !important; 
+}
+.toggleRowLabel.ui-state-focus span, .toggleRowLabel.ui-state-default span{
+  color: #60A2BF; 
+}
+.toggleRowLabel.ui-state-active span{
+  color: #FFCD4D !important; 
 }
 .ui-tabs-vertical { width: 55em; }
 .ui-tabs-vertical .ui-tabs-nav { padding: .2em .1em .2em .2em; float: left; width: 12em; }

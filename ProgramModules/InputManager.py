@@ -1,7 +1,6 @@
 ''' Builds collections of input objects based on defaults. Manages uses: Inputs 
 can be used by multiple things, so this keeps track of who's using what and deletes unused inputs'''
 from ProgramModules import utils
-
 class InputManager():
 	def __init__ (self, dataChannelManager):
 		self.dataChannelManager = dataChannelManager
@@ -33,7 +32,10 @@ class InputManager():
 	def createNewInput(self, params):
 		newInputInstanceId = self.nextInputInstanceId
 		self.nextInputInstanceId += 1
-		inputClass = getattr(self.inputModules, utils.makeCamelCase([params['subType'], params['type'], 'input'], True))
+		inputClassName = utils.makeCamelCase([params['subType'], params['type'], 'input'], True)
+		if 'unavailable' in self.inputModules.inputParams[inputClassName].keys():
+			return False
+		inputClass = getattr(self.inputModules, inputClassName)
 		self.inputInstances[newInputInstanceId] = inputClass(params, newInputInstanceId)
 		return newInputInstanceId
 

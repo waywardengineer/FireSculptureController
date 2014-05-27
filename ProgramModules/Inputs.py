@@ -61,7 +61,7 @@ inputParams = {
 try:
 	from OSC import OSCServer,OSCClient, OSCMessage
 except:
-	inputTypeSettings['OscMultiInput']['unavailable'] = True
+	inputParams['OscMultiInput']['unavailable'] = True
 
 	
 try:
@@ -70,7 +70,7 @@ try:
 	import numpy 
 	import struct
 except:
-	inputTypeSettings['AudioPulseInput']['unavailable'] = True
+	inputParams['AudioPulseInput']['unavailable'] = True
 
 class InputCollectionWrapper(object):
 	def __init__(self, inputCollection):
@@ -345,8 +345,9 @@ class InputOutputParam():
 
 class AudioPulseInput(InputBase):
 	class AudioInputThread(Thread):
-		def __init__(self, parent, stopEvent, callBackFunction, configParams = {'chunk' : 1024, 'format' : pyaudio.paInt16, 'channels' : 1, 'rate' : 22500, 'recordSeconds' : 5}):
+		def __init__(self, parent, stopEvent, callBackFunction, configParams = {'chunk' : 1024, 'channels' : 1, 'rate' : 22500, 'recordSeconds' : 5}):
 			Thread.__init__(self)
+			configParams['format'] = pyaudio.paInt16
 			self.configParams = configParams
 			self.callBackFunction = callBackFunction
 			self.p=pyaudio.PyAudio()

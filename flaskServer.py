@@ -78,7 +78,7 @@ def subscribe():
 sculpture.loadSculpture('tympani')
 sculpture.doCommand(['addPattern', 'poofers', 'AllPoof'])
 appMessenger.addBinding('outputChanged', sendNewOutputState, 'outputChanged')
-# sculpture.doCommand(['addGlobalInput', {'type' : 'pulse', 'subType' : 'audio'}])
+sculpture.doCommand(['addGlobalInput', {'type' : 'pulse', 'subType' : 'audio'}])
 # sculpture.doCommand(["changePatternInputBinding","poofers","poofersPattern0","poofButton",2,0])
 
 if __name__ == '__main__':

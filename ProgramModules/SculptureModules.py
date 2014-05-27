@@ -79,8 +79,6 @@ class PooferModule(SculptureModuleBase):
 			for col in range(len(self.moduleConfig['protocol']['mapping'][row])):
 				state = False
 				for patternId in self.patterns:
-					if not safeMode:
-						print 'not safemode'
 					state = ((not safeMode.isSet()) and self.enabledStatus[row][col]) and (state or (self.patternRowSettings[patternId][row] and self.patterns[patternId].getState(row, col)))
 				if not state == self.currentOutputState[row][col]:
 					data.append([[row, col], [state]])

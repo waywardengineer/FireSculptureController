@@ -19,8 +19,9 @@ source.onmessage = function (event) {
 	if (data.outputChanged){
 		$.each(data.outputChanged, function(index, outputChangeMessage){
 			$.each(outputChangeMessage.data, function(index, pointData){
-				id = outputChangeMessage.moduleId + '_outputView_row' + pointData[0][0] + '_col' + pointData[0][1];
-				$('#' + id).prop('checked', pointData[1][0]).button('refresh');
+				rowId = outputChangeMessage.moduleId + '_outputView_row' + pointData[0][0];
+				$('#' + rowId + '_col' + pointData[0][1]).prop('checked', pointData[1][0]);
+				$('#' + rowId).buttonset('refresh');
 			});
 		});
 	}
@@ -271,14 +272,16 @@ function buildAll(){
 				}
 			});
 			$.each( moduleData.protocol.mapping, function( rowIndex, rowData ) {
+				$('#' + moduleId + '_outputView_row' + rowIndex).buttonset();
+				$('#' + moduleId + '_enableView_row' + rowIndex).buttonset();
 				$.each( rowData, function( colIndex, colData ) {
-					$('#' + moduleId + '_enableView_row' + rowIndex + '_col' + colIndex).button().click(function(e){
+					$('#' + moduleId + '_enableView_row' + rowIndex + '_col' + colIndex).click(function(e){
 						doCommand(['toggleEnable', moduleId, [rowIndex, colIndex]]);
 					});
 				});
 			});
 		});
-		$('.pooferDisplay').button();
+		// $('.pooferDisplay').button();
 		if (currentView.activeModule){
 			$('#sculptureControl').tabs({ active : $("#sculptureControl>div").index($("#" + currentView.activeModule + '_module')) });
 		}
@@ -294,6 +297,7 @@ function buildAll(){
 		$('.toggleRowButton').button().click(function(){
 			parts = this.id.split('_');
 			doCommand(['toggleRowSelection', parts[0], parts[1], parseInt(parts[2])]);
+			$('label[for="' + this.id + '"] > .ui-button-text').html('Row ' + parts[2] + ($('#' + this.id).is(":checked")?' Enabled':' Disabled'));
 		});
 		$('.removePatternButton').button({icons : {primary:"ui-icon-notice"}}).click(function(){
 			parts = this.id.split('_');
@@ -318,7 +322,7 @@ function buildAll(){
 		$('#mainDiv').append($('#sculptureChooserTemplate').render(data));
 		$('#sculptureChooser').menu();
 	}
-	$('#mainDiv').css('height', $(window).height() * 0.9 + 'px');
+	$('#mainDiv').css('height', $(window).height() * 0.88 + 'px');
 }
 
 

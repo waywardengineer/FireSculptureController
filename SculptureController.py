@@ -1,11 +1,11 @@
 import json
 import os
 import inspect
+import time
 
 from ProgramModules.DataChannelManager import DataChannelManager
 from ProgramModules.InputManager import InputManager
-from ProgramModules import SculptureModules
-from ProgramModules import Inputs
+from ProgramModules import Inputs, utils, SculptureModules
 from ProgramModules.Messenger import Messenger
 
 class SafeModeController():
@@ -39,8 +39,7 @@ class SculptureController():
 		self.dataChannelManager = False
 		self.availableGlobalInputs = []
 		for inputType in [['multi', 'osc'], ['pulse', 'audio']]:
-			className = inputType[1][0].upper() + inputType[1][1:] + inputType[0][0].upper() + inputType[0][1:] + 'Input'
-			if not 'unavailable' in Inputs.inputParams.keys():
+			if not 'unavailable' in Inputs.inputParams[utils.makeCamelCase([inputType[1], inputType[0], 'input'], True)].keys():
 				self.availableGlobalInputs.append(inputType)
 		for definitionFileName in os.listdir(definitionFileDirectory):
 			try:
@@ -66,6 +65,7 @@ class SculptureController():
 			self.inputManager.unRegisterInput('main')
 		if self.dataChannelManager:
 			self.dataChannelManager.stop()
+		time.sleep(0.2)
 		self.dataChannelManager = False
 		self.inputManager = False
 		self.sculptureConfig = False
