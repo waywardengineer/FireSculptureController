@@ -28,10 +28,12 @@
 
 
 <script id="sculptureControllerTemplate" type="text/x-jsrender">
-  <h1 style="display:block; float:left; font-variant:small-caps; padding:3px 6px 3px 6px; background:#87CEEB; color:#000000;" class="ui-widget-content ui-corner-all">{{>sculptureName}}</h1>
-  <div id="safeButtonDiv" style="float:right; margin:15px 150px 0px 0px;">
-    <input type="radio" id="safeModeOn" name="radio" value="on" {{if safeMode}}checked="checked"{{/if}}><label for="safeModeOn" style="width:100px;">Safe</label>
-    <input type="radio" id="safeModeOff" name="radio" value="off" {{if safeMode}} {{else}}checked="checked"{{/if}}><label for="safeModeOff" style="width:100px;">Run</label>
+  <span class="ui-widget-content ui-corner-all sculptureHeading">{{>sculptureName}}</span>
+  <div id="fuckYouInTheEarCss">
+    <div id="safeButtonDiv">
+      <input type="radio" id="safeModeOn" name="radio" value="on" {{if safeMode}}checked="checked"{{/if}}><label for="safeModeOn" class="safeModeLabel">Safe</label>
+      <input type="radio" id="safeModeOff" name="radio" value="off" {{if safeMode}} {{else}}checked="checked"{{/if}}><label for="safeModeOff" class="safeModeLabel">Run</label>
+    </div>
   </div>
   <div style="clear:both; height:0px; overflow:hidden;">&nbsp;</div>
   <div id="sculptureControl" style="height:100%; width:70%; float:left;">
@@ -59,7 +61,7 @@
         <div style="float:left;">
           <div id="{{>moduleId}}_outputView" class="outputView">
             {{for rows}}
-              <div id="{{>moduleId}}_outputView_row{{>rowIndex}}">
+              <div id="{{>moduleId}}_outputView_row{{>rowIndex}}" class="outputViewRow">
                 {{for cols}}
                   <input type="checkbox" id="{{>moduleId}}_outputView_row{{>rowIndex}}_col{{>colIndex}}" class="pooferDisplay">
                   <label for="{{>moduleId}}_outputView_row{{>rowIndex}}_col{{>colIndex}}" class="pooferDisplayLabel"></label>
@@ -112,7 +114,7 @@
     <div id="inputs" style="margin:0px; padding:0px;">
       {{for inputs}}
         <div style="display:none;" id="inputInstance{{>inputInstanceId}}_div" class="ui-widget ui-widget-content ui-corner-all ui-state-active inputOuterWrapper">
-          <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_description" style="width:100px;"></span>
+          <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_description"></span>
           {{for inputs}}
             <div class="ui-widget ui-widget-content ui-corner-all inputControlWrapper">
               <div id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_container"></div>

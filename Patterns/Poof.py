@@ -7,6 +7,7 @@ class Chase(PatternBase):
 				'descriptionInPattern' : 'Trigger next step in sequence',
 				'type' : 'pulse',
 				'subType' : 'timer',
+				'bindToFunction' : True,
 				'inputs' : [{
 					'min' : 50,
 					'max' : 3000, 
@@ -16,7 +17,14 @@ class Chase(PatternBase):
 			'triggerSequence' : {
 				'descriptionInPattern' : 'Trigger chase',
 				'type' : 'pulse',
-				'subType' : 'onOff'
+				'subType' : 'onOff',
+				'bindToFunction' : True
+			},
+			'reverse' : {
+				'descriptionInPattern' : 'Reverse direction',
+				'type' : 'pulse',
+				'subType' : 'onOff',
+				'inputs' : [{'default' : False}]
 			},
 			'numberOn' : {
 				'descriptionInPattern' : 'Number of poofers on at once',
@@ -77,6 +85,8 @@ class Chase(PatternBase):
 			
 	def getState(self, row, col):
 		result = False
+		if self.inputs.reverse:
+			col = self.gridSize[1] - (col + 1)
 		if self.sequenceTriggered:
 			spacing = self.gridSize[1] / self.inputs.numberPulses
 			intervalCount = 0
@@ -99,7 +109,8 @@ class AllPoof(PatternBase):
 			'poofButton' : {
 				'descriptionInPattern' : 'Poof!',
 				'type' : 'pulse',
-				'subType' : 'button'
+				'subType' : 'button',
+				'bindToFunction' : True
 			},
 			'stayOnTime' : {
 				'descriptionInPattern' : 'Time to stay on for',

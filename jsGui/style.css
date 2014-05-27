@@ -1,5 +1,5 @@
 body{
-  font-family: Helvetica, sans-serif;
+  font-family: Segoe UI,Helvetica,Arial,sans-serif;
 	height: 100%;
 	margin: 0px;
 	padding: 0px;
@@ -9,23 +9,22 @@ body{
 }
 .inputDescription, .inputControlDescription{
   display:block;
+  clear:both;
   height:50px;
   color: #87CEEB;
   font-variant:small-caps;
   font-size: 12px;
-  padding: 0px 10px 0px 10px;
-}
-.inputDescription{
-  width:100px;
-}
-.inputControlDescription{
-  width:80px;
+  margin:auto;
+  padding:0px;
+  width:100%;
+  max-width:120px;
 }
 .inputControlWrapper{
  height:100px;
  width:100px;
  margin:0px 10px 0px 10px;
  padding:10px 0px 0px 0px;
+ float:left;
 }
 .inputOuterWrapper{
   text-align:center;
@@ -45,6 +44,37 @@ body{
 .rebindButton{
   font-size:12px !important;
 }
+.sculptureHeading{
+  display:block;
+  float:left;
+ }
+#fuckYouInTheEarCss{
+  float:right;
+  margin:0px;
+  padding:0px;
+  width:300px;
+}
+.sculptureHeading, .safeModeLabel{
+  font-variant:small-caps !important;
+  font-size:22px !important;
+  font-weight:bold !important;
+  font-family: Segoe UI,Helvetica,Arial,sans-serif !important;
+  padding:1px 6px 1px 6px !important; 
+  margin-top:10px ;
+  margin-bottom:15px ;
+}
+.sculptureHeading, .safeModeLabel.ui-state-active{
+  background: #87CEEB !important;
+  color:#000000 !important;
+  border-color: #87CEEB !important; 
+}
+
+.safeModeLabel{
+  width:100px;
+}
+.safeModeLabel span{
+  padding:0px !important;
+}
 .pooferDisplayLabel, .enableControlLabel{
   width:15px;
   height:15px;
@@ -62,4 +92,7 @@ body{
 }
 .toggleRowLabel.ui-state-active span{
   color: #FFCD4D !important; 
+}
+.toggleRowLabel{
+  margin-top:2px;
 }

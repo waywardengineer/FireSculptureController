@@ -83,7 +83,7 @@ sculpture.doCommand(['addGlobalInput', {'type' : 'pulse', 'subType' : 'audio'}])
 
 if __name__ == '__main__':
 	app.debug = True
-	server = WSGIServer(("", 5000), app)
+	server = WSGIServer(("", 80), app)
 	try:
 		server.serve_forever()
 	except:

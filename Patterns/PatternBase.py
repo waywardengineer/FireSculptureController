@@ -14,14 +14,14 @@ class PatternBase():
 		else:
 			self.inputs = self.inputManager.buildInputCollection(self.inputParams, self.instanceId)
 			for patternInputId in self.inputParams:
-				if self.inputParams[patternInputId]['type'] == 'pulse':
+				if 'bindToFunction' in self.inputParams[patternInputId].keys() and self.inputParams[patternInputId]['bindToFunction'] :
 					inputBinding = self.inputs.getBinding(patternInputId) 
 					self.messengerBindingIds[patternInputId] = appMessenger.addBinding('output%s_%s' %(inputBinding[0], inputBinding[1]), getattr(self, patternInputId))
 
 
 	def changeInputBinding(self, patternInputId, inputInstanceId, outputIndexOfInput = 0):
 		self.inputs.replaceInput(patternInputId, self.inputManager.registerAndGetInput(self.instanceId, inputInstanceId, patternInputId), outputIndexOfInput)
-		if self.inputParams[patternInputId]['type'] == 'pulse':
+		if 'bindToFunction' in self.inputParams[patternInputId].keys() and self.inputParams[patternInputId]['bindToFunction']:
 			if patternInputId in self.messengerBindingIds.keys():
 				appMessenger.removeBinding(self.messengerBindingIds[patternInputId])
 				del self.messengerBindingIds[patternInputId]
