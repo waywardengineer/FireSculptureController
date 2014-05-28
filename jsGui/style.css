@@ -29,8 +29,8 @@ body{
 .inputOuterWrapper{
   text-align:center;
   float:left;
-  height:200px;
   margin:10px;
+  display:block;
 }
 .inputOutputWrapper{
   width:100px;

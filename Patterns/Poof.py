@@ -8,11 +8,9 @@ class Chase(PatternBase):
 				'type' : 'pulse',
 				'subType' : 'timer',
 				'bindToFunction' : True,
-				'inputs' : [{
-					'min' : 50,
-					'max' : 3000, 
-					'default' : 100
-				}]
+				'min' : 50,
+				'max' : 3000, 
+				'default' : 100
 			},
 			'triggerSequence' : {
 				'descriptionInPattern' : 'Trigger chase',
@@ -24,37 +22,31 @@ class Chase(PatternBase):
 				'descriptionInPattern' : 'Reverse direction',
 				'type' : 'pulse',
 				'subType' : 'onOff',
-				'inputs' : [{'default' : False}]
+				'default' : False
 			},
 			'numberOn' : {
 				'descriptionInPattern' : 'Number of poofers on at once',
 				'type' : 'value',
 				'subType' : 'int',
-				'inputs' : [{
-					'min' : 1,
-					'max' : 5,
-					'default' : 2
-				}]
+				'min' : 1,
+				'max' : 5,
+				'default' : 2
 			},
 			'stepping' : {
 				'descriptionInPattern' : 'Number of poofers to jump per step',
 				'type' : 'value',
 				'subType' : 'int',
-				'inputs' : [{
-					'min' : 1,
-					'max' : 5,
-					'default' : 1
-				}]
+				'min' : 1,
+				'max' : 5,
+				'default' : 1
 			},
 			'numberPulses' : {
 				'descriptionInPattern' : 'Number of pulses chasing each other',
 				'type' : 'value',
 				'subType' : 'int',
-				'inputs' : [{
-					'min' : 1,
-					'max' : 3,
-					'default' : 1
-				}]
+				'min' : 1,
+				'max' : 3,
+				'default' : 1
 			}
 		}
 		PatternBase.__init__(self, *args)
@@ -113,15 +105,12 @@ class AllPoof(PatternBase):
 				'bindToFunction' : True
 			},
 			'stayOnTime' : {
-				'descriptionInPattern' : 'Time to stay on for',
+				'descriptionInPattern' : 'Time to stay on for(ms)',
 				'type' : 'value',
 				'subType' : 'int',
-				'inputs' : [{
-					'min' : 100,
-					'max' : 1000,
-					'default' : 200,
-					'description' : 'Milliseconds'
-				}]
+				'min' : 100,
+				'max' : 1000,
+				'default' : 200
 			},
 		}
 		PatternBase.__init__(self, *args)

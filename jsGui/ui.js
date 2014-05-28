@@ -116,6 +116,9 @@ function doNewInputBinding(moduleId, patternInstanceId, patternInputId){
 					case 'text':
 						params[paramData[2]] = $(formInputId).val();
 					break;
+					case 'textList':
+						params[paramData[2]] = $(formInputId).val().split(' ');
+					break;
 					case 'int':
 						params[paramData[2]] = parseInt($(formInputId).val());
 					break;
@@ -125,35 +128,37 @@ function doNewInputBinding(moduleId, patternInstanceId, patternInputId){
 				}
 			});
 		}
-		$.each(inputTypeData.inputs, function (inputIndex, inputData){
-			configData = {}
-			if (inputData.initInputData){
-				paramsData = inputData.initInputData;
-			}
-			else if (inputData.type == 'value'){
-				paramsData = [['int', 'Minimum', 'min'], ['int', 'Maximum', 'max']]
-			}
-			else {
-				paramsData = []
-			}
-			$.each(paramsData, function (paramIndex, paramData){
-				formInputId = '#inputDefinitionInputParam' + inputIndex + paramData[2];
-				data = false;
-				switch (paramData[0]){
-					case 'text':
-						data = $(formInputId).val();
-					break;
-					case 'int':
-						data = parseInt($(formInputId).val());
-					break;
-					case 'bool':
-						data = $(formInputId).is(":checked");
-					break;
+		if (inputTypeData.inputs){
+			$.each(inputTypeData.inputs, function (inputIndex, inputData){
+				configData = {}
+				if (inputData.initInputData){
+					paramsData = inputData.initInputData;
 				}
-				configData[paramData[2]] = data;
+				else if (inputData.type == 'value'){
+					paramsData = [['int', 'Minimum', 'min'], ['int', 'Maximum', 'max']]
+				}
+				else {
+					paramsData = []
+				}
+				$.each(paramsData, function (paramIndex, paramData){
+					formInputId = '#inputDefinitionInputParam' + inputIndex + paramData[2];
+					data = false;
+					switch (paramData[0]){
+						case 'text':
+							data = $(formInputId).val();
+						break;
+						case 'int':
+							data = parseInt($(formInputId).val());
+						break;
+						case 'bool':
+							data = $(formInputId).is(":checked");
+						break;
+					}
+					configData[paramData[2]] = data;
+				});
+				params.inputs.push(configData)
 			});
-			params.inputs.push(configData)
-		});
+		}
 		params = $.extend(true, inputTypeData, params);
 		delete params.initInputData;
 		if (moduleId == 'main'){
@@ -173,7 +178,7 @@ function showInputParamsForm(){
 		if (inputTypeData.initInputData){
 			$.each(inputTypeData.initInputData, function (paramIndex, paramData){
 				fieldData = {"id" : "inputDefinitionMainParam" + paramData[2], "label" : paramData[1]}
-				if (paramData[0] == 'text' || paramData[0] == 'int'){
+				if (paramData[0] == 'text' || paramData[0] == 'textList' || paramData[0] == 'int'){
 					fieldData['input'] = true;
 					if (inputTypeData[paramData[2]] != undefined){
 						fieldData['value'] = inputTypeData[paramData[2]];
@@ -185,41 +190,43 @@ function showInputParamsForm(){
 				formFields.push(fieldData);
 			});
 		}
-		$.each(inputTypeData.inputs, function (inputIndex, inputData){
-			if (inputData.initInputData){
-				paramsData = inputData.initInputData;
-			}
-			else if (inputData.type == 'value'){
-				paramsData = [['int', 'Minimum', 'min'], ['int', 'Maximum', 'max']]
-			}
-			else {
-				paramsData = []
-			}
-			$.each(paramsData, function (paramIndex, paramData){
-				fieldData = {"id" : "inputDefinitionInputParam" + inputIndex + paramData[2], "label" : inputData.description + ':' + paramData[1]}
-				if (paramData[2] in inputData){
-					paramDefault = inputData[paramData[2]];
-					if (typeof(paramDefault) == 'number'){
-						fieldData['value'] = paramDefault.toString();
-					}
-					else if (typeof(paramDefault) == 'boolean'){
-						if (paramDefault){
-							fieldData['value'] = true;
+		if (inputTypeData.inputs){
+			$.each(inputTypeData.inputs, function (inputIndex, inputData){
+				if (inputData.initInputData){
+					paramsData = inputData.initInputData;
+				}
+				else if (inputData.type == 'value'){
+					paramsData = [['int', 'Minimum', 'min'], ['int', 'Maximum', 'max']]
+				}
+				else {
+					paramsData = []
+				}
+				$.each(paramsData, function (paramIndex, paramData){
+					fieldData = {"id" : "inputDefinitionInputParam" + inputIndex + paramData[2], "label" : inputData.description + ':' + paramData[1]}
+					if (paramData[2] in inputData){
+						paramDefault = inputData[paramData[2]];
+						if (typeof(paramDefault) == 'number'){
+							fieldData['value'] = paramDefault.toString();
+						}
+						else if (typeof(paramDefault) == 'boolean'){
+							if (paramDefault){
+								fieldData['value'] = true;
+							}
+						}
+						else {
+							fieldData['value'] = paramDefault;
 						}
 					}
-					else {
-						fieldData['value'] = paramDefault;
+					if (paramData[0] == 'text' || paramData[0] == 'int'){
+						fieldData['input'] = true;
 					}
-				}
-				if (paramData[0] == 'text' || paramData[0] == 'int'){
-					fieldData['input'] = true;
-				}
-				else if (paramData[0] == 'bool'){
-					fieldData['checkbox'] = true;
-				}
-				formFields.push(fieldData);
+					else if (paramData[0] == 'bool'){
+						fieldData['checkbox'] = true;
+					}
+					formFields.push(fieldData);
+				});
 			});
-		});
+		}
 	}
 	$('#dialogInputs').html($('#formFieldsTemplate').render({'fields' : formFields}));
 }
@@ -309,6 +316,10 @@ function buildAll(){
 		});
 		$('#safeModeOff').click(function(e){
 			doCommand(['setSafeMode', false]);
+		});
+		$('#sendDirectCommandButton').button().click(function(){
+			doCommand(JSON.parse($('#sendDirectCommandInput').val()));
+			$('#sendDirectCommandInput').val('')
 		});
 		if (currentView.activeModule){
 			setCurrentModuleView(currentView.activeModule);

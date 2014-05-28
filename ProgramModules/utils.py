@@ -12,7 +12,16 @@ def makeCamelCase(parts, doFirstLetter = False):
 		if len(part) > 1:
 			str += part[1:]
 	return str
-	
+
+def multiExtendSettings(*settings):
+	i = len(settings) - 1
+	out = settings[i]
+	i-= 1
+	while i >= 0:
+		out = extendSettings(settings[i], out)
+		i-=1
+	return out
+
 def extendSettings(defaults, settings):
 	typesMatch = False
 	for type in [list, dict]:
