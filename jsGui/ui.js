@@ -440,9 +440,7 @@ function hideAllInputs(){
 
 	$.each(allSculptureData.inputs, function(inputInstanceId, inputData){
 		$('#inputInstance' + inputInstanceId + '_div').css("display", "none");
-		$.each( inputData.outputs, function( outputIndex, outputData ) {
-			$('#inputInstance' + inputInstanceId + '_output' + outputIndex + '_div').html();
-		});
+		$('#inputInstance' + inputInstanceId + '_outputs').html('');
 	});
 
 }
@@ -458,9 +456,9 @@ function showPatternDetails(moduleId, patternInstanceId){
 		$('#' + idPrefix + 'description').html(patternInputData.description);
 		$.each(allSculptureData.inputs[patternInputData.inputInstanceId].outputs, function(outputIndex, outputData){
 			if (outputIndex == patternInputData.outputIndexOfInput || patternInputData.type=='multi'){
-				html = '<span class="inputDescription">Current type:<br>' + allSculptureData.inputs[patternInputData.inputInstanceId].shortDescription + ' ' + outputData.description + '</span>';
-				html += '<button id="' + moduleId + '_' + patternInstanceId + '_' + patternInputId + '_rebindButton" class="rebindButton">Change</button>';
-				$('#inputInstance' + patternInputData.inputInstanceId + '_outputs').html(html);
+				html = '<div class="inputSubOutputWrapper"><span class="inputDescription">Current type:<br>' + allSculptureData.inputs[patternInputData.inputInstanceId].shortDescription + ' ' + outputData.description + '</span>';
+				html += '<button id="' + moduleId + '_' + patternInstanceId + '_' + patternInputId + '_rebindButton" class="rebindButton">Change</button></div>';
+				$('#inputInstance' + patternInputData.inputInstanceId + '_outputs').append(html);
 			}
 		});
 	});

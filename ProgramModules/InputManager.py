@@ -18,14 +18,23 @@ class InputManager():
 
 	def buildInputCollection(self, inputParams, patternId):
 		inputDict = {}
+		channelsBoundToMulti = []
 		for inputChannelId in inputParams:
-			newInputInstanceId = self.createNewInput(inputParams[inputChannelId].copy())
-			if 'outputIndexOfInput' in inputParams[inputChannelId].keys():
-				outputIndexOfInput = inputParams[inputChannelId][outputIndexOfInput]
-			else:
-				outputIndexOfInput = 0
-			inputDict[inputChannelId] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outputIndexOfInput' : outputIndexOfInput}
-			self.registerAndGetInput(patternId, newInputInstanceId, inputChannelId)
+			if inputParams[inputChannelId]['type'] == 'multi':
+				newInputInstanceId = self.createNewInput(inputParams[inputChannelId].copy())
+				for i in range(len(inputParams[inputChannelId]['channels'])):
+					self.registerAndGetInput(patternId, newInputInstanceId, inputParams[inputChannelId]['channels'][i])
+					inputDict[inputParams[inputChannelId]['channels'][i]] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outputIndexOfInput' : i}
+				channelsBoundToMulti += inputParams[inputChannelId]['channels']
+		for inputChannelId in inputParams:
+			if not (inputParams[inputChannelId]['type'] == 'multi' or inputChannelId in channelsBoundToMulti):
+				newInputInstanceId = self.createNewInput(inputParams[inputChannelId].copy())
+				if 'outputIndexOfInput' in inputParams[inputChannelId].keys():
+					outputIndexOfInput = inputParams[inputChannelId][outputIndexOfInput]
+				else:
+					outputIndexOfInput = 0
+				inputDict[inputChannelId] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outputIndexOfInput' : outputIndexOfInput}
+				self.registerAndGetInput(patternId, newInputInstanceId, inputChannelId)
 		InputCollectionWrapper = getattr(self.inputModules, "InputCollectionWrapper")
 		return InputCollectionWrapper(inputDict)
 

@@ -34,8 +34,13 @@ body{
   
 }
 .inputOutputWrapper{
-  margin: 0px 0px 10px 0px;
+  margin: 100px 0px 10px 0px;
   clear:both;
+}
+.inputSubOutputWrapper{
+  width:120px;
+  margin: 0px 0px 10px 0px;
+  float:left;
 }
 .descriptionText{
   color: #87CEEB;

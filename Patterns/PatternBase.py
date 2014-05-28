@@ -41,8 +41,9 @@ class PatternBase():
 	def getCurrentStateData(self):
 		data = {'name' : self.patternName, 'inputs' : {}}
 		for patternInputId in self.inputParams:
-			inputBinding = self.inputs.getBinding(patternInputId) 
-			data['inputs'][patternInputId] = {'type' : self.inputParams[patternInputId]['type'], 'inputInstanceId' : inputBinding[0], 'outputIndexOfInput' : inputBinding[1], 'description' : self.inputParams[patternInputId]['descriptionInPattern']}
+			if not(self.inputParams[patternInputId]['type'] == 'multi'):
+				inputBinding = self.inputs.getBinding(patternInputId) 
+				data['inputs'][patternInputId] = {'type' : self.inputParams[patternInputId]['type'], 'inputInstanceId' : inputBinding[0], 'outputIndexOfInput' : inputBinding[1], 'description' : self.inputParams[patternInputId]['descriptionInPattern']}
 		data['messengerBindingIds'] = self.messengerBindingIds
 		return data
 	

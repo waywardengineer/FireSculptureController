@@ -3,6 +3,18 @@ from ProgramModules.Timers import Timer
 class Chase(PatternBase):
 	def __init__(self, *args):
 		self.inputParams = {
+			'multiVal' : {
+				'descriptionInPattern' : 'Parameters',
+				'type' : 'multi',
+				'subType' : 'basic',
+				'number' : 3,
+				'basicInputType' : 'IntValueInput',
+				'min' : [1, 1, 1],
+				'max' : [5, 5, 3],
+				'default' : [2, 1, 1],
+				'description' : ['Poofers', 'Jump', 'Pulses'],
+				'channels' : ['numberOn', 'stepping', 'numberPulses']
+			},
 			'triggerStep' : {
 				'descriptionInPattern' : 'Trigger next step in sequence',
 				'type' : 'pulse',
@@ -25,28 +37,16 @@ class Chase(PatternBase):
 				'default' : False
 			},
 			'numberOn' : {
-				'descriptionInPattern' : 'Number of poofers on at once',
+				'descriptionInPattern' : 'Params',
 				'type' : 'value',
-				'subType' : 'int',
-				'min' : 1,
-				'max' : 5,
-				'default' : 2
 			},
 			'stepping' : {
-				'descriptionInPattern' : 'Number of poofers to jump per step',
+				'descriptionInPattern' : 'Params',
 				'type' : 'value',
-				'subType' : 'int',
-				'min' : 1,
-				'max' : 5,
-				'default' : 1
 			},
 			'numberPulses' : {
-				'descriptionInPattern' : 'Number of pulses chasing each other',
+				'descriptionInPattern' : 'Params',
 				'type' : 'value',
-				'subType' : 'int',
-				'min' : 1,
-				'max' : 3,
-				'default' : 1
 			}
 		}
 		PatternBase.__init__(self, *args)
@@ -134,3 +134,4 @@ class AllPoof(PatternBase):
 	def stop(self):
 		self.timer.stop()
 		PatternBase.stop(self)
+		

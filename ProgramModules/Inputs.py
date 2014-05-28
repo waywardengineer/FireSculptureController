@@ -240,7 +240,6 @@ class BasicMultiInput(InputBase):
 			del configParams[key]
 		
 		InputBase.__init__(self, configParams, *args)
-			
 
 
 class OscMultiInput(InputBase):
