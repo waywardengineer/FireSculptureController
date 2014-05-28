@@ -9,7 +9,8 @@ from threading import Thread, Event
 outputTypes = ['pulse', 'toggle', 'value']
 import json
 import time
-availableInputTypes = {'pulse' : ['timer', 'onOff', 'button', 'audio'], 'value' : ['', 'int'], 'multi' : ['osc', 'basic']}
+import random
+availableInputTypes = {'pulse' : ['timer', 'onOff', 'button', 'audio', 'random'], 'value' : ['', 'int'], 'multi' : ['osc', 'basic', 'randomPulse']}
 inputParams = {
 	'TimerPulseInput' : {
 		'longDescription' : 'Timer pulse input, variable timing',
@@ -67,7 +68,21 @@ inputParams = {
 		'default' : 0,
 		'initInputData' : [['textList', 'Descriptions', 'description'], ['textList', 'Mins', 'min'], ['textList', 'Maxes', 'max'], ['textList', 'Defaults', 'default']],
 		'direct' : True
-
+	},
+	'RandomPulseInput' : {
+		'longDescription' : 'Random pulse input',
+		'shortDescription' : 'Random Pulse',
+		'inputs' : [
+			{'type' : 'value', 'description' : 'Rarity', 'default' : 10, 'min' : 2, 'max' : 100},
+			{'type' : 'value', 'description' : 'Min time', 'default' : 200, 'min' : 50, 'max' : 1000},
+			{'type' : 'value', 'description' : 'Max time', 'default' : 800, 'min' : 50, 'max' : 1000},
+		],
+		'outputs' : [{'type' : 'toggle', 'sendMessageOnChange' : True}]
+	},
+	'RandomPulseMultiInput' : {
+		'longDescription' : 'Multi random pulse input',
+		'shortDescription' : 'MultiRand Pulse',
+		'number' : 5
 	}
 }
 
@@ -110,7 +125,7 @@ class InputBase():
 	def __init__(self, configParams, instanceId):
 		self.configParams = utils.multiExtendSettings({'inputs' : [], 'outputs' : [], 'direct' : False}, inputParams[self.__class__.__name__], configParams)
 		inputParamKeys = [key for key in ['min', 'max', 'default', 'description'] if key in self.configParams]
-		if inputParamKeys:
+		if inputParamKeys and self.__class__.__name__ not in ['BasicMultiInput']:
 			if len(self.configParams['inputs']) == 0:
 				self.configParams['inputs'].append({})
 			for key in inputParamKeys:
@@ -123,7 +138,6 @@ class InputBase():
 		self.instanceId = instanceId
 		if self.configParams['direct']:
 			for paramIndex in range(len(self.configParams['inputs'])):
-				print json.dumps(self.configParams['inputs'][paramIndex])
 				self.outputs.append(InputOutputParam(self.configParams['inputs'][paramIndex], self.instanceId, paramIndex))
 				self.inputs.append(self.outputs[paramIndex])
 		else:
@@ -217,7 +231,6 @@ class BasicMultiInput(InputBase):
 		for i in range(configParams['number']):
 			configParam = {}
 			for key in inputParamKeys:
-				print key
 				if isinstance(configParams[key], list):
 					configParam[key] = configParams[key][i % len(configParams[key])]
 				else:
@@ -225,6 +238,7 @@ class BasicMultiInput(InputBase):
 			configParams['inputs'].append(utils.extendSettings(inputParams[configParams['basicInputType']]['inputs'][0], configParam))
 		for key in inputParamKeys:
 			del configParams[key]
+		
 		InputBase.__init__(self, configParams, *args)
 			
 
@@ -341,7 +355,6 @@ class InputOutputParam():
 					self.timer = Timer(False, self.params['toggleTimeOut'], getattr(self, 'setValue'), [False])
 
 	def constrainValue(self, value):
-		print value
 		value = float(value)
 		if self.params['min']:
 			if value < float(self.params['min']):
@@ -447,5 +460,38 @@ class AudioPulseInput(InputBase):
 	def updateOutputValues(self):
 		pass
 
+class RandomPulseInput(InputBase):
+	def __init__(self, *args):
+		InputBase.__init__(self, *args)
+		self.checkTimer = Timer(True, 200, self.doCheck)
+		self.numPulses = 1
+		self.onStates = [False]
+		self.offTimers = [Timer(False, self.inputs[1].getValue(), self.turnOff, (0,))]
 
-
+	def stop(self):
+		self.checkTimer.stop()
+		for i in range(self.numPulses):
+			self.offTimers[i].stop()
+		InputBase.stop(self)
+		
+	def doCheck(self):
+		for i in range(self.numPulses):
+			if random.randint(0, self.inputs[0].getValue()) < 2:
+				self.outputs[i].setValue(True)
+				self.offTimers[i].changeInterval(random.randint(min(self.inputs[1].getValue(), self.inputs[2].getValue()), max(self.inputs[1].getValue(), self.inputs[2].getValue())))
+				self.offTimers[i].refresh()
+				
+	def turnOff(self, index):
+		self.outputs[index].setValue(False)
+		
+class RandomPulseMultiInput(RandomPulseInput):
+	def __init__(self, params, *args):
+		params = utils.multiExtendSettings(inputParams['RandomPulseInput'], inputParams['RandomPulseMultiInput'], params)
+		self.numPulses = params['number']
+		params['outputs'] = [{'type' : 'toggle', 'sendMessageOnChange' : True, 'description' : 'channel%s' %(i)} for i in range(self.numPulses)]
+		InputBase.__init__(self, params, *args)
+		self.checkTimer = Timer(True, 200, self.doCheck)
+		self.onStates = [False for i in range(self.numPulses)]
+		self.offTimers = [Timer(False, self.inputs[1].getValue(), self.turnOff, (i,)) for i in range(self.numPulses)]
+	
+	

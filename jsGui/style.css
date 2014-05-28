@@ -31,10 +31,11 @@ body{
   float:left;
   margin:10px;
   display:block;
+  
 }
 .inputOutputWrapper{
-  width:100px;
-  height:100px;
+  margin: 0px 0px 10px 0px;
+  clear:both;
 }
 .descriptionText{
   color: #87CEEB;

@@ -94,7 +94,7 @@
               <h3 id="{{>patternInstanceId}}_heading" onclick="showPatternDetails('{{>moduleId}}', '{{>patternInstanceId}}')">{{>patternName}} pattern</h3>
               <div id="{{>moduleId}}_pattern{{>patternInstanceId}}">
                 <div style="float:left; width:0px; height:300px;"></div>
-                <div style="float:right; text-align:center; height:200px; width:125px; margin:10px; padding:5px" class="ui-widget ui-widget-content ui-corner-all">
+                <div style="float:right; text-align:center; height:250px; width:125px; margin:10px; padding:5px" class="ui-widget ui-widget-content ui-corner-all">
                   <button id="{{>moduleId}}_{{>patternInstanceId}}_removePattern" class="removePatternButton" style="margin-bottom:20px;">Remove pattern</button>
                   {{for rowSettings}}
                     <br>
@@ -108,11 +108,11 @@
         </div>
       {{/for}}
     </div>
-    <div id="logDivOuter" style="float:left; width:25%; height:100%; padding:1px;" class=" ui-widget ui-widget-content ui-corner-all">
+    <div id="logDivOuter" style="float:left; width:25%; height:100%; padding:1px; margin:0px 0px 0px 10px;" class=" ui-widget ui-widget-content ui-corner-all">
       <div>
         <input id="sendDirectCommandInput" class=" ui-widget ui-widget-content ui-corner-all"><button id="sendDirectCommandButton">Send</button>
       </div>
-      <div id="logDiv" style="width:100%; height:100%; overflow-x:hidden; overflow-y:auto; margin: 0px; padding:0px;"></div>
+      <div id="logDiv" style="width:100%; height:90%; overflow-x:hidden; overflow-y:auto; margin: 0px; padding:0px;"></div>
     </div>
   </div>
   <div style="display:none;">
@@ -122,11 +122,11 @@
           <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_description"></span>
           {{for inputs}}
             <div class="ui-widget ui-widget-content ui-corner-all inputControlWrapper">
-              <div id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_container"></div>
+              <div id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_container" style="position:relative;"></div>
               <span class="inputControlDescription" id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_description"></span>
             </div>
           {{/for}}
-          <div id="inputInstance{{>inputInstanceId}}_outputs" class="inputOuputWrapper">
+          <div id="inputInstance{{>inputInstanceId}}_outputs" class="inputOutputWrapper">
           </div>
         </div>
       {{/for}}
