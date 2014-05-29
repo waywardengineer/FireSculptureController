@@ -235,6 +235,7 @@ class BasicMultiInput(InputBase):
 					configParam[key] = configParams[key][i % len(configParams[key])]
 				else:
 					configParam[key] = configParams[key]
+			configParam['relevance'] = [i]
 			configParams['inputs'].append(utils.extendSettings(inputParams[configParams['basicInputType']]['inputs'][0], configParam))
 		for key in inputParamKeys:
 			del configParams[key]
@@ -332,7 +333,7 @@ class OscMultiInput(InputBase):
 
 class InputOutputParam():
 	def __init__(self, params, parentId = 0, indexId = 0):
-		defaultParams = {'description' : '', 'type' : 'value', 'subType' : '', 'default' : 0, 'sendMessageOnChange' : False, 'toggleTimeOut' : 30}
+		defaultParams = {'description' : '', 'type' : 'value', 'subType' : '', 'default' : 0, 'sendMessageOnChange' : False, 'toggleTimeOut' : 30, 'min' : False, 'max' : False}
 		self.params = utils.extendSettings(defaultParams, params)
 		self.parentId = parentId
 		self.indexId = indexId
@@ -487,6 +488,8 @@ class RandomPulseMultiInput(RandomPulseInput):
 	def __init__(self, params, *args):
 		params = utils.multiExtendSettings(inputParams['RandomPulseInput'], inputParams['RandomPulseMultiInput'], params)
 		self.numPulses = params['number']
+		for inputIndex in range(len(params['inputs'])):
+			params['inputs'][inputIndex]['relevance'] = [i for i in range(self.numPulses)]
 		params['outputs'] = [{'type' : 'toggle', 'sendMessageOnChange' : True, 'description' : 'channel%s' %(i)} for i in range(self.numPulses)]
 		InputBase.__init__(self, params, *args)
 		self.checkTimer = Timer(True, 200, self.doCheck)

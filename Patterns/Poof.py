@@ -37,15 +37,15 @@ class Chase(PatternBase):
 				'default' : False
 			},
 			'numberOn' : {
-				'descriptionInPattern' : 'Params',
+				'descriptionInPattern' : 'Number of poofers on',
 				'type' : 'value',
 			},
 			'stepping' : {
-				'descriptionInPattern' : 'Params',
+				'descriptionInPattern' : 'Number of poofers to jump',
 				'type' : 'value',
 			},
 			'numberPulses' : {
-				'descriptionInPattern' : 'Params',
+				'descriptionInPattern' : 'Number of pulses',
 				'type' : 'value',
 			}
 		}
@@ -135,3 +135,13 @@ class AllPoof(PatternBase):
 		self.timer.stop()
 		PatternBase.stop(self)
 		
+class RandomPoof(PatternBase):
+	def __init__(self, *args):
+		self.inputParams = {
+			'randomGenerator' : {
+				'descriptionInPattern' : 'Random generator',
+				'type' : 'multi',
+				'subType' : 'randomPulse',
+				'bindToFunction' : True
+			},
+		}

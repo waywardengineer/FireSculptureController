@@ -340,9 +340,12 @@ function buildAll(){
 function makeSculptureControllerTemplateData(){
 	data = {"sculptureName" : allSculptureData.currentSculpture.sculptureName, "modules" : [], "inputs" : []};
 	$.each( allSculptureData.inputs, function( inputInstanceId, inputData ) {
-		templateInputData = {"inputInstanceId" : inputInstanceId, "inputs" : []}
+		templateInputData = {"inputInstanceId" : inputInstanceId, "inputs" : [], "outputs" : []}
 		$.each(inputData.inputs, function(inputIndex){
 			templateInputData.inputs.push({'inputIndex' : inputIndex, 'inputInstanceId' : inputInstanceId});
+		});
+		$.each(inputData.outputs, function(outputIndex){
+			templateInputData.outputs.push({'outputIndex' : outputIndex, 'inputInstanceId' : inputInstanceId});
 		});
 		data.inputs.push(templateInputData);
 	});
@@ -429,11 +432,14 @@ function showGlobalInput(inputInstanceId){
 	$('#inputs').detach().appendTo('#globalInput_' + inputInstanceId);
 	$('#inputInstance' + inputInstanceId + '_div').css("display", "block");
 	$('#inputInstance' + inputInstanceId + '_description').html(inputData.shortDescription);
-	$('#inputInstance' + inputInstanceId + '_outputs').html('<ul>');
-	$.each(inputData.outputs, function(outputIndex, outputData){
-		$('#inputInstance' + inputInstanceId + '_outputs').append('<li class="descriptionText">' + outputData.description + '</li>');
+	$.each(inputData.inputs, function(inputIndex){
+		$('#inputInstance' + inputData.instanceId + '_input' + inputIndex + '_outerContainer').css('display', 'block');
 	});
-	$('#inputInstance' + inputInstanceId + '_outputs').append('</ul>');
+	$.each(inputData.outputs, function(outputIndex, outputData){
+		id = '#inputInstance' + inputData.instanceId + '_output' + outputIndex + '_container';
+		$(id).html('<span class="descriptionText">' + outputData.description + '</span>');
+		$(id).css('display', 'block');
+	});
 }
 
 function hideAllInputs(){
@@ -441,6 +447,15 @@ function hideAllInputs(){
 	$.each(allSculptureData.inputs, function(inputInstanceId, inputData){
 		$('#inputInstance' + inputInstanceId + '_div').css("display", "none");
 		$('#inputInstance' + inputInstanceId + '_outputs').html('');
+		$.each(inputData.inputs, function(inputIndex){
+			$('#inputInstance' + inputData.instanceId + '_input' + inputIndex + '_outerContainer').css('display', 'none');
+		});
+		$.each(inputData.outputs, function(outputIndex){
+			id = '#inputInstance' + inputData.instanceId + '_output' + outputIndex + '_container';
+			$(id).css('display', 'none');
+			$(id).html('');
+		});
+		
 	});
 
 }
@@ -452,13 +467,28 @@ function showPatternDetails(moduleId, patternInstanceId){
 	$('#inputs').detach().appendTo('#' + moduleId + '_pattern' + patternInstanceId);
 	$.each(allSculptureData.currentSculpture.modules[moduleId].patterns[patternInstanceId].inputs, function(patternInputId, patternInputData){
 		idPrefix  = 'inputInstance' + patternInputData.inputInstanceId + '_';
+		inputData = allSculptureData.inputs[patternInputData.inputInstanceId];
 		$('#' + idPrefix + 'div').css("display", "block");
-		$('#' + idPrefix + 'description').html(patternInputData.description);
-		$.each(allSculptureData.inputs[patternInputData.inputInstanceId].outputs, function(outputIndex, outputData){
+		if (inputData.type == 'multi'){
+			if (inputData.descriptionInPattern){
+				$('#' + idPrefix + 'description').html(inputData.descriptionInPattern);
+			}
+		}
+		else {
+			$('#' + idPrefix + 'description').html(patternInputData.description);
+		}
+		$.each(inputData.inputs, function(inputIndex, inputInputData){
+			if (inputData.type != 'multi' || $.inArray(patternInputData.outputIndexOfInput, inputInputData.relevance) > -1){
+				$('#inputInstance' + inputData.instanceId + '_input' + inputIndex + '_outerContainer').css('display', 'block');
+			}
+		});
+		$.each(inputData.outputs, function(outputIndex, outputData){
 			if (outputIndex == patternInputData.outputIndexOfInput || patternInputData.type=='multi'){
-				html = '<div class="inputSubOutputWrapper"><span class="inputDescription">Current type:<br>' + allSculptureData.inputs[patternInputData.inputInstanceId].shortDescription + ' ' + outputData.description + '</span>';
+				id = '#inputInstance' + inputData.instanceId + '_output' + outputIndex + '_container';
+				$(id).css('display', 'block');
+				html = '<div class="inputSubOutputWrapper"><span class="inputDescription">Current type:<br>' + inputData.shortDescription + ' ' + outputData.description + '</span>';
 				html += '<button id="' + moduleId + '_' + patternInstanceId + '_' + patternInputId + '_rebindButton" class="rebindButton">Change</button></div>';
-				$('#inputInstance' + patternInputData.inputInstanceId + '_outputs').append(html);
+				$(id).append(html);
 			}
 		});
 	});
