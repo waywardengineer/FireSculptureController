@@ -53,8 +53,8 @@ def doCommand():
 	command = requestData[0]
 	result = sculpture.doCommand(requestData)
 	if command == 'loadSculpture':
-		appMessenger.addBinding('outputChanged', sendNewOutputState, 'outputChanged')
-		# appMessenger.addBinding('log', sendNewOutputState, 'log')
+		appMessenger.addBinding('outputChanged', sendNewOutputState, ('outputChanged',))
+		# appMessenger.addBinding('log', sendNewOutputState, ('log',))
 
 	return jsonify({'command' : command, 'result' : result})
 
@@ -77,8 +77,8 @@ def subscribe():
 
 sculpture.loadSculpture('tympani')
 sculpture.doCommand(['addPattern', 'poofers', 'RandomPoof'])
-sculpture.doCommand(['addPattern', 'poofers', 'Chase'])
-appMessenger.addBinding('outputChanged', sendNewOutputState, 'outputChanged')
+# sculpture.doCommand(['addPattern', 'poofers', 'Chase'])
+appMessenger.addBinding('outputChanged', sendNewOutputState, ('outputChanged',))
 sculpture.doCommand(['addGlobalInput', {'type' : 'pulse', 'subType' : 'audio'}])
 sculpture.doCommand(['addGlobalInput', {'type' : 'multi', 'subType' : 'randomPulse'}])
 sculpture.doCommand(['addGlobalInput', {'type' : 'multi', 'subType' : 'basic', 'number' : 5, 'min' : [0, 0, 1, 0,  1], 'max' : [1, 2, 3, 4,  5], 'description' : ['foo', 'bar', 'baz', 'bam', 'boo']}])

@@ -21,7 +21,7 @@ class PatternBase():
 		if 'bindToFunction' in self.inputParams[patternInputId].keys() and self.inputParams[patternInputId]['bindToFunction']:
 			inputBinding = self.inputs.getBinding(patternInputId)
 			if isinstance(inputBinding[1], list):
-				self.messengerBindingIds[patternInputId] = [appMessenger.addBinding('output%s_%s' %(inputBinding[0], i), getattr(self, patternInputId), i) for i in range(len(inputBinding[1]))]
+				self.messengerBindingIds[patternInputId] = [appMessenger.addBinding('output%s_%s' %(inputBinding[0], i), getattr(self, patternInputId), (i,)) for i in range(len(inputBinding[1]))]
 			else:
 				self.messengerBindingIds[patternInputId] = appMessenger.addBinding('output%s_%s' %(inputBinding[0], inputBinding[1]), getattr(self, patternInputId))
 
@@ -53,10 +53,10 @@ class PatternBase():
 	def getCurrentStateData(self):
 		data = {'name' : self.patternName, 'inputs' : {}}
 		for patternInputId in self.inputParams:
-			if not(self.inputParams[patternInputId]['type'] == 'multi'):
+			if not('channels' in self.inputParams[patternInputId].keys()):
 				inputBinding = self.inputs.getBinding(patternInputId) 
 				data['inputs'][patternInputId] = {'type' : self.inputParams[patternInputId]['type'], 'inputInstanceId' : inputBinding[0], 'outputIndexOfInput' : inputBinding[1], 'description' : self.inputParams[patternInputId]['descriptionInPattern']}
-		data['messengerBindingIds'] = self.messengerBindingIds
+		# data['messengerBindingIds'] = self.messengerBindingIds
 		return data
 	
 

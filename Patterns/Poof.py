@@ -1,5 +1,6 @@
 from Patterns.PatternBase import PatternBase
 from ProgramModules.Timers import Timer
+import json
 class Chase(PatternBase):
 	def __init__(self, *args):
 		self.inputParams = {
@@ -137,7 +138,6 @@ class AllPoof(PatternBase):
 		
 class RandomPoof(PatternBase):
 	def __init__(self, inputManager, gridSize, *args):
-		self.patternName = 'RandomPoof'
 		self.inputParams = {
 			'randomGenerator' : {
 				'descriptionInPattern' : 'Random generator',
@@ -148,8 +148,12 @@ class RandomPoof(PatternBase):
 			},
 		}
 		PatternBase.__init__(self, inputManager, gridSize, *args)
-	def randomGenerator(self, *args):
-		print len(args)
+		self.patternName = 'Random Poof'
+		self.poofStates = [[False for i in range(self.gridSize[1])] for i in range(self.gridSize[0])]
+
+	def randomGenerator(self, index):
+		self.poofStates[index / self.gridSize[1]][index % self.gridSize[1]] = self.inputs.randomGenerator(index)
+		self.updateTriggerFunction()
 
 	def getState(self, row, col):
-		return False
+		return self.poofStates[row][col]

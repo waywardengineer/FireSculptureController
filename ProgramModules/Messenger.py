@@ -18,7 +18,7 @@ class Messenger():
 			function = self.channels[channelId]['bindings'][bindingId]['function']
 			data = self.channels[channelId]['bindings'][bindingId]['data']
 			if data:
-				function(data)
+				function(*data)
 			else:
 				function()
 

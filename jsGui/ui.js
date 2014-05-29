@@ -478,12 +478,12 @@ function showPatternDetails(moduleId, patternInstanceId){
 			$('#' + idPrefix + 'description').html(patternInputData.description);
 		}
 		$.each(inputData.inputs, function(inputIndex, inputInputData){
-			if (inputData.type != 'multi' || $.inArray(patternInputData.outputIndexOfInput, inputInputData.relevance) > -1){
+			if (patternInputData.type=='multi' || inputData.type != 'multi' || $.inArray(patternInputData.outputIndexOfInput, inputInputData.relevance) > -1){
 				$('#inputInstance' + inputData.instanceId + '_input' + inputIndex + '_outerContainer').css('display', 'block');
 			}
 		});
 		$.each(inputData.outputs, function(outputIndex, outputData){
-			if (outputIndex == patternInputData.outputIndexOfInput || patternInputData.type=='multi'){
+			if (patternInputData.type!='multi' && outputIndex == patternInputData.outputIndexOfInput){
 				id = '#inputInstance' + inputData.instanceId + '_output' + outputIndex + '_container';
 				$(id).css('display', 'block');
 				html = '<div class="inputSubOutputWrapper"><span class="inputDescription">Current type:<br>' + inputData.shortDescription + ' ' + outputData.description + '</span>';

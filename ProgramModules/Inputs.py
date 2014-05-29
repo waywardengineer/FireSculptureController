@@ -107,7 +107,10 @@ class InputCollectionWrapper(object):
 
 
 	def __getattr__(self, patternInputId):
-		return self.inputCollection[patternInputId]['inputObj'].getValue(self.inputCollection[patternInputId]['outputIndexOfInput'])
+		if isinstance(self.inputCollection[patternInputId]['outputIndexOfInput'], list):
+			return self.inputCollection[patternInputId]['inputObj'].getValue
+		else:
+			return self.inputCollection[patternInputId]['inputObj'].getValue(self.inputCollection[patternInputId]['outputIndexOfInput'])
 
 	def getBinding(self, patternInputId):
 		return [self.inputCollection[patternInputId]['inputObj'].getId(), self.inputCollection[patternInputId]['outputIndexOfInput']]
