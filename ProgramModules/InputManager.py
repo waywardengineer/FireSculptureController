@@ -22,10 +22,14 @@ class InputManager():
 		for inputChannelId in inputParams:
 			if inputParams[inputChannelId]['type'] == 'multi':
 				newInputInstanceId = self.createNewInput(inputParams[inputChannelId].copy())
-				for i in range(len(inputParams[inputChannelId]['channels'])):
-					self.registerAndGetInput(patternId, newInputInstanceId, inputParams[inputChannelId]['channels'][i])
-					inputDict[inputParams[inputChannelId]['channels'][i]] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outputIndexOfInput' : i}
-				channelsBoundToMulti += inputParams[inputChannelId]['channels']
+				if 'channels' in inputParams[inputChannelId].keys():
+					for i in range(len(inputParams[inputChannelId]['channels'])):
+						self.registerAndGetInput(patternId, newInputInstanceId, inputParams[inputChannelId]['channels'][i])
+						inputDict[inputParams[inputChannelId]['channels'][i]] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outputIndexOfInput' : i}
+					channelsBoundToMulti += inputParams[inputChannelId]['channels']
+				else:
+					inputObj = self.registerAndGetInput(patternId, newInputInstanceId, inputChannelId)
+					inputDict[inputChannelId] = {'inputObj' : inputObj, 'outputIndexOfInput' : [i for i in range(len(inputObj.getCurrentStateData()['outputs']))]}
 		for inputChannelId in inputParams:
 			if not (inputParams[inputChannelId]['type'] == 'multi' or inputChannelId in channelsBoundToMulti):
 				newInputInstanceId = self.createNewInput(inputParams[inputChannelId].copy())

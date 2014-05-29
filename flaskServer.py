@@ -76,6 +76,7 @@ def subscribe():
 
 
 sculpture.loadSculpture('tympani')
+sculpture.doCommand(['addPattern', 'poofers', 'RandomPoof'])
 sculpture.doCommand(['addPattern', 'poofers', 'Chase'])
 appMessenger.addBinding('outputChanged', sendNewOutputState, 'outputChanged')
 sculpture.doCommand(['addGlobalInput', {'type' : 'pulse', 'subType' : 'audio'}])

@@ -14,24 +14,36 @@ class PatternBase():
 		else:
 			self.inputs = self.inputManager.buildInputCollection(self.inputParams, self.instanceId)
 			for patternInputId in self.inputParams:
-				if 'bindToFunction' in self.inputParams[patternInputId].keys() and self.inputParams[patternInputId]['bindToFunction'] :
-					inputBinding = self.inputs.getBinding(patternInputId) 
-					self.messengerBindingIds[patternInputId] = appMessenger.addBinding('output%s_%s' %(inputBinding[0], inputBinding[1]), getattr(self, patternInputId))
+				self.addMessengerBindingsIfNeeded(patternInputId)
 
 
+	def addMessengerBindingsIfNeeded(self, patternInputId):
+		if 'bindToFunction' in self.inputParams[patternInputId].keys() and self.inputParams[patternInputId]['bindToFunction']:
+			inputBinding = self.inputs.getBinding(patternInputId)
+			if isinstance(inputBinding[1], list):
+				self.messengerBindingIds[patternInputId] = [appMessenger.addBinding('output%s_%s' %(inputBinding[0], i), getattr(self, patternInputId), i) for i in range(len(inputBinding[1]))]
+			else:
+				self.messengerBindingIds[patternInputId] = appMessenger.addBinding('output%s_%s' %(inputBinding[0], inputBinding[1]), getattr(self, patternInputId))
+
+	def removeExistingMessengerBindings(self, patternInputId):
+		if patternInputId in self.messengerBindingIds.keys():
+			if isinstance(self.messengerBindingIds[patternInputId], list):
+				for messengerBindingId in self.messengerBindingIds[patternInputId]:
+					appMessenger.removeBinding(messengerBindingId)
+			else:
+				appMessenger.removeBinding(self.messengerBindingIds[patternInputId])
+			del self.messengerBindingIds[patternInputId]
+	
+	
 	def changeInputBinding(self, patternInputId, inputInstanceId, outputIndexOfInput = 0):
 		self.inputs.replaceInput(patternInputId, self.inputManager.registerAndGetInput(self.instanceId, inputInstanceId, patternInputId), outputIndexOfInput)
-		if 'bindToFunction' in self.inputParams[patternInputId].keys() and self.inputParams[patternInputId]['bindToFunction']:
-			if patternInputId in self.messengerBindingIds.keys():
-				appMessenger.removeBinding(self.messengerBindingIds[patternInputId])
-				del self.messengerBindingIds[patternInputId]
-			newBindingId = appMessenger.addBinding('output%s_%s' %(inputInstanceId, outputIndexOfInput), getattr(self, patternInputId))
-			self.messengerBindingIds[patternInputId] = newBindingId
+		self.removeExistingMessengerBindings(patternInputId)
+		self.addMessengerBindingsIfNeeded(patternInputId)
 
 
 	def stop(self):
-		for bindingIdKey in self.messengerBindingIds:
-			appMessenger.removeBinding(self.messengerBindingIds[bindingIdKey])
+		for patternInputId in self.inputParams:
+			self.removeExistingMessengerBindings(patternInputId)
 		self.messengerBindingIds = {}
 		self.updateTriggerFunction = False
 		inputs = False

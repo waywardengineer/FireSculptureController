@@ -136,12 +136,20 @@ class AllPoof(PatternBase):
 		PatternBase.stop(self)
 		
 class RandomPoof(PatternBase):
-	def __init__(self, *args):
+	def __init__(self, inputManager, gridSize, *args):
+		self.patternName = 'RandomPoof'
 		self.inputParams = {
 			'randomGenerator' : {
 				'descriptionInPattern' : 'Random generator',
 				'type' : 'multi',
 				'subType' : 'randomPulse',
-				'bindToFunction' : True
+				'bindToFunction' : True,
+				'number' : gridSize[0] * gridSize[1]
 			},
 		}
+		PatternBase.__init__(self, inputManager, gridSize, *args)
+	def randomGenerator(self, *args):
+		print len(args)
+
+	def getState(self, row, col):
+		return False

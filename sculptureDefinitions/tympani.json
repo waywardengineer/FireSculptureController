@@ -18,7 +18,7 @@
         ]
       },
       "patternType" : "Poof",
-      "patterns" : ["Chase", "AllPoof"]
+      "patterns" : ["Chase", "AllPoof", "RandomPoof"]
       
     },
     "clackers" : {
@@ -32,7 +32,7 @@
         ]
       },
       "patternType" : "Poof",
-      "patterns" : ["Chase", "AllPoof"]
+      "patterns" : ["Chase", "AllPoof", "RandomPoof"]
     }
   }
 }
