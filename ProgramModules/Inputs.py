@@ -6,11 +6,10 @@ from ProgramModules.Timers import Timer
 from ProgramModules import utils
 
 from threading import Thread, Event
-outputTypes = ['pulse', 'toggle', 'value']
 import json
 import time
 import random
-availableInputTypes = {'pulse' : ['timer', 'onOff', 'button', 'audio', 'random'], 'value' : ['', 'int'], 'multi' : ['osc', 'basic', 'randomPulse']}
+availableInputTypes = {'pulse' : ['timer', 'onOff', 'button', 'audio', 'random'], 'value' : ['', 'int'], 'multi' : ['osc', 'basic', 'randomPulse'], 'text' : ['', 'choice']}
 inputParams = {
 	'TimerPulseInput' : {
 		'longDescription' : 'Timer pulse input, variable timing',
@@ -41,6 +40,18 @@ inputParams = {
 		'longDescription' : 'Variable value input, integer',
 		'shortDescription' : 'Value setting',
 		'inputs' : [{'type' : 'value', 'subType' : 'int', 'description' : '', 'default' : 0, 'min' : 0, 'max' : 100}],
+		'direct' : True
+	},
+	'TextInput' : {
+		'longDescription' : 'Text input',
+		'shortDescription' : 'Text',
+		'inputs' : [{'type' : 'text', 'subType' : '', 'description' : '', 'default' : ''}],
+		'direct' : True
+	},
+	'ChoiceTextInput' : {
+		'longDescription' : 'Choice input',
+		'shortDescription' : 'Choice',
+		'inputs' : [{'type' : 'text', 'subType' : '', 'description' : '', 'choices' : {}}],
 		'direct' : True
 	},
 	'OscMultiInput' : {
@@ -100,34 +111,11 @@ try:
 except:
 	inputParams['AudioPulseInput']['unavailable'] = True
 
-class InputCollectionWrapper(object):
-	def __init__(self, inputCollection):
-		self.inputCollection = inputCollection
-		
-
-
-	def __getattr__(self, patternInputId):
-		if isinstance(self.inputCollection[patternInputId]['outputIndexOfInput'], list):
-			return self.inputCollection[patternInputId]['inputObj'].getValue
-		else:
-			return self.inputCollection[patternInputId]['inputObj'].getValue(self.inputCollection[patternInputId]['outputIndexOfInput'])
-
-	def getBinding(self, patternInputId):
-		return [self.inputCollection[patternInputId]['inputObj'].getId(), self.inputCollection[patternInputId]['outputIndexOfInput']]
-		
-	def doCommand(self, args):
-		function = getattr(self.inputCollection[args.pop(0)]['inputObj'], args.pop(0))
-		return function(*args)
-	
-	def replaceInput (self, patternInputId, inputObj, outputIndexOfInput = 0):
-		self.inputCollection[patternInputId]['inputObj'] = inputObj
-		self.inputCollection[patternInputId]['outputIndexOfInput'] = outputIndexOfInput
-
 
 class InputBase():
 	def __init__(self, configParams, instanceId):
 		self.configParams = utils.multiExtendSettings({'inputs' : [], 'outputs' : [], 'direct' : False}, inputParams[self.__class__.__name__], configParams)
-		inputParamKeys = [key for key in ['min', 'max', 'default', 'description'] if key in self.configParams]
+		inputParamKeys = [key for key in ['min', 'max', 'default', 'description', 'sendMessageOnChange'] if key in self.configParams]
 		if inputParamKeys and self.__class__.__name__ not in ['BasicMultiInput']:
 			if len(self.configParams['inputs']) == 0:
 				self.configParams['inputs'].append({})
@@ -226,11 +214,17 @@ class ValueInput(InputBase):
 class IntValueInput(InputBase):
 	pass
 
+class TextInput(InputBase):
+	pass
+
+class ChoiceTextInput(InputBase):
+	pass
+
 
 class BasicMultiInput(InputBase):
 	def __init__(self, configParams, *args):
 		configParams = utils.multiExtendSettings({'inputs' : []}, inputParams[self.__class__.__name__], configParams)
-		inputParamKeys = [key for key in ['min', 'max', 'default', 'description'] if key in configParams]
+		inputParamKeys = [key for key in ['min', 'max', 'default', 'description', 'choices'] if key in configParams]
 		for i in range(configParams['number']):
 			configParam = {}
 			for key in inputParamKeys:
@@ -261,9 +255,10 @@ class OscMultiInput(InputBase):
 			self.server.close()
 
 	def __init__(self, params, *args):
+		self.outputTypes = ['pulse', 'toggle', 'value']
 		callbackAddresses = {}
 		callbacksInStringForm = False
-		for outputType in outputTypes:
+		for outputType in self.outputTypes:
 			callbackAddresses[outputType] = []
 			key = outputType + 'AddressString'
 			if key in params.keys():
@@ -274,7 +269,7 @@ class OscMultiInput(InputBase):
 		if callbacksInStringForm:
 			params['callbackAddresses'] = callbackAddresses
 		params['outputs'] = []
-		for outputType in outputTypes:
+		for outputType in self.outputTypes:
 			for address in params['callbackAddresses'][outputType]:
 				params['outputs'].append({'type' : outputType, 'description' : outputType[0].upper() + outputType[1:] + ' ' + address, 'sendMessageOnChange' : True})
 			
@@ -289,7 +284,7 @@ class OscMultiInput(InputBase):
 
 
 	def buildCallbackLinkList(self):
-		for callbackType in outputTypes:
+		for callbackType in self.outputTypes:
 			if callbackType in self.configParams['callbackAddresses'].keys():
 				function = getattr(self, 'do' + callbackType[0].upper() + callbackType[1:] + 'Callback')
 				for callbackAddress in self.configParams['callbackAddresses'][callbackType]:
@@ -376,7 +371,16 @@ class InputOutputParam():
 			return False
 	def constrainToggle(self, value):
 		return self.constrainPulse(value)
-			
+	
+	def constrainText(self, value):
+		return value
+		
+	def constrainChoiceText(self, value):
+		if value in self.params['choices'].keys():
+			return value
+		return False
+		
+	
 	def getCurrentStateData(self):
 		data = self.params.copy()
 		data['currentValue'] = self.value

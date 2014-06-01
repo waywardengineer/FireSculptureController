@@ -7,26 +7,49 @@ from copy import deepcopy
 
 class SculptureModuleBase():
 	def __init__ (self, dataChannelManager, inputManager, moduleConfig):
-
 		self.dataChannelManager = dataChannelManager
 		self.inputManager = inputManager
 		self.moduleConfig = deepcopy(moduleConfig)
+
+
+	def stop(self):
+		pass
+	
+	def doCommand(self, command):
+		functionName = command.pop(0)
+		function = getattr(self, functionName)
+		return function(*command)
+		
+	def getId(self):
+		return self.moduleConfig['moduleId'] + 'Module'
+
+
+class GridPatternModule(SculptureModuleBase):
+	def __init__(self, *args):
+		SculptureModuleBase.__init__(self, *args)
 		self.nextPatternInstanceId = 0
-		patternModuleName = 'Patterns.' + moduleConfig['patternType']
+		patternModuleName = 'Patterns.' + self.moduleConfig['patternType']
 		patternClasses = __import__(patternModuleName)
 		self.availablePatternClasses = {} 
 		self.availablePatternNames = []
 		self.patterns = {}
 		self.patternRowSettings = {}
-		self.gridSize = [len(moduleConfig['protocol']['mapping']), len(moduleConfig['protocol']['mapping'][0])]
-		for patternTypeId in moduleConfig['patterns']:
+		self.gridSize = [len(self.moduleConfig['protocol']['mapping']), len(self.moduleConfig['protocol']['mapping'][0])]
+		for patternTypeId in self.moduleConfig['patterns']:
 			try:
 				self.availablePatternClasses[patternTypeId] = getattr(patternClasses, patternTypeId)
 				self.availablePatternNames.append(patternTypeId)
 			except:
 				pass
 
+	def toggleEnable(self, address):
+		self.enabledStatus[address[0]][address[1]] = not self.enabledStatus[address[0]][address[1]]
+		return self.enabledStatus
 
+	def toggleRowSelection(self, patternInstanceId, row): #toggle row selection for pattern
+		self.patternRowSettings[patternInstanceId][row] = not self.patternRowSettings[patternInstanceId][row]
+		
+		
 	def getCurrentStateData(self, *args): # Dump all the state data for gui to render it
 		data = {'availablePatternNames' : self.availablePatternNames, 'currentOutputState' : self.currentOutputState, 'patterns' : {}}
 		for patternInstanceId in self.patterns:
@@ -34,6 +57,7 @@ class SculptureModuleBase():
 			patternData['instanceId'] = patternInstanceId
 			patternData['rowSettings'] = self.patternRowSettings[patternInstanceId]
 			data['patterns'][patternInstanceId] = patternData
+		data['enabledStatus'] = self.enabledStatus
 		return data
 
 	def addPattern(self, patternTypeId): # make a pattern live and select all rows by default
@@ -50,25 +74,22 @@ class SculptureModuleBase():
 
 	def bindPatternToNewInput(self, patternInstanceId, patternInputId, newPatternParams):
 		return self.changePatternInputBinding(patternInstanceId, patternInputId, self.inputManager.createNewInput(newPatternParams))
-	
+
 	def stop(self):
 		for patternInstanceId in self.patterns:
 			self.patterns[patternInstanceId].stop()
 		self.patterns = {}
-	
-	def doCommand(self, command):
-		functionName = command.pop(0)
-		function = getattr(self, functionName)
-		return function(*command)
 
 	def changePatternInputBinding(self, patternInstanceId, *args): #connect data from an input to a pattern parameter
 		return self.patterns[patternInstanceId].changeInputBinding(*args)
+
+
 	def getCurrentOutputState(self):
 		return self.currentOutputState
 
-class PooferModule(SculptureModuleBase):
+class PooferModule(GridPatternModule):
 	def __init__ (self, *args):
-		SculptureModuleBase.__init__ (self, *args)
+		GridPatternModule.__init__ (self, *args)
 		self.currentOutputState = [[False for j in range(self.gridSize[1])] for i in range(self.gridSize[0])]
 		self.enabledStatus = [[True for j in range(self.gridSize[1])] for i in range(self.gridSize[0])]
 		safeMode.addBinding(self.doUpdates);
@@ -86,16 +107,24 @@ class PooferModule(SculptureModuleBase):
 		self.dataChannelManager.send(self.moduleConfig['moduleId'], data)
 		appMessenger.putMessage('outputChanged', {'moduleId' : self.moduleConfig['moduleId'], 'data' : data})
 
-	def toggleEnable(self, address):
-		self.enabledStatus[address[0]][address[1]] = not self.enabledStatus[address[0]][address[1]]
-		return self.enabledStatus
 
-	def toggleRowSelection(self, patternInstanceId, row): #toggle row selection for pattern
-		self.patternRowSettings[patternInstanceId][row] = not self.patternRowSettings[patternInstanceId][row]
+class InputOnlyModule(SculptureModuleBase):
+	def __init__ (self, *args):
+		SculptureModuleBase.__init__ (self, *args)
+		for inputId in self.moduleConfig['inputs']:
+			self.moduleConfig['inputs'][inputId]['sendMessageOnChange'] = 'updateValue'
+		self.inputs = self.inputManager.buildInputCollection(self, self.moduleConfig['inputs'], self.getId())
+
+	def updateValue(self, inputChannelId, inputIndex):
+		self.dataChannelManager.send(self.moduleConfig['moduleId'], [inputChannelId, getattr(self.inputs, inputChannelId)])
 		
-	def getCurrentStateData(self, *args): # Dump all the state data for gui to render it
-		data = SculptureModuleBase.getCurrentStateData(self, *args)
-		data['enabledStatus'] = self.enabledStatus
-		return data
-
-
+	def stop(self):
+		self.inputs.stop()
+		
+	def getCurrentOutputState(self):
+		pass
+		
+	def getCurrentStateData(self):
+		return {'inputs' : self.inputs.getCurrentStateData()}
+		
+		

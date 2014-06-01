@@ -58,53 +58,6 @@
       </div>
       {{for modules}}
         <div id="{{>moduleId}}_module">
-          <div style="float:left;">
-            <div id="{{>moduleId}}_outputView" class="outputView">
-              {{for rows}}
-                <div id="{{>moduleId}}_outputView_row{{>rowIndex}}" class="outputViewRow">
-                  {{for cols}}
-                    <input type="checkbox" id="{{>moduleId}}_outputView_row{{>rowIndex}}_col{{>colIndex}}" class="pooferDisplay">
-                    <label for="{{>moduleId}}_outputView_row{{>rowIndex}}_col{{>colIndex}}" class="pooferDisplayLabel"></label>
-                  {{/for}}
-                </div>
-              {{/for}}
-            </div>
-            <div id="{{>moduleId}}_enableView" class="enableView" style="margin: 5px 0px 15px 0px;">
-              {{for rows}}
-                <div id="{{>moduleId}}_enableView_row{{>rowIndex}}">
-                  {{for cols}}
-                    <input type="checkbox" id="{{>moduleId}}_enableView_row{{>rowIndex}}_col{{>colIndex}}" class="enableControl" {{if enabled}}checked="checked"{{/if}}>
-                    <label for="{{>moduleId}}_enableView_row{{>rowIndex}}_col{{>colIndex}}" class="enableControlLabel" ></label>
-                  {{/for}}
-                </div>
-              {{/for}}
-            </div>
-          </div>
-          <div style="float:right;">
-            <select id="{{>moduleId}}_patternChoices" onChange="addPattern('{{>moduleId}}')" class="addPattern">
-              <option value="none">Add Pattern</option>
-              {{for availablePatternNames}}
-                <option value="{{>name}}">{{>name}}</option>
-              {{/for}}
-            </select>
-          </div>
-          <div style="clear:both; height:10px; width:100%"></div>
-          <div id="{{>moduleId}}_patterns" class="accordion">
-            {{for patterns}}
-              <h3 id="{{>patternInstanceId}}_heading" onclick="showPatternDetails('{{>moduleId}}', '{{>patternInstanceId}}')">{{>patternName}} pattern</h3>
-              <div id="{{>moduleId}}_pattern{{>patternInstanceId}}">
-                <div style="float:left; width:0px; height:300px;"></div>
-                <div style="float:right; text-align:center; height:250px; width:125px; margin:10px; padding:5px" class="ui-widget ui-widget-content ui-corner-all">
-                  <button id="{{>moduleId}}_{{>patternInstanceId}}_removePattern" class="removePatternButton" style="margin-bottom:20px;">Remove pattern</button>
-                  {{for rowSettings}}
-                    <br>
-                    <input type="checkbox" id="{{>moduleId}}_{{>patternInstanceId}}_{{>rowIndex}}_toggleRow" {{if enabled}}checked = "checked"{{/if}} class="toggleRowButton">
-                    <label for="{{>moduleId}}_{{>patternInstanceId}}_{{>rowIndex}}_toggleRow" class="toggleRowLabel">Row {{>rowIndex}} {{if enabled}}Enabled{{else}}Disabled{{/if}}</label>
-                  {{/for}}
-                </div>
-              </div>
-            {{/for}}
-          </div>
         </div>
       {{/for}}
     </div>
@@ -147,8 +100,62 @@
     {{/for}}
   </select>
 </script>
+<script id="inputOnlyModuleTemplate" type="text/x-jsrender">
+  <div id="{{>moduleId}}_inputs" class="ui-widget ui-widget-content ui-corner-all">
+  </div>
+</script>
 
+<script id="pooferModuleTemplate" type="text/x-jsrender">
 
+  <div style="float:left;">
+    <div id="{{>moduleId}}_outputView" class="outputView">
+      {{for rows}}
+        <div id="{{>moduleId}}_outputView_row{{>rowIndex}}" class="outputViewRow">
+          {{for cols}}
+            <input type="checkbox" id="{{>moduleId}}_outputView_row{{>rowIndex}}_col{{>colIndex}}" class="pooferDisplay">
+            <label for="{{>moduleId}}_outputView_row{{>rowIndex}}_col{{>colIndex}}" class="pooferDisplayLabel"></label>
+          {{/for}}
+        </div>
+      {{/for}}
+    </div>
+    <div id="{{>moduleId}}_enableView" class="enableView" style="margin: 5px 0px 15px 0px;">
+      {{for rows}}
+        <div id="{{>moduleId}}_enableView_row{{>rowIndex}}">
+          {{for cols}}
+            <input type="checkbox" id="{{>moduleId}}_{{>rowIndex}}_{{>colIndex}}_enable" class="enableControl" {{if enabled}}checked="checked"{{/if}}>
+            <label for="{{>moduleId}}_{{>rowIndex}}_{{>colIndex}}_enable" id="{{>moduleId}}_{{>rowIndex}}_{{>colIndex}}_enableLabel" class="enableControlLabel" ></label>
+          {{/for}}
+        </div>
+      {{/for}}
+    </div>
+  </div>
+  <div style="float:right;">
+    <select id="{{>moduleId}}_patternChoices" onChange="addPattern('{{>moduleId}}')" class="addPattern">
+      <option value="none">Add Pattern</option>
+      {{for availablePatternNames}}
+        <option value="{{>name}}">{{>name}}</option>
+      {{/for}}
+    </select>
+  </div>
+  <div style="clear:both; height:10px; width:100%"></div>
+  <div id="{{>moduleId}}_patterns" class="accordion">
+    {{for patterns}}
+      <h3 id="{{>patternInstanceId}}_heading" onclick="showPatternDetails('{{>moduleId}}', '{{>patternInstanceId}}')">{{>patternName}} pattern</h3>
+      <div id="{{>moduleId}}_pattern{{>patternInstanceId}}">
+        <div style="float:left; width:0px; height:300px;"></div>
+        <div style="float:right; text-align:center; height:250px; width:125px; margin:10px; padding:5px" class="ui-widget ui-widget-content ui-corner-all">
+          <button id="{{>moduleId}}_{{>patternInstanceId}}_removePattern" class="removePatternButton" style="margin-bottom:20px;">Remove pattern</button>
+          {{for rowSettings}}
+            <br>
+            <input type="checkbox" id="{{>moduleId}}_{{>patternInstanceId}}_{{>rowIndex}}_toggleRow" {{if enabled}}checked = "checked"{{/if}} class="toggleRowButton">
+            <label for="{{>moduleId}}_{{>patternInstanceId}}_{{>rowIndex}}_toggleRow" class="toggleRowLabel">Row {{>rowIndex}} {{if enabled}}Enabled{{else}}Disabled{{/if}}</label>
+          {{/for}}
+        </div>
+      </div>
+    {{/for}}
+  </div>
+
+</script>
 <script id="knobTemplate" type="text/x-jsrender">
   <input id="{{>id}}" value="{{>currentValue}}" data-width="75" data-height="75" data-max="{{>max}}" data-min="{{>min}}" data-skin="tron" class="knob" data-thickness=".2"> 
 </script>
@@ -158,6 +165,16 @@
 <script id="buttonTemplate" type="text/x-jsrender">
   <button id="{{>id}}" style="width:75px; height:75px;" class="inputControl"></button>
 </script>
+<script id="choiceTextTemplate" type="text/x-jsrender">
+  <ul id="{{>id}}">
+    {{for choices}}
+      <li id="{{>id}}_{{>value}}_choice">{{>name}}</li>
+    {{/for}}
+  </ul>
+</script>
+<script id="textInputTemplate" type="text/x-jsrender">
+</script>
+
 
 <script id="selectTemplate" type="text/x-jsrender">
   <select id="{{>id}}" {{:onChange}}>
@@ -185,7 +202,6 @@
   {{/for}}
 
 </script>
-
 
 
 </html>

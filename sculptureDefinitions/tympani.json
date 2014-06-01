@@ -33,6 +33,56 @@
       },
       "patternType" : "Poof",
       "patterns" : ["Chase", "AllPoof", "RandomPoof"]
+    },
+    "leds" : {
+      "name" : "Mobius Leds",
+      "moduleType" : "InputOnly",
+      "adaptor" : "ledBus",
+      "inputs" : {
+        "colorList" : {
+          "descriptionInPattern" : "Color List",
+          "type" : "text",
+          "subType" : "choice",
+          "choices" : {
+            "0" : "Devilish Color",
+            "1" : "Minty Color"
+          }
+        },
+        "propigationList" : {
+          "descriptionInPattern" : "Propigation style",
+          "type" : "text",
+          "subType" : "choice",
+          "choices" : {
+            "0" : "Slow",
+            "1" : "Bloom"
+          }
+        },
+        "flash" : {
+          "descriptionInPattern" : "Do Flash",
+          "type" : "pulse",
+          "subType" : "button"
+        },
+        "autoColor" : {
+          "descriptionInPattern" : "Auto color change",
+          "type" : "pulse",
+          "subType" : "button"
+        },
+        "autoPropigation" : {
+          "descriptionInPattern" : "Auto propigation change",
+          "type" : "pulse",
+          "subType" : "button"
+        }
+      },
+      "protocol" : {
+        "type" : "tympaniLed",
+        "mapping" : {
+          "colorList" : [20, 1],
+          "propigationList" : [20, 2],
+          "flash" : [20, 3],
+          "autoColor" : [20, 4],
+          "autoPropigation" : [20, 5]
+        }
+      }
     }
   }
 }

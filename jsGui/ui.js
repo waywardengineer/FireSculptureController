@@ -242,6 +242,9 @@ function setCurrentModuleView(moduleId){
 	if (currentView.activeSections[moduleId]){
 		$('#' + currentView.activeSections[moduleId] + '_heading').click();
 	}
+	if (allSculptureData.currentSculpture.modules[moduleId].moduleType == 'InputOnly'){
+	
+	}
 }
 
 function reloadData(){
@@ -266,45 +269,31 @@ function buildAll(){
 		$.each( allSculptureData.inputs, function( inputInstanceId, inputData ) {
 			buildInputControls(inputInstanceId, inputData);
 		});
+		$.each( allSculptureData.currentSculpture.modules, function( moduleId, moduleData ) {
+			switch(moduleData.moduleType){
+				case 'Poofer':
+					buildPooferModule(moduleData);
+					break;
+				case 'InputOnly':
+					buildInputOnlyModule(moduleData);
+					break;
+			}
+		});
 		$( ".accordion" ).accordion({
 			collabsible : true,
 			active : 'none'
 		});
-		$.each( allSculptureData.currentSculpture.modules, function( moduleId, moduleData ) {
-			$('#' + moduleId + '_patternChoices').menu();
-			$('#' + moduleId + '_removePatternButton').button().click(function(e){
-				patternId = $('#' + moduleId + '_patternSelection').val();
-				if (patternId && patternId != 'none'){
-					doCommand(['removePattern', moduleId, patternId]);
-				}
-			});
-			$.each( moduleData.protocol.mapping, function( rowIndex, rowData ) {
-				$('#' + moduleId + '_outputView_row' + rowIndex).buttonset();
-				$('#' + moduleId + '_enableView_row' + rowIndex).buttonset();
-				$.each( rowData, function( colIndex, colData ) {
-					$('#' + moduleId + '_enableView_row' + rowIndex + '_col' + colIndex).click(function(e){
-						doCommand(['toggleEnable', moduleId, [rowIndex, colIndex]]);
-					});
-				});
-			});
-		});
-		// $('.pooferDisplay').button();
-		if (currentView.activeModule){
-			$('#sculptureControl').tabs({ active : $("#sculptureControl>div").index($("#" + currentView.activeModule + '_module')) });
-		}
-		else{
+		// if (currentView.activeModule){
+			// $('#sculptureControl').tabs({ active : $("#sculptureControl>div").index($("#" + currentView.activeModule + '_module')) });
+		// }
+		// else{
 			$('#sculptureControl').tabs();
-		}
+		// }
 		$('#addGlobalInputButton').button().click(function(e){
 			showGlobalInputDialog()
 		});
-		$('.globalInputButton').button({icons : {primary:"ui-icon-notice"}}).click(function(){
+		$('.globalInputButton').button().click(function(){
 			doCommand(['removeGlobalInput', parseInt(this.id.split('_')[1])]);
-		});
-		$('.toggleRowButton').button().click(function(){
-			parts = this.id.split('_');
-			doCommand(['toggleRowSelection', parts[0], parts[1], parseInt(parts[2])]);
-			$('label[for="' + this.id + '"] > .ui-button-text').html('Row ' + parts[2] + ($('#' + this.id).is(":checked")?' Enabled':' Disabled'));
 		});
 		$('.removePatternButton').button().click(function(){
 			parts = this.id.split('_');
@@ -350,30 +339,7 @@ function makeSculptureControllerTemplateData(){
 		data.inputs.push(templateInputData);
 	});
 	$.each( allSculptureData.currentSculpture.modules, function( moduleId, moduleData ) {
-		templateModuleData = {"moduleId" : moduleId, "name" : moduleData.name, "availablePatternNames" : [], "patterns" : [], "inputs" : [], "rows" : []};
-		$.each( moduleData.availablePatternNames, function( patternIndex, patternName ) {
-			templateModuleData.availablePatternNames.push({"name" : patternName});
-		});
-		$.each( moduleData.patterns, function( patternInstanceId, patternData ) {
-			templatePatternData = {"patternName" : patternData.name, "patternInstanceId" : patternInstanceId, "rowSettings" : [], "moduleId" : moduleId};
-			$.each(patternData.rowSettings, function(rowIndex, rowSetting){
-				rowData = {"moduleId" : moduleId, "patternInstanceId" : patternInstanceId, "rowIndex" : rowIndex};
-				if (rowSetting) rowData['enabled'] = true;
-				templatePatternData.rowSettings.push(rowData);
-			});
-			templateModuleData.patterns.push(templatePatternData);
-		});
-		$.each( moduleData.protocol.mapping, function( rowIndex, rowData ) {
-			templateRowData = {"rowIndex" : rowIndex, "moduleId" : moduleId, "cols" : []};
-			$.each( rowData, function( colIndex, colData ) {
-				templateRowData.cols.push({"rowIndex" : rowIndex, "moduleId" : moduleId, "colIndex" : colIndex});
-				if (moduleData.enabledStatus[rowIndex][colIndex]){
-					templateRowData.cols[colIndex]['enabled'] = true;
-				}
-			});
-			templateModuleData.rows.push(templateRowData);
-		});
-		data.modules.push(templateModuleData);
+		data.modules.push({"moduleId" : moduleId, "name" : moduleData.name});
 	});
 	data['globalInputs'] = []
 	$.each(allSculptureData.globalInputs, function (index, inputInstanceId){
@@ -383,6 +349,59 @@ function makeSculptureControllerTemplateData(){
 		data['safeMode'] = true;
 	}
 	return data;
+}
+
+function buildPooferModule(moduleData){
+	moduleId = moduleData.moduleId
+	templateModuleData = {"moduleId" : moduleId, "name" : moduleData.name, "availablePatternNames" : [], "patterns" : [], "inputs" : [], "rows" : []};
+	$.each( moduleData.availablePatternNames, function( patternIndex, patternName ) {
+		templateModuleData.availablePatternNames.push({"name" : patternName});
+	});
+	$.each( moduleData.patterns, function( patternInstanceId, patternData ) {
+		templatePatternData = {"patternName" : patternData.name, "patternInstanceId" : patternInstanceId, "rowSettings" : [], "moduleId" : moduleId};
+		$.each(patternData.rowSettings, function(rowIndex, rowSetting){
+			rowData = {"moduleId" : moduleId, "patternInstanceId" : patternInstanceId, "rowIndex" : rowIndex};
+			if (rowSetting) rowData['enabled'] = true;
+			templatePatternData.rowSettings.push(rowData);
+		});
+		templateModuleData.patterns.push(templatePatternData);
+	});
+	$.each( moduleData.protocol.mapping, function( rowIndex, rowData ) {
+		templateRowData = {"rowIndex" : rowIndex, "moduleId" : moduleId, "cols" : []};
+		$.each( rowData, function( colIndex, colData ) {
+			templateRowData.cols.push({"rowIndex" : rowIndex, "moduleId" : moduleId, "colIndex" : colIndex});
+			if (moduleData.enabledStatus[rowIndex][colIndex]){
+				templateRowData.cols[colIndex]['enabled'] = true;
+			}
+		});
+		templateModuleData.rows.push(templateRowData);
+	});
+	$('#' + moduleId + '_module').html($('#pooferModuleTemplate').render(templateModuleData));
+	$('#' + moduleId + '_patternChoices').menu();
+	$('#' + moduleId + '_removePatternButton').button().click(function(e){
+		patternId = $('#' + moduleId + '_patternSelection').val();
+		if (patternId && patternId != 'none'){
+			doCommand(['removePattern', moduleId, patternId]);
+		}
+	});
+	$.each( moduleData.protocol.mapping, function( rowIndex, rowData ) {
+		$('#' + moduleId + '_outputView_row' + rowIndex).buttonset();
+		$('#' + moduleId + '_enableView_row' + rowIndex).buttonset();
+	});
+	$('#' + moduleId + '_module .toggleRowButton').button().click(function(){
+		parts = this.id.split('_');
+		doCommand(['toggleRowSelection', parts[0], parts[1], parseInt(parts[2])]);
+		$('label[for="' + this.id + '"] > .ui-button-text').html('Row ' + parts[2] + ($('#' + this.id).is(":checked")?' Enabled':' Disabled'));
+	});
+	$('#' + moduleId + '_module .enableControl').button().click(function(){
+		parts = this.id.split('_');
+		doCommand(['toggleEnable', parts[0], [parseInt(parts[1]), parseInt(parts[2])]]);
+	});
+
+}
+
+function buildInputOnlyModule(moduleData){
+	$('#' + moduleData.moduleId + '_module').html($('#inputOnlyModuleTemplate').render({"moduleId" : moduleData.moduleId, "name" : moduleData.name}));
 }
 
 function buildInputControls(inputInstanceId, inputData){

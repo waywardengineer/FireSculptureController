@@ -20,7 +20,7 @@ class Chase(PatternBase):
 				'descriptionInPattern' : 'Trigger next step in sequence',
 				'type' : 'pulse',
 				'subType' : 'timer',
-				'bindToFunction' : True,
+				'bindToFunction' : 'triggerStep',
 				'min' : 50,
 				'max' : 3000, 
 				'default' : 100
@@ -29,7 +29,7 @@ class Chase(PatternBase):
 				'descriptionInPattern' : 'Trigger chase',
 				'type' : 'pulse',
 				'subType' : 'onOff',
-				'bindToFunction' : True
+				'bindToFunction' : 'triggerSequence'
 			},
 			'reverse' : {
 				'descriptionInPattern' : 'Reverse direction',
@@ -56,7 +56,7 @@ class Chase(PatternBase):
 		self.position = 0
 		self.sequenceTriggered = True
 
-	def triggerStep(self):
+	def triggerStep(self, *args):
 		if self.inputs.triggerStep and self.sequenceTriggered:
 			self.updateTriggerFunction()
 			self.position += self.inputs.stepping
@@ -70,7 +70,7 @@ class Chase(PatternBase):
 					self.updateTriggerFunction()
 
 		
-	def triggerSequence(self):
+	def triggerSequence(self, *args):
 		if self.inputs.triggerSequence:
 			self.inputs.doCommand(['triggerStep', 'refresh'])
 			self.position = 0
@@ -103,7 +103,7 @@ class AllPoof(PatternBase):
 				'descriptionInPattern' : 'Poof!',
 				'type' : 'pulse',
 				'subType' : 'button',
-				'bindToFunction' : True
+				'bindToFunction' : 'poofButton'
 			},
 			'stayOnTime' : {
 				'descriptionInPattern' : 'Time to stay on for(ms)',
@@ -118,7 +118,7 @@ class AllPoof(PatternBase):
 		self.patternName = 'Allpoof'
 		self.timer = Timer(False, self.inputs.stayOnTime, self.turnOff)
 		self.poofState = False
-	def poofButton(self):
+	def poofButton(self, *args):
 		if self.inputs.poofButton:
 			self.timer.changeInterval(self.inputs.stayOnTime)
 			self.timer.refresh()
@@ -143,7 +143,7 @@ class RandomPoof(PatternBase):
 				'descriptionInPattern' : 'Random generator',
 				'type' : 'multi',
 				'subType' : 'randomPulse',
-				'bindToFunction' : True,
+				'bindToFunction' : 'randomGenerator',
 				'number' : gridSize[0] * gridSize[1]
 			},
 		}
@@ -151,7 +151,7 @@ class RandomPoof(PatternBase):
 		self.patternName = 'Random Poof'
 		self.poofStates = [[False for i in range(self.gridSize[1])] for i in range(self.gridSize[0])]
 
-	def randomGenerator(self, index):
+	def randomGenerator(self, input, index):
 		self.poofStates[index / self.gridSize[1]][index % self.gridSize[1]] = self.inputs.randomGenerator(index)
 		self.updateTriggerFunction()
 
