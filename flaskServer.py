@@ -76,12 +76,12 @@ def subscribe():
 
 
 sculpture.loadSculpture('tympani')
-sculpture.doCommand(['addPattern', 'poofers', 'RandomPoof'])
+sculpture.doCommand(['addPattern', 'poofers', 'AllPoof'])
 # sculpture.doCommand(['addPattern', 'poofers', 'Chase'])
 appMessenger.addBinding('outputChanged', sendNewOutputState, ('outputChanged',))
-sculpture.doCommand(['addGlobalInput', {'type' : 'pulse', 'subType' : 'audio'}])
-sculpture.doCommand(['addGlobalInput', {'type' : 'multi', 'subType' : 'randomPulse'}])
-sculpture.doCommand(['addGlobalInput', {'type' : 'multi', 'subType' : 'basic', 'number' : 5, 'min' : [0, 0, 1, 0,  1], 'max' : [1, 2, 3, 4,  5], 'description' : ['foo', 'bar', 'baz', 'bam', 'boo']}])
+# sculpture.doCommand(['addGlobalInput', {'type' : 'pulse', 'subType' : 'audio'}])
+# sculpture.doCommand(['addGlobalInput', {'type' : 'multi', 'subType' : 'randomPulse'}])
+# sculpture.doCommand(['addGlobalInput', {'type' : 'multi', 'subType' : 'basic', 'number' : 5, 'min' : [0, 0, 1, 0,  1], 'max' : [1, 2, 3, 4,  5], 'description' : ['foo', 'bar', 'baz', 'bam', 'boo']}])
 # sculpture.doCommand(["changePatternInputBinding","poofers","poofersPattern0","poofButton",2,0])
 
 if __name__ == '__main__':

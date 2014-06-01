@@ -51,7 +51,7 @@ inputParams = {
 	'ChoiceTextInput' : {
 		'longDescription' : 'Choice input',
 		'shortDescription' : 'Choice',
-		'inputs' : [{'type' : 'text', 'subType' : '', 'description' : '', 'choices' : {}}],
+		'inputs' : [{'type' : 'text', 'subType' : 'choice', 'description' : '', 'choices' : {}}],
 		'direct' : True
 	},
 	'OscMultiInput' : {
@@ -115,7 +115,7 @@ except:
 class InputBase():
 	def __init__(self, configParams, instanceId):
 		self.configParams = utils.multiExtendSettings({'inputs' : [], 'outputs' : [], 'direct' : False}, inputParams[self.__class__.__name__], configParams)
-		inputParamKeys = [key for key in ['min', 'max', 'default', 'description', 'sendMessageOnChange'] if key in self.configParams]
+		inputParamKeys = [key for key in ['min', 'max', 'default', 'description', 'sendMessageOnChange', 'choices'] if key in self.configParams]
 		if inputParamKeys and self.__class__.__name__ not in ['BasicMultiInput']:
 			if len(self.configParams['inputs']) == 0:
 				self.configParams['inputs'].append({})
@@ -296,7 +296,6 @@ class OscMultiInput(InputBase):
 		InputBase.stop(self)
 
 	def doPulseCallback(self, path, tags, args, source):
-		print 'pulseCallBack' + json.dumps(args)
 		outputIndex = self.getOutputIndexFromAddress(path, 'pulse')
 		self.outputs[outputIndex].setValue(args[0] in ['1', 1, 'true', 'True'])
 		appMessenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outputs[outputIndex].getValue()])

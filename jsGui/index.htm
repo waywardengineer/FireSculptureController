@@ -166,13 +166,15 @@
   <button id="{{>id}}" style="width:75px; height:75px;" class="inputControl"></button>
 </script>
 <script id="choiceTextTemplate" type="text/x-jsrender">
-  <ul id="{{>id}}">
+  <div id="{{>id}}">
     {{for choices}}
-      <li id="{{>id}}_{{>value}}_choice">{{>name}}</li>
+      <input type="radio" name="{{>inputInstanceId}}Radio" value="{{>inputInstanceId}}_{{>value}}" id="{{>inputInstanceId}}_{{>value}}_choice" class="choiceInputItem">
+      <label for="{{>inputInstanceId}}_{{>value}}_choice" class="choiceInputItemLabel">{{>name}}</label>
     {{/for}}
-  </ul>
+  </div>
 </script>
 <script id="textInputTemplate" type="text/x-jsrender">
+  <input id="{{>id}}" {{if value}} value="{{>value}}" {{/if}}class="ui-widget ui-widget-content ui-corner-all">
 </script>
 
 

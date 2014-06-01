@@ -29,4 +29,4 @@ class FlgRelayProtocol(ProtocolBase): #Poofer relay boards used on Serpent, Ange
 
 class TympaniLedProtocol(ProtocolBase): #Tympani Mobius Leds
 	def formatData(self, command, value):   
-		return "!%02X%01X%02X." %(self.mapping[command][0], self.mapping[command][1], int(value))
+		return "!%02X%02X%02X." %(self.mapping[command][0], self.mapping[command][1], int(value))

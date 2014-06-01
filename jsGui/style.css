@@ -26,6 +26,9 @@ body{
  padding:10px 0px 0px 0px;
  float:left;
 }
+.choiceInputItemLabel{
+ width:100px;
+}
 .inputOuterWrapper{
   text-align:center;
   float:left;
@@ -69,7 +72,7 @@ body{
   margin-top:10px ;
   margin-bottom:15px ;
 }
-.sculptureHeading, .safeModeLabel.ui-state-active{
+.sculptureHeading, .safeModeLabel.ui-state-active, .choiceInputItemLabel.ui-state-active{
   background: #87CEEB !important;
   color:#000000 !important;
   border-color: #87CEEB !important; 

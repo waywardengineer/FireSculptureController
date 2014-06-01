@@ -242,8 +242,12 @@ function setCurrentModuleView(moduleId){
 	if (currentView.activeSections[moduleId]){
 		$('#' + currentView.activeSections[moduleId] + '_heading').click();
 	}
-	if (allSculptureData.currentSculpture.modules[moduleId].moduleType == 'InputOnly'){
-	
+	else if (allSculptureData.currentSculpture.modules[moduleId].inputs){
+		hideAllInputs();
+		$('#inputs').detach().appendTo('#' + moduleId + '_inputs');
+		$.each(allSculptureData.currentSculpture.modules[moduleId].inputs, function(inputChannelId, inputData){
+			showInput(moduleId + '_mainInput', inputData, inputChannelId);
+		});
 	}
 }
 
@@ -283,12 +287,12 @@ function buildAll(){
 			collabsible : true,
 			active : 'none'
 		});
-		// if (currentView.activeModule){
-			// $('#sculptureControl').tabs({ active : $("#sculptureControl>div").index($("#" + currentView.activeModule + '_module')) });
-		// }
-		// else{
+		if (currentView.activeModule){
+			$('#sculptureControl').tabs({ active : $("#sculptureControl>div").index($("#" + currentView.activeModule + '_module')) });
+		}
+		else{
 			$('#sculptureControl').tabs();
-		// }
+		}
 		$('#addGlobalInputButton').button().click(function(e){
 			showGlobalInputDialog()
 		});
@@ -407,8 +411,6 @@ function buildInputOnlyModule(moduleData){
 function buildInputControls(inputInstanceId, inputData){
 	if (inputData.inputs){
 		$.each( inputData.inputs, function( settingIndex, settingData ) {
-			tagData={};
-			makeKnob = false;
 			inputId = 'inputInstance' + inputInstanceId + '_input' + settingIndex;
 			templateData = $.extend(true, {}, settingData);
 			templateData['id'] = inputId;
@@ -416,6 +418,24 @@ function buildInputControls(inputInstanceId, inputData){
 			templateData['settingIndex'] = settingIndex;
 			
 			switch(settingData['type']){
+				case 'text':
+					if (settingData.subType == 'choice'){
+						templateData['choices'] = [];
+						$('#logDiv').prepend(JSON.stringify(settingData));
+						$.each(settingData.choices, function(choiceValue, choiceText){ 
+							templateData['choices'].push({'value' : choiceValue, 'name' : choiceText, 'inputInstanceId' : inputInstanceId});
+						});
+						$('#' + inputId + '_container').append($('#choiceTextTemplate').render(templateData));
+						$('#' + inputId + ' .choiceInputItem').button().click(function(){
+							parts = this.id.split('_');
+							doCommand(['setInputValue', parseInt(parts[0]), parts[1]]);
+						});
+					}
+					else{
+						$('#' + inputId + '_container').append($('#textInputTemplate').render(templateData));
+					}
+					$('#' + inputId + '_outerContainer').removeClass('ui-widget-content');
+				break;
 				case 'pulse':
 					$('#' + inputId + '_container').append($('#buttonTemplate').render(templateData));
 					$('#' + inputId).button().click(function(e){
@@ -479,41 +499,46 @@ function hideAllInputs(){
 
 }
 
+function showInput(parentId, parentConfigData, inputChannelId){
+	idPrefix  = 'inputInstance' + parentConfigData.inputInstanceId + '_';
+	inputData = allSculptureData.inputs[parentConfigData.inputInstanceId];
+	$('#' + idPrefix + 'div').css("display", "block");
+	if (inputData.type == 'multi'){
+		if (inputData.descriptionInPattern){
+			$('#' + idPrefix + 'description').html(inputData.descriptionInPattern);
+		}
+	}
+	else {
+		$('#' + idPrefix + 'description').html(parentConfigData.description);
+	}
+	$.each(inputData.inputs, function(inputIndex, inputInputData){
+		if (parentConfigData.type=='multi' || inputData.type != 'multi' || $.inArray(parentConfigData.outputIndexOfInput, inputInputData.relevance) > -1){
+			$('#inputInstance' + inputData.instanceId + '_input' + inputIndex + '_outerContainer').css('display', 'block');
+		}
+	});
+	$.each(inputData.outputs, function(outputIndex, outputData){
+		if (parentConfigData.type!='multi' && outputIndex == parentConfigData.outputIndexOfInput){
+			id = '#inputInstance' + inputData.instanceId + '_output' + outputIndex + '_container';
+			$(id).css('display', 'block');
+			html = '<div class="inputSubOutputWrapper"><span class="inputDescription">Current type:<br>' + inputData.shortDescription + ' ' + outputData.description + '</span>';
+			html += '<button id="' + parentId + '_' + inputChannelId + '_rebindButton" class="rebindButton">Change</button></div>';
+			$(id).append(html);
+			$('#' + parentId + '_' + inputChannelId + '_rebindButton').button().click(function(e){
+				var parts = this.id.split('_');
+				showRebindDialog(parts[0], parts[1], parts[2]);
+			});
+		}
+	});
+
+}
+
 
 function showPatternDetails(moduleId, patternInstanceId){
 	hideAllInputs();
 	currentView.activeSections[moduleId] = patternInstanceId
 	$('#inputs').detach().appendTo('#' + moduleId + '_pattern' + patternInstanceId);
 	$.each(allSculptureData.currentSculpture.modules[moduleId].patterns[patternInstanceId].inputs, function(patternInputId, patternInputData){
-		idPrefix  = 'inputInstance' + patternInputData.inputInstanceId + '_';
-		inputData = allSculptureData.inputs[patternInputData.inputInstanceId];
-		$('#' + idPrefix + 'div').css("display", "block");
-		if (inputData.type == 'multi'){
-			if (inputData.descriptionInPattern){
-				$('#' + idPrefix + 'description').html(inputData.descriptionInPattern);
-			}
-		}
-		else {
-			$('#' + idPrefix + 'description').html(patternInputData.description);
-		}
-		$.each(inputData.inputs, function(inputIndex, inputInputData){
-			if (patternInputData.type=='multi' || inputData.type != 'multi' || $.inArray(patternInputData.outputIndexOfInput, inputInputData.relevance) > -1){
-				$('#inputInstance' + inputData.instanceId + '_input' + inputIndex + '_outerContainer').css('display', 'block');
-			}
-		});
-		$.each(inputData.outputs, function(outputIndex, outputData){
-			if (patternInputData.type!='multi' && outputIndex == patternInputData.outputIndexOfInput){
-				id = '#inputInstance' + inputData.instanceId + '_output' + outputIndex + '_container';
-				$(id).css('display', 'block');
-				html = '<div class="inputSubOutputWrapper"><span class="inputDescription">Current type:<br>' + inputData.shortDescription + ' ' + outputData.description + '</span>';
-				html += '<button id="' + moduleId + '_' + patternInstanceId + '_' + patternInputId + '_rebindButton" class="rebindButton">Change</button></div>';
-				$(id).append(html);
-			}
-		});
-	});
-	$('.rebindButton').button().click(function(e){
-		var parts = this.id.split('_');
-		showRebindDialog(parts[0], parts[1], parts[2]);
+		showInput(moduleId + '_' + patternInstanceId, patternInputData, patternInputId);
 	});
 
 }

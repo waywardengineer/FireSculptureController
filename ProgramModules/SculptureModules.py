@@ -4,7 +4,7 @@ or a variable type(probably from 0 to 100)
 '''
 
 from copy import deepcopy
-
+import json
 class SculptureModuleBase():
 	def __init__ (self, dataChannelManager, inputManager, moduleConfig):
 		self.dataChannelManager = dataChannelManager
@@ -112,11 +112,12 @@ class InputOnlyModule(SculptureModuleBase):
 	def __init__ (self, *args):
 		SculptureModuleBase.__init__ (self, *args)
 		for inputId in self.moduleConfig['inputs']:
-			self.moduleConfig['inputs'][inputId]['sendMessageOnChange'] = 'updateValue'
+			self.moduleConfig['inputs'][inputId]['sendMessageOnChange'] = True
+			self.moduleConfig['inputs'][inputId]['bindToFunction'] = 'updateValue'
 		self.inputs = self.inputManager.buildInputCollection(self, self.moduleConfig['inputs'], self.getId())
 
 	def updateValue(self, inputChannelId, inputIndex):
-		self.dataChannelManager.send(self.moduleConfig['moduleId'], [inputChannelId, getattr(self.inputs, inputChannelId)])
+		self.dataChannelManager.send(self.moduleConfig['moduleId'], [[inputChannelId, getattr(self.inputs, inputChannelId)]])
 		
 	def stop(self):
 		self.inputs.stop()
