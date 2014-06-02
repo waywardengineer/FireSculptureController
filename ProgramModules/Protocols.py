@@ -22,7 +22,7 @@ class ProtocolBase():
 
 class FlgRelayProtocol(ProtocolBase): #Poofer relay boards used on Serpent, Angel, Tympani, Mutopia
 	def formatData(self, addr, data):   
-		if data[0] in [True, '1', 1]:
+		if (data[0] in [True, '1', 1]) and not safeMode.isSet():
 			cmd = '1'
 		else:
 			cmd = '0'

@@ -15,8 +15,8 @@ class DataChannelManager():
 		def run(self):
 			while not self.stopEvent.isSet():
 				if self.data:
-					if self.adaptorObj.transmitData(self.data):
-						self.data = False
+					self.adaptorObj.transmitData(self.data)
+					self.data = False
 		
 		def transmitData(self, data):
 			self.data = data

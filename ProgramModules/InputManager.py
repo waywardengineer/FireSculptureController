@@ -147,6 +147,7 @@ class InputCollection(object):
 		for patternInputId in self.inputParams:
 			self.removeExistingMessengerBindings(patternInputId)
 		self.inputManager.unRegisterInput(self.parentObj.getId())
+		self.parentObj = False
 
 
 

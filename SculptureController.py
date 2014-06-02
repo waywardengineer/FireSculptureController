@@ -56,6 +56,7 @@ class SculptureController():
 
 
 	def doReset(self):
+		safeMode.set(True)
 		appMessenger.doReset()
 		for moduleId in self.sculptureModules:
 			self.sculptureModules[moduleId].stop()
@@ -65,7 +66,7 @@ class SculptureController():
 			self.inputManager.unRegisterInput('main')
 		if self.dataChannelManager:
 			self.dataChannelManager.stop()
-		time.sleep(0.2)
+		time.sleep(0.5)
 		self.dataChannelManager = False
 		self.inputManager = False
 		self.sculptureConfig = False

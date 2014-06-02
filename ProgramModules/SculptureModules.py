@@ -5,6 +5,7 @@ or a variable type(probably from 0 to 100)
 
 from copy import deepcopy
 import json
+from ProgramModules.Timers import Timer
 class SculptureModuleBase():
 	def __init__ (self, dataChannelManager, inputManager, moduleConfig):
 		self.dataChannelManager = dataChannelManager
@@ -93,6 +94,8 @@ class PooferModule(GridPatternModule):
 		self.currentOutputState = [[False for j in range(self.gridSize[1])] for i in range(self.gridSize[0])]
 		self.enabledStatus = [[True for j in range(self.gridSize[1])] for i in range(self.gridSize[0])]
 		safeMode.addBinding(self.doUpdates);
+		self.refreshTimer = Timer(True, 400, self.resendOnStates)
+		
 
 	def doUpdates(self): #Check the pattern state and send data out
 		data = []
@@ -106,7 +109,18 @@ class PooferModule(GridPatternModule):
 					self.currentOutputState[row][col] = state
 		self.dataChannelManager.send(self.moduleConfig['moduleId'], data)
 		appMessenger.putMessage('outputChanged', {'moduleId' : self.moduleConfig['moduleId'], 'data' : data})
-
+		
+	def resendOnStates(self):
+		data = []
+		for row in range(len(self.moduleConfig['protocol']['mapping'])):
+			for col in range(len(self.moduleConfig['protocol']['mapping'][row])):
+				if (self.currentOutputState[row][col]):
+					data.append([[row, col], [not safeMode.isSet()]])
+		self.dataChannelManager.send(self.moduleConfig['moduleId'], data)
+		
+	def stop(self):
+		self.refreshTimer.stop()
+		GridPatternModule.stop(self)
 
 class InputOnlyModule(SculptureModuleBase):
 	def __init__ (self, *args):
