@@ -3,10 +3,10 @@ var settings = {
 };
 var allSculptureData = false;
 var currentView = {'activeTab' : false, 'activeModule' : false, activeSections : {}, sculptureIsLoaded:false}
-var source = new EventSource('/dataStream');
+var serverSentEventStream = false;
 
-source.onmessage = function (event) {
-	var data = JSON.parse(event.data);
+
+function handleDataStreamEvent(data){
 	if (data.log){
 		$.each(data.log, function(logIndex, logItem){
 			$('#logDiv').prepend(logItem + '<br>');
@@ -25,7 +25,8 @@ source.onmessage = function (event) {
 		});
 		$('.outputViewRow').buttonset('refresh');
 	}
-};
+
+}
 
 function typesAreCompatible(type1, type2){
 	result = false;
@@ -235,6 +236,11 @@ function showInputParamsForm(){
 
 function doInit(){
 	reloadData();
+	serverSentEventStream = new EventSource('/dataStream');
+	serverSentEventStream.onmessage = function (event) {
+		handleDataStreamEvent(JSON.parse(event.data));
+	};
+
 }
 
 function setCurrentModuleView(moduleId){
