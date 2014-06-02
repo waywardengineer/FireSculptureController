@@ -314,6 +314,10 @@ function buildAll(){
 			doCommand(JSON.parse($('#sendDirectCommandInput').val()));
 			$('#sendDirectCommandInput').val('')
 		});
+		$('.serialAdaptorUpdateButton').button().click(function(){
+			adaptorId = this.id.split('_')[0];
+			doCommand(['updateSerialConnection', adaptorId, {'ports' : $('#' + adaptorId + 'Ports').val().split(' '), 'baudrate' : $('#' + adaptorId + 'Baudrate').val()}]);
+		});
 		if (currentView.activeModule){
 			setCurrentModuleView(currentView.activeModule);
 		}
@@ -331,7 +335,7 @@ function buildAll(){
 
 
 function makeSculptureControllerTemplateData(){
-	data = {"sculptureName" : allSculptureData.currentSculpture.sculptureName, "modules" : [], "inputs" : []};
+	data = {"sculptureName" : allSculptureData.currentSculpture.sculptureName, "modules" : [], "inputs" : [], "globalInputs" : [], "serialAdaptors" : []};
 	$.each( allSculptureData.inputs, function( inputInstanceId, inputData ) {
 		templateInputData = {"inputInstanceId" : inputInstanceId, "inputs" : [], "outputs" : []}
 		$.each(inputData.inputs, function(inputIndex){
@@ -345,9 +349,13 @@ function makeSculptureControllerTemplateData(){
 	$.each( allSculptureData.currentSculpture.modules, function( moduleId, moduleData ) {
 		data.modules.push({"moduleId" : moduleId, "name" : moduleData.name});
 	});
-	data['globalInputs'] = []
 	$.each(allSculptureData.globalInputs, function (index, inputInstanceId){
 		data.globalInputs.push({'value' : inputInstanceId.toString(), 'name' : allSculptureData.inputs[inputInstanceId].shortDescription})
+	});
+	$.each(allSculptureData.currentSculpture.adaptors, function(adaptorId, adaptorData){
+		if (adaptorData.type=="serial"){
+			data.serialAdaptors.push({'adaptorId' : adaptorId, 'ports' : adaptorData.ports.join(' '), 'baudrate' : adaptorData.baudrate});
+		}
 	});
 	if (allSculptureData.safeMode){
 		data['safeMode'] = true;
@@ -421,7 +429,6 @@ function buildInputControls(inputInstanceId, inputData){
 				case 'text':
 					if (settingData.subType == 'choice'){
 						templateData['choices'] = [];
-						$('#logDiv').prepend(JSON.stringify(settingData));
 						$.each(settingData.choices, function(choiceValue, choiceText){ 
 							templateData['choices'].push({'value' : choiceValue, 'name' : choiceText, 'inputInstanceId' : inputInstanceId});
 						});
@@ -430,11 +437,13 @@ function buildInputControls(inputInstanceId, inputData){
 							parts = this.id.split('_');
 							doCommand(['setInputValue', parseInt(parts[0]), parts[1]]);
 						});
+						$('#' + inputId + '_outerContainer').removeClass('ui-widget-content');
+
 					}
 					else{
 						$('#' + inputId + '_container').append($('#textInputTemplate').render(templateData));
 					}
-					$('#' + inputId + '_outerContainer').removeClass('ui-widget-content');
+					$('#' + inputId + '_outerContainer').css('height', 'auto');
 				break;
 				case 'pulse':
 					$('#' + inputId + '_container').append($('#buttonTemplate').render(templateData));
@@ -516,19 +525,21 @@ function showInput(parentId, parentConfigData, inputChannelId){
 			$('#inputInstance' + inputData.instanceId + '_input' + inputIndex + '_outerContainer').css('display', 'block');
 		}
 	});
-	$.each(inputData.outputs, function(outputIndex, outputData){
-		if (parentConfigData.type!='multi' && outputIndex == parentConfigData.outputIndexOfInput){
-			id = '#inputInstance' + inputData.instanceId + '_output' + outputIndex + '_container';
-			$(id).css('display', 'block');
-			html = '<div class="inputSubOutputWrapper"><span class="inputDescription">Current type:<br>' + inputData.shortDescription + ' ' + outputData.description + '</span>';
-			html += '<button id="' + parentId + '_' + inputChannelId + '_rebindButton" class="rebindButton">Change</button></div>';
-			$(id).append(html);
-			$('#' + parentId + '_' + inputChannelId + '_rebindButton').button().click(function(e){
-				var parts = this.id.split('_');
-				showRebindDialog(parts[0], parts[1], parts[2]);
-			});
-		}
-	});
+	if (!inputData.nonChangeable){
+		$.each(inputData.outputs, function(outputIndex, outputData){
+			if (parentConfigData.type!='multi' && outputIndex == parentConfigData.outputIndexOfInput){
+				id = '#inputInstance' + inputData.instanceId + '_output' + outputIndex + '_container';
+				$(id).css('display', 'block');
+				html = '<div class="inputSubOutputWrapper"><span class="inputDescription">Current type:<br>' + inputData.shortDescription + ' ' + outputData.description + '</span>';
+				html += '<button id="' + parentId + '_' + inputChannelId + '_rebindButton" class="rebindButton">Change</button></div>';
+				$(id).append(html);
+				$('#' + parentId + '_' + inputChannelId + '_rebindButton').button().click(function(e){
+					var parts = this.id.split('_');
+					showRebindDialog(parts[0], parts[1], parts[2]);
+				});
+			}
+		});
+	}
 
 }
 

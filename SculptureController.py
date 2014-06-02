@@ -140,3 +140,5 @@ class SculptureController():
 	def setSafeMode(self, value):
 		safeMode.set(value)
 
+	def updateSerialConnection(self, *args):
+		return self.dataChannelManager.updateSerialConnection(*args)

@@ -39,16 +39,21 @@ class DataChannelManager():
 			adaptorConfig['adaptorId'] = adaptorId
 			adaptorClassName = adaptorConfig['type'][0].upper() + adaptorConfig['type'][1:] + 'Adaptor'
 			adaptorClass = getattr(adaptorModules, adaptorClassName)
-			self.adaptors[adaptorId] = DataChannelManager.AdaptorThread(adaptorClass(adaptorConfig))
-			self.adaptors[adaptorId].start()
+			self.adaptors[adaptorId] = adaptorClass(adaptorConfig)
+			# self.adaptors[adaptorId] = DataChannelManager.AdaptorThread(adaptorClass(adaptorConfig))
+			# self.adaptors[adaptorId].start()
 		for moduleId in sculptureConfigData['modules']:
 			moduleConfig = sculptureConfigData['modules'][moduleId]
 			protocolClassName = moduleConfig['protocol']['type'][0].upper() + moduleConfig['protocol']['type'][1:] + 'Protocol'
 			protocolClass = getattr(protocolModules, protocolClassName)
 			self.dataChannels[moduleId] = protocolClass(self.adaptors[moduleConfig['adaptor']], moduleConfig['protocol']['mapping'])
 	def send(self, moduleId, data):
-		self.dataChannels[moduleId].send(data)
+		return self.dataChannels[moduleId].send(data)
 		
 	def stop(self):
 		for adaptorId in self.adaptors:
 			self.adaptors[adaptorId].stop()
+			
+	def updateSerialConnection(self, adaptorId, data):
+		return self.adaptors[adaptorId].updateSerialConnection(data)
+	

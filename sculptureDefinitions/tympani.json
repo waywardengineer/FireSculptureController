@@ -43,18 +43,32 @@
           "descriptionInPattern" : "Color List",
           "type" : "text",
           "subType" : "choice",
+          "nonChangeable" : true,
           "choices" : {
-            "0" : "Devilish Color",
-            "1" : "Minty Color"
+            "0" : "Devilish", 
+            "1" : "Minty", 
+            "2" : "Fire", 
+            "3" : "Ocean", 
+            "4" : "Cruise", 
+            "5" : "Slow red", 
+            "6" : "Flamey purple", 
+            "7" : "Rave bow", 
+            "8" : "Glitter", 
+            "9" : "White blink"
           }
         },
         "propigationList" : {
           "descriptionInPattern" : "Propigation style",
           "type" : "text",
           "subType" : "choice",
+          "nonChangeable" : true,
           "choices" : {
             "0" : "Slow",
-            "1" : "Bloom"
+            "1" : "Bloom",
+            "2" : "Sync",
+            "3" : "Reverse",
+            "4" : "In Order"
+            
           }
         },
         "flash" : {

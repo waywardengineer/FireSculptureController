@@ -17,7 +17,8 @@ class ProtocolBase():
 	def send(self, data):
 		for command in data:
 			self.dataCache += self.formatData(command[0], command[1])
-		self.transmitData()
+		if self.dataCache:
+			self.transmitData()
 
 class FlgRelayProtocol(ProtocolBase): #Poofer relay boards used on Serpent, Angel, Tympani, Mutopia
 	def formatData(self, addr, data):   

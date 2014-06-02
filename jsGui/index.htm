@@ -44,6 +44,17 @@
         {{/for}}
       </ul>
       <div id="main_module">
+        <div id="adaptors" style="margin:0px 0px 15px 0px" class="serialAdaptorInput ui-widget ui-widget-content ui-corner-all">
+          {{for serialAdaptors}}
+            <span style="text-align:center; display:inline-block; width:100px; font-weight:bold" class="serialAdaptorInput ui-widget ui-widget-content ui-corner-all ui-state-active">{{>adaptorId}}</span>
+            <label for="{{>adaptorId}}Baudrate" class="serialAdaptorInputLabel">Baudrate</label>
+            <input id="{{>adaptorId}}Baudrate" value="{{>baudrate}}" class="serialAdaptorInput ui-widget ui-widget-content ui-corner-all ui-state-active">
+            <label for="{{>adaptorId}}Ports" class="serialAdaptorInputLabel">Ports(separated by space)</label>
+            <input id="{{>adaptorId}}Ports" value="{{>ports}}" class="serialAdaptorInput ui-widget ui-widget-content ui-corner-all ui-state-active">
+            <button class="serialAdaptorUpdateButton" id="{{>adaptorId}}_UpdateButton">Change</button>
+            <br>
+          {{/for}}
+        </div>
         <button id="addGlobalInputButton">Add new input</button>
         <div id="globalInputs" class="accordion">
           {{for globalInputs}}
@@ -101,7 +112,7 @@
   </select>
 </script>
 <script id="inputOnlyModuleTemplate" type="text/x-jsrender">
-  <div id="{{>moduleId}}_inputs" class="ui-widget ui-widget-content ui-corner-all">
+  <div id="{{>moduleId}}_inputs" class="ui-widget ui-widget-content ui-corner-all" style="height:500px;">
   </div>
 </script>
 
