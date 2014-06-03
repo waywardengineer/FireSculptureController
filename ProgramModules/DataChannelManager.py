@@ -56,4 +56,9 @@ class DataChannelManager():
 			
 	def updateSerialConnection(self, adaptorId, data):
 		return self.adaptors[adaptorId].updateSerialConnection(data)
+
+
+	def getCurrentStateData(self):
+		return {adaptorId : self.adaptors[adaptorId].getCurrentStateData() for adaptorId in self.adaptors}
+			
 	

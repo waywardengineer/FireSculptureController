@@ -65,7 +65,7 @@ inputParams = {
 	'AudioPulseInput' : {
 		'longDescription' : 'Audio responsive pulse input',
 		'shortDescription' : 'Audio Pulse',
-		'inputs' : [{'type' : 'value', 'description' : 'Sensitivity', 'default' : 1000, 'min' : 1000, 'max' : 10000}],
+		'inputs' : [{'type' : 'value', 'description' : 'Threshold', 'default' : 1000, 'min' : 1000, 'max' : 10000}],
 		'outputs' : [{'type' : 'pulse', 'sendMessageOnChange' : True}]
 	},
 	'BasicMultiInput' : {

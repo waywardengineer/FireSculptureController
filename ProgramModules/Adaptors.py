@@ -39,4 +39,12 @@ class SerialAdaptor():
 		
 	def stop(self):
 		self.connection = False
+		
+	def getCurrentStateData(self):
+		data = self.configData.copy()
+		if self.connection:
+			data['connected'] = True
+		else:
+			data['connected'] = False
+		return data
 			

@@ -10,7 +10,13 @@ Python libraries:
   Sculpture engine:
     pyserial for talking to sculptures over serial
    
-  server for js GUI:
+  Server for js GUI:
     gevent
     greenlet
     flask
+
+  Audio pulse:
+    pyaudio
+    
+  OSC server:
+    pyOSC

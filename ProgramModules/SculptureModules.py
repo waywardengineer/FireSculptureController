@@ -85,9 +85,6 @@ class GridPatternModule(SculptureModuleBase):
 		return self.patterns[patternInstanceId].changeInputBinding(*args)
 
 
-	def getCurrentOutputState(self):
-		return self.currentOutputState
-
 class PooferModule(GridPatternModule):
 	def __init__ (self, *args):
 		GridPatternModule.__init__ (self, *args)
