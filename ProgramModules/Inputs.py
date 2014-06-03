@@ -337,6 +337,9 @@ class InputOutputParam():
 		self.timer = False
 		self.constrainValueFunction = getattr(self, utils.makeCamelCase(['constrain', self.params['subType'], self.params['type']]))
 		self.value = self.constrainValueFunction(self.params['default'])
+		if self.params['sendMessageOnChange']:
+			appMessenger.setQueuing("output%s_%s" %(self.parentId, self.indexId), False)
+		
 	def getValue(self):
 		return self.value
 	def setValue(self, newValue):

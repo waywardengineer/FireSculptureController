@@ -6,28 +6,28 @@ from threading import Thread, Event
 
 class DataChannelManager():
 	class AdaptorThread(Thread):
-		def __init__(self, adaptorObj):
+		def __init__(self, adaptor):
 			Thread.__init__(self)
-			self.adaptorObj = adaptorObj
-			self.data = False
+			self.adaptor = adaptor
+			self.data = ''
 			self.stopEvent = Event()
 		
 		def run(self):
 			while not self.stopEvent.isSet():
-				if self.data:
-					self.adaptorObj.transmitData(self.data)
-					self.data = False
+				if not self.data == '':
+					self.adaptor.transmitData(self.data)
+					self.data = ''
 		
 		def transmitData(self, data):
-			self.data = data
+			self.data += data
 			return True
-					
-		def stop(self):
-			self.stopEvent.set()
-			
-		def connect(self):
-			return self.adaptorObj.connect()
 		
+		def __getattr__(self, attr):
+			return getattr(self.adaptor, attr)
+
+		def stop(self):
+			self.adaptor.stop()
+			self.stopEvent.set()
 		
 	def __init__(self, sculptureConfigData):
 		self.adaptors = {}
@@ -39,9 +39,9 @@ class DataChannelManager():
 			adaptorConfig['adaptorId'] = adaptorId
 			adaptorClassName = adaptorConfig['type'][0].upper() + adaptorConfig['type'][1:] + 'Adaptor'
 			adaptorClass = getattr(adaptorModules, adaptorClassName)
-			self.adaptors[adaptorId] = adaptorClass(adaptorConfig)
-			# self.adaptors[adaptorId] = DataChannelManager.AdaptorThread(adaptorClass(adaptorConfig))
-			# self.adaptors[adaptorId].start()
+			# self.adaptors[adaptorId] = adaptorClass(adaptorConfig)
+			self.adaptors[adaptorId] = DataChannelManager.AdaptorThread(adaptorClass(adaptorConfig))
+			self.adaptors[adaptorId].start()
 		for moduleId in sculptureConfigData['modules']:
 			moduleConfig = sculptureConfigData['modules'][moduleId]
 			protocolClassName = moduleConfig['protocol']['type'][0].upper() + moduleConfig['protocol']['type'][1:] + 'Protocol'

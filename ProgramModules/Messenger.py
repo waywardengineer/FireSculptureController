@@ -13,7 +13,10 @@ class Messenger():
 
 	def putMessage(self, channelId, message):
 		self.checkForChannel(channelId)
-		self.channels[channelId]['messages'].append(message)
+		if self.channels[channelId]['queueMessages']:
+			self.channels[channelId]['messages'].append(message)
+		else:
+			self.channels[channelId]['messages'] = [message]
 		for bindingId in self.channels[channelId]['bindings']:
 			function = self.channels[channelId]['bindings'][bindingId]['function']
 			data = self.channels[channelId]['bindings'][bindingId]['data']
@@ -47,7 +50,11 @@ class Messenger():
 
 	def checkForChannel(self, channelId):
 		if not channelId in self.channels.keys():
-			self.channels[channelId] = {'messages' : [], 'bindings' : {}}
+			self.channels[channelId] = {'messages' : [], 'bindings' : {}, 'queueMessages' : True}
+			
+	def setQueuing(self, channelId, value):
+		self.checkForChannel(channelId)
+		self.channels[channelId]['queueMessages'] = value
 
 	def doReset(self):
 		self.channels = {}
