@@ -23,7 +23,7 @@ body{
  height:100px;
  width:100px;
  margin:0px 10px 0px 10px;
- padding:10px 0px 0px 0px;
+ padding:0px;
  float:left;
 }
 .choiceInputItemLabel{
@@ -37,13 +37,16 @@ body{
   
 }
 .inputOutputWrapper{
-  margin: 100px 0px 10px 0px;
+  margin: 120px 0px 10px 0px;
   clear:both;
 }
 .inputSubOutputWrapper{
   width:120px;
-  margin: 0px 0px 10px 0px;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 10px 0px;
   float:left;
+  border-top: 1px solid #87CEEB;
+  background: #1f3036 ; 
 }
 .descriptionText{
   color: #87CEEB;

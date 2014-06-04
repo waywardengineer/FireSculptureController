@@ -88,7 +88,7 @@ def subscribe():
 # sculpture.doCommand(["changePatternInputBinding","poofers","poofersPattern0","poofButton",2,0])
 
 if __name__ == '__main__':
-	app.debug = False #wsgi's debugging isn't that useful for this 
+	app.debug = True #wsgi's debugging isn't that useful for this 
 	server = WSGIServer(("", 80), app)
 	try:
 		server.serve_forever()

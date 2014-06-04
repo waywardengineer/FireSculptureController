@@ -20,25 +20,25 @@ class InputManager():
 	def buildInputCollection(self, parentObj, inputParams, patternId):
 		inputDict = {}
 		channelsBoundToMulti = []
-		for inputChannelId in inputParams:
+		for inputChannelId in inputParams: #handle multi channels first
 			if inputParams[inputChannelId]['type'] == 'multi':
 				newInputInstanceId = self.createNewInput(inputParams[inputChannelId].copy())
-				if 'channels' in inputParams[inputChannelId].keys():
+				if 'channels' in inputParams[inputChannelId].keys(): #multi input that assigned to several non-multi channels
 					for i in range(len(inputParams[inputChannelId]['channels'])):
 						self.registerAndGetInput(patternId, newInputInstanceId, inputParams[inputChannelId]['channels'][i])
-						inputDict[inputParams[inputChannelId]['channels'][i]] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outputIndexOfInput' : i}
+						inputDict[inputParams[inputChannelId]['channels'][i]] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outParamIndex' : i}
 					channelsBoundToMulti += inputParams[inputChannelId]['channels']
-				else:
+				else:# multi input that is assigned to multi channel
 					inputObj = self.registerAndGetInput(patternId, newInputInstanceId, inputChannelId)
-					inputDict[inputChannelId] = {'inputObj' : inputObj, 'outputIndexOfInput' : [i for i in range(len(inputObj.getCurrentStateData()['outputs']))]}
-		for inputChannelId in inputParams:
+					inputDict[inputChannelId] = {'inputObj' : inputObj, 'outParamIndex' : [i for i in range(len(inputObj.getCurrentStateData()['outputs']))]}
+		for inputChannelId in inputParams: #single channels
 			if not (inputParams[inputChannelId]['type'] == 'multi' or inputChannelId in channelsBoundToMulti):
 				newInputInstanceId = self.createNewInput(inputParams[inputChannelId].copy())
-				if 'outputIndexOfInput' in inputParams[inputChannelId].keys():
-					outputIndexOfInput = inputParams[inputChannelId][outputIndexOfInput]
+				if 'outParamIndex' in inputParams[inputChannelId].keys():
+					outParamIndex = inputParams[inputChannelId][outParamIndex]
 				else:
-					outputIndexOfInput = 0
-				inputDict[inputChannelId] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outputIndexOfInput' : outputIndexOfInput}
+					outParamIndex = 0
+				inputDict[inputChannelId] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outParamIndex' : outParamIndex}
 				self.registerAndGetInput(patternId, newInputInstanceId, inputChannelId)
 		return InputCollection(parentObj, self, inputDict, inputParams)
 
@@ -86,7 +86,7 @@ class InputManager():
 	def getInputObj(self, inputInstanceId):
 		return self.inputInstances[inputInstanceId]
 
-class InputCollection(object):
+class InputCollection(object): #a package of all the inputs used by a module or pattern instance
 	def __init__(self, parentObj, inputManager, inputCollection, inputParams):
 		self.inputCollection = inputCollection
 		self.inputParams = inputParams
@@ -96,56 +96,56 @@ class InputCollection(object):
 		for inputChannelId in inputParams:
 			self.addMessengerBindingsIfNeeded(inputChannelId)
 
-	def __getattr__(self, patternInputId):
-		if isinstance(self.inputCollection[patternInputId]['outputIndexOfInput'], list):
-			return self.inputCollection[patternInputId]['inputObj'].getValue
+	def __getattr__(self, inputChannelId):
+		if isinstance(self.inputCollection[inputChannelId]['outParamIndex'], list):
+			return self.inputCollection[inputChannelId]['inputObj'].getValue
 		else:
-			return self.inputCollection[patternInputId]['inputObj'].getValue(self.inputCollection[patternInputId]['outputIndexOfInput'])
+			return self.inputCollection[inputChannelId]['inputObj'].getValue(self.inputCollection[inputChannelId]['outParamIndex'])
 
-	def getBinding(self, patternInputId):
-		return [self.inputCollection[patternInputId]['inputObj'].getId(), self.inputCollection[patternInputId]['outputIndexOfInput']]
+	def getInputAssignment(self, inputChannelId):
+		return [self.inputCollection[inputChannelId]['inputObj'].getId(), self.inputCollection[inputChannelId]['outParamIndex']]
 		
 	def doCommand(self, args):
 		function = getattr(self.inputCollection[args.pop(0)]['inputObj'], args.pop(0))
 		return function(*args)
 	
-	def replaceInput (self, patternInputId, inputInstanceId, outputIndexOfInput = 0):
-		inputObj = self.inputManager.registerAndGetInput(self.parentObj.getId(), inputInstanceId, patternInputId)
-		self.inputCollection[patternInputId]['inputObj'] = inputObj
-		self.inputCollection[patternInputId]['outputIndexOfInput'] = outputIndexOfInput
-		self.removeExistingMessengerBindings(patternInputId)
-		self.addMessengerBindingsIfNeeded(patternInputId)
+	def reassignInput (self, inputChannelId, inputInstanceId, outParamIndex = 0):
+		inputObj = self.inputManager.registerAndGetInput(self.parentObj.getId(), inputInstanceId, inputChannelId)
+		self.inputCollection[inputChannelId]['inputObj'] = inputObj
+		self.inputCollection[inputChannelId]['outParamIndex'] = outParamIndex
+		self.removeExistingMessengerBindings(inputChannelId)
+		self.addMessengerBindingsIfNeeded(inputChannelId)
 
-	def addMessengerBindingsIfNeeded(self, patternInputId):
-		if 'bindToFunction' in self.inputParams[patternInputId].keys():
-			inputBinding = self.getBinding(patternInputId)
-			function = getattr(self.parentObj, self.inputParams[patternInputId]['bindToFunction'])
-			if isinstance(inputBinding[1], list):
-				self.messengerBindingIds[patternInputId] = [appMessenger.addBinding('output%s_%s' %(inputBinding[0], i), function, (patternInputId, i)) for i in range(len(inputBinding[1]))]
+	def addMessengerBindingsIfNeeded(self, inputChannelId):
+		if 'bindToFunction' in self.inputParams[inputChannelId].keys():
+			inputAssignment = self.getInputAssignment(inputChannelId)
+			function = getattr(self.parentObj, self.inputParams[inputChannelId]['bindToFunction'])
+			if isinstance(inputAssignment[1], list):
+				self.messengerBindingIds[inputChannelId] = [appMessenger.addBinding('output%s_%s' %(inputAssignment[0], i), function, (inputChannelId, i)) for i in range(len(inputAssignment[1]))]
 			else:
-				self.messengerBindingIds[patternInputId] = appMessenger.addBinding('output%s_%s' %(inputBinding[0], inputBinding[1]), function, (patternInputId,  inputBinding[1]))
+				self.messengerBindingIds[inputChannelId] = appMessenger.addBinding('output%s_%s' %(inputAssignment[0], inputAssignment[1]), function, (inputChannelId,  inputAssignment[1]))
 
-	def removeExistingMessengerBindings(self, patternInputId):
-		if patternInputId in self.messengerBindingIds.keys():
-			if isinstance(self.messengerBindingIds[patternInputId], list):
-				for messengerBindingId in self.messengerBindingIds[patternInputId]:
+	def removeExistingMessengerBindings(self, inputChannelId):
+		if inputChannelId in self.messengerBindingIds.keys():
+			if isinstance(self.messengerBindingIds[inputChannelId], list):
+				for messengerBindingId in self.messengerBindingIds[inputChannelId]:
 					appMessenger.removeBinding(messengerBindingId)
 			else:
-				appMessenger.removeBinding(self.messengerBindingIds[patternInputId])
-			del self.messengerBindingIds[patternInputId]
+				appMessenger.removeBinding(self.messengerBindingIds[inputChannelId])
+			del self.messengerBindingIds[inputChannelId]
 
 	def getCurrentStateData(self):
 		data = {}
-		for patternInputId in self.inputParams:
-			if not('channels' in self.inputParams[patternInputId].keys()):
-				inputBinding = self.getBinding(patternInputId) 
-				data[patternInputId] = {'type' : self.inputParams[patternInputId]['type'], 'inputInstanceId' : inputBinding[0], 'outputIndexOfInput' : inputBinding[1], 'description' : self.inputParams[patternInputId]['descriptionInPattern']}
+		for inputChannelId in self.inputParams:
+			if not('channels' in self.inputParams[inputChannelId].keys()):
+				inputAssignment = self.getInputAssignment(inputChannelId) 
+				data[inputChannelId] = {'type' : self.inputParams[inputChannelId]['type'], 'inputInstanceId' : inputAssignment[0], 'outParamIndex' : inputAssignment[1], 'description' : self.inputParams[inputChannelId]['descriptionInPattern']}
 		return data
 		
 	
 	def stop(self):
-		for patternInputId in self.inputParams:
-			self.removeExistingMessengerBindings(patternInputId)
+		for inputChannelId in self.inputParams:
+			self.removeExistingMessengerBindings(inputChannelId)
 		self.inputManager.unRegisterInput(self.parentObj.getId())
 		self.parentObj = False
 

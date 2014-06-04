@@ -37,16 +37,21 @@ function typesAreCompatible(type1, type2){
 
 }
 
-function showRebindDialog(moduleId, patternInstanceId, patternInputId){
+function showRebindDialog(moduleId, patternInstanceId, inputChannelId){
 	selectData = {'id' : 'inputSelector', 'onChange' : 'onChange = "showInputParamsForm()"', 'options' : [{'description' : 'Select Input', 'value' : 'none'}]};
-	inputChannelType = allSculptureData.currentSculpture.modules[moduleId].patterns[patternInstanceId].inputs[patternInputId].type;
+	if (patternInstanceId){
+		inputChannelType = allSculptureData.modules[moduleId].patterns[patternInstanceId].inputs[inputChannelId].type;
+	}
+	else {
+		inputChannelType = allSculptureData.modules[moduleId].inputs[inputChannelId].type;
+	}
 	$.each(allSculptureData.availableInputTypes[inputChannelType], function(subType, typeData){
 		selectData.options.push({'description' : "(New)" + typeData.longDescription, 'value' : JSON.stringify(['new', inputChannelType, subType])});
 	});
 	if (inputChannelType != 'multi'){
 		$.each(allSculptureData.inputs, function(inputInstanceId, inputData){
 			if ($.inArray(parseInt(inputInstanceId), allSculptureData.globalInputs) > -1){
-				$.each(inputData.outputs, function(outputIndex, outputData){
+				$.each(inputData.outParams, function(outputIndex, outputData){
 					if (typesAreCompatible(outputData.type, inputChannelType) ){
 						selectData.options.push({'description' : "(Running)" + inputData.shortDescription + ' ' + outputData.description, 'value' : JSON.stringify(['running', inputInstanceId , outputIndex])});
 					}
@@ -63,7 +68,7 @@ function showRebindDialog(moduleId, patternInstanceId, patternInputId){
 		modal: true,
 		buttons: {
 			"Update": function() {
-				doNewInputBinding(moduleId, patternInstanceId, patternInputId);
+				doNewInputBinding(moduleId, patternInstanceId, inputChannelId);
 				$(this).dialog("close");
 			},
 			"Cancel": function() {
@@ -102,13 +107,18 @@ function showGlobalInputDialog(){
 	});
 }
 
-function doNewInputBinding(moduleId, patternInstanceId, patternInputId){
+function doNewInputBinding(moduleId, patternInstanceId, inputChannelId){
 	values = JSON.parse($('#inputSelector').val());
 	if (values[0] == 'running'){
-		doCommand(['changePatternInputBinding', moduleId, patternInstanceId, patternInputId, parseInt(values[1]), parseInt(values[2])])
+		if (patternInstanceId){
+			doCommand(['reassignPatternInput', moduleId, patternInstanceId, inputChannelId, parseInt(values[1]), parseInt(values[2])])
+		}
+		else {
+			doCommand(['reassignModuleInput', moduleId, inputChannelId, parseInt(values[1]), parseInt(values[2])])
+		}
 	}
 	else if (values[0] == 'new'){
-		params = {'type' : values[1], 'subType' : values[2], 'inputs' : []}
+		params = {'type' : values[1], 'subType' : values[2], 'inParams' : []}
 		inputTypeData = allSculptureData.availableInputTypes[values[1]][values[2]];
 		if (inputTypeData.initInputData){
 			$.each(inputTypeData.initInputData, function (paramIndex, paramData){
@@ -129,8 +139,8 @@ function doNewInputBinding(moduleId, patternInstanceId, patternInputId){
 				}
 			});
 		}
-		if (inputTypeData.inputs){
-			$.each(inputTypeData.inputs, function (inputIndex, inputData){
+		if (inputTypeData.inParams){
+			$.each(inputTypeData.inParams, function (inputIndex, inputData){
 				configData = {}
 				if (inputData.initInputData){
 					paramsData = inputData.initInputData;
@@ -157,7 +167,7 @@ function doNewInputBinding(moduleId, patternInstanceId, patternInputId){
 					}
 					configData[paramData[2]] = data;
 				});
-				params.inputs.push(configData)
+				params.inParams.push(configData)
 			});
 		}
 		params = $.extend(true, inputTypeData, params);
@@ -166,7 +176,12 @@ function doNewInputBinding(moduleId, patternInstanceId, patternInputId){
 			doCommand(['addGlobalInput', params]);
 		}
 		else {
-			doCommand(['bindPatternToNewInput', moduleId, patternInstanceId, patternInputId, params]);
+			if (patternInstanceId){
+				doCommand(['reassignPatternInputToNew', moduleId, patternInstanceId, inputChannelId, params]);
+			}
+			else {
+				doCommand(['reassignModuleInputToNew', moduleId, inputChannelId, params]);
+			}
 		}
 	}
 }
@@ -191,8 +206,8 @@ function showInputParamsForm(){
 				formFields.push(fieldData);
 			});
 		}
-		if (inputTypeData.inputs){
-			$.each(inputTypeData.inputs, function (inputIndex, inputData){
+		if (inputTypeData.inParams){
+			$.each(inputTypeData.inParams, function (inputIndex, inputData){
 				if (inputData.initInputData){
 					paramsData = inputData.initInputData;
 				}
@@ -233,7 +248,6 @@ function showInputParamsForm(){
 }
 
 
-
 function doInit(){
 	reloadData();
 	serverSentEventStream = new EventSource('/dataStream');
@@ -248,10 +262,10 @@ function setCurrentModuleView(moduleId){
 	if (currentView.activeSections[moduleId]){
 		$('#' + currentView.activeSections[moduleId] + '_heading').click();
 	}
-	else if (allSculptureData.currentSculpture.modules[moduleId].inputs){
+	else if (allSculptureData.modules[moduleId].inputs){
 		hideAllInputs();
 		$('#inputs').detach().appendTo('#' + moduleId + '_inputs');
-		$.each(allSculptureData.currentSculpture.modules[moduleId].inputs, function(inputChannelId, inputData){
+		$.each(allSculptureData.modules[moduleId].inputs, function(inputChannelId, inputData){
 			showInput(moduleId + '_mainInput', inputData, inputChannelId);
 		});
 	}
@@ -267,7 +281,7 @@ function reloadData(){
 }
 
 function buildAll(){
-	if (allSculptureData.currentSculpture){
+	if (allSculptureData.sculptureId){
 		if (currentView.sculptureIsLoaded){
 			$('#logStorage').html($('#logDiv').html());
 		}
@@ -279,7 +293,7 @@ function buildAll(){
 		$.each( allSculptureData.inputs, function( inputInstanceId, inputData ) {
 			buildInputControls(inputInstanceId, inputData);
 		});
-		$.each( allSculptureData.currentSculpture.modules, function( moduleId, moduleData ) {
+		$.each( allSculptureData.modules, function( moduleId, moduleData ) {
 			switch(moduleData.moduleType){
 				case 'Poofer':
 					buildPooferModule(moduleData);
@@ -341,24 +355,24 @@ function buildAll(){
 
 
 function makeSculptureControllerTemplateData(){
-	data = {"sculptureName" : allSculptureData.currentSculpture.sculptureName, "modules" : [], "inputs" : [], "globalInputs" : [], "serialAdaptors" : []};
+	data = {"sculptureName" : allSculptureData.sculptureName, "modules" : [], "inputs" : [], "globalInputs" : [], "serialAdaptors" : []};
 	$.each( allSculptureData.inputs, function( inputInstanceId, inputData ) {
-		templateInputData = {"inputInstanceId" : inputInstanceId, "inputs" : [], "outputs" : []}
-		$.each(inputData.inputs, function(inputIndex){
-			templateInputData.inputs.push({'inputIndex' : inputIndex, 'inputInstanceId' : inputInstanceId});
+		templateInputData = {"inputInstanceId" : inputInstanceId, "inParams" : [], "outParams" : []}
+		$.each(inputData.inParams, function(inputIndex){
+			templateInputData.inParams.push({'inputIndex' : inputIndex, 'inputInstanceId' : inputInstanceId});
 		});
-		$.each(inputData.outputs, function(outputIndex){
-			templateInputData.outputs.push({'outputIndex' : outputIndex, 'inputInstanceId' : inputInstanceId});
+		$.each(inputData.outParams, function(outputIndex){
+			templateInputData.outParams.push({'outputIndex' : outputIndex, 'inputInstanceId' : inputInstanceId});
 		});
 		data.inputs.push(templateInputData);
 	});
-	$.each( allSculptureData.currentSculpture.modules, function( moduleId, moduleData ) {
+	$.each( allSculptureData.modules, function( moduleId, moduleData ) {
 		data.modules.push({"moduleId" : moduleId, "name" : moduleData.name});
 	});
 	$.each(allSculptureData.globalInputs, function (index, inputInstanceId){
 		data.globalInputs.push({'value' : inputInstanceId.toString(), 'name' : allSculptureData.inputs[inputInstanceId].shortDescription})
 	});
-	$.each(allSculptureData.currentSculpture.adaptors, function(adaptorId, adaptorData){
+	$.each(allSculptureData.adaptors, function(adaptorId, adaptorData){
 		if (adaptorData.type=="serial"){
 			data.serialAdaptors.push({'adaptorId' : adaptorId, 'ports' : adaptorData.ports.join(' '), 'baudrate' : adaptorData.baudrate});
 		}
@@ -423,8 +437,8 @@ function buildInputOnlyModule(moduleData){
 }
 
 function buildInputControls(inputInstanceId, inputData){
-	if (inputData.inputs){
-		$.each( inputData.inputs, function( settingIndex, settingData ) {
+	if (inputData.inParams){
+		$.each( inputData.inParams, function( settingIndex, settingData ) {
 			inputId = 'inputInstance' + inputInstanceId + '_input' + settingIndex;
 			templateData = $.extend(true, {}, settingData);
 			templateData['id'] = inputId;
@@ -486,10 +500,10 @@ function showGlobalInput(inputInstanceId){
 	$('#inputs').detach().appendTo('#globalInput_' + inputInstanceId);
 	$('#inputInstance' + inputInstanceId + '_div').css("display", "block");
 	$('#inputInstance' + inputInstanceId + '_description').html(inputData.shortDescription);
-	$.each(inputData.inputs, function(inputIndex){
+	$.each(inputData.inParams, function(inputIndex){
 		$('#inputInstance' + inputData.instanceId + '_input' + inputIndex + '_outerContainer').css('display', 'block');
 	});
-	$.each(inputData.outputs, function(outputIndex, outputData){
+	$.each(inputData.outParams, function(outputIndex, outputData){
 		id = '#inputInstance' + inputData.instanceId + '_output' + outputIndex + '_container';
 		$(id).html('<span class="descriptionText">' + outputData.description + '</span>');
 		$(id).css('display', 'block');
@@ -501,10 +515,10 @@ function hideAllInputs(){
 	$.each(allSculptureData.inputs, function(inputInstanceId, inputData){
 		$('#inputInstance' + inputInstanceId + '_div').css("display", "none");
 		$('#inputInstance' + inputInstanceId + '_outputs').html('');
-		$.each(inputData.inputs, function(inputIndex){
+		$.each(inputData.inParams, function(inputIndex){
 			$('#inputInstance' + inputData.instanceId + '_input' + inputIndex + '_outerContainer').css('display', 'none');
 		});
-		$.each(inputData.outputs, function(outputIndex){
+		$.each(inputData.outParams, function(outputIndex){
 			id = '#inputInstance' + inputData.instanceId + '_output' + outputIndex + '_container';
 			$(id).css('display', 'none');
 			$(id).html('');
@@ -526,14 +540,14 @@ function showInput(parentId, parentConfigData, inputChannelId){
 	else {
 		$('#' + idPrefix + 'description').html(parentConfigData.description);
 	}
-	$.each(inputData.inputs, function(inputIndex, inputInputData){
-		if (parentConfigData.type=='multi' || inputData.type != 'multi' || $.inArray(parentConfigData.outputIndexOfInput, inputInputData.relevance) > -1){
+	$.each(inputData.inParams, function(inputIndex, inputInputData){
+		if (parentConfigData.type=='multi' || inputData.type != 'multi' || $.inArray(parentConfigData.outParamIndex, inputInputData.relevance) > -1){
 			$('#inputInstance' + inputData.instanceId + '_input' + inputIndex + '_outerContainer').css('display', 'block');
 		}
 	});
 	if (!inputData.nonChangeable){
-		$.each(inputData.outputs, function(outputIndex, outputData){
-			if (parentConfigData.type!='multi' && outputIndex == parentConfigData.outputIndexOfInput){
+		$.each(inputData.outParams, function(outputIndex, outputData){
+			if (parentConfigData.type!='multi' && outputIndex == parentConfigData.outParamIndex){
 				id = '#inputInstance' + inputData.instanceId + '_output' + outputIndex + '_container';
 				$(id).css('display', 'block');
 				html = '<div class="inputSubOutputWrapper"><span class="inputDescription">Current type:<br>' + inputData.shortDescription + ' ' + outputData.description + '</span>';
@@ -541,7 +555,7 @@ function showInput(parentId, parentConfigData, inputChannelId){
 				$(id).append(html);
 				$('#' + parentId + '_' + inputChannelId + '_rebindButton').button().click(function(e){
 					var parts = this.id.split('_');
-					showRebindDialog(parts[0], parts[1], parts[2]);
+					showRebindDialog(parts[0], parts[1]=='mainInput'?false:parts[1], parts[2]);
 				});
 			}
 		});
@@ -554,8 +568,8 @@ function showPatternDetails(moduleId, patternInstanceId){
 	hideAllInputs();
 	currentView.activeSections[moduleId] = patternInstanceId
 	$('#inputs').detach().appendTo('#' + moduleId + '_pattern' + patternInstanceId);
-	$.each(allSculptureData.currentSculpture.modules[moduleId].patterns[patternInstanceId].inputs, function(patternInputId, patternInputData){
-		showInput(moduleId + '_' + patternInstanceId, patternInputData, patternInputId);
+	$.each(allSculptureData.modules[moduleId].patterns[patternInstanceId].inputs, function(inputChannelId, patternInputData){
+		showInput(moduleId + '_' + patternInstanceId, patternInputData, inputChannelId);
 	});
 
 }
@@ -580,8 +594,8 @@ function handleCommandResult(result){
 	resultStr = JSON.stringify(result)
 
 	//$('#logDiv').prepend('Result recieved:' + resultStr + '<br>');
-	if ($.inArray(result.command, ['removePattern', 'loadSculpture', 'addPattern', 'changePatternInputBinding', 'bindPatternToNewInput', 'addGlobalInput', 'removeGlobalInput']) > -1){
-		if (allSculptureData.currentSculpture){
+	if ($.inArray(result.command, ['removePattern', 'loadSculpture', 'addPattern', 'reassignPatternInput', 'reassignModuleInput', 'reassignModuleInputToNew', 'reassignPatternInputToNew', 'addGlobalInput', 'removeGlobalInput']) > -1){
+		if (allSculptureData.sculptureId){
 			currentView.sculptureIsLoaded = true;
 		}
 		reloadData();

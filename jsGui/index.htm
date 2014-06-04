@@ -84,14 +84,14 @@
       {{for inputs}}
         <div style="display:none;" id="inputInstance{{>inputInstanceId}}_div" class="ui-widget ui-widget-content ui-corner-all ui-state-active inputOuterWrapper">
           <span class="inputDescription" id="inputInstance{{>inputInstanceId}}_description"></span>
-          {{for inputs}}
+          {{for inParams}}
             <div id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_outerContainer" class="inputControlWrapper">
               <div id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_container" style="position:relative;"></div>
               <span class="inputControlDescription" id="inputInstance{{>inputInstanceId}}_input{{>inputIndex}}_description"></span>
             </div>
           {{/for}}
           <div class="inputOutputWrapper">
-            {{for outputs}}
+            {{for outParams}}
               <div id="inputInstance{{>inputInstanceId}}_output{{>outputIndex}}_container" class="inputSubOutputWrapper">
               </div>
             {{/for}}
@@ -168,7 +168,7 @@
 
 </script>
 <script id="knobTemplate" type="text/x-jsrender">
-  <input id="{{>id}}" value="{{>currentValue}}" data-width="75" data-height="75" data-max="{{>max}}" data-min="{{>min}}" data-skin="tron" class="knob" data-thickness=".2"> 
+  <input id="{{>id}}" value="{{>currentValue}}" data-width="90" data-height="90" data-max="{{>max}}" data-min="{{>min}}" data-skin="tron" data-displayprevious=true class="knob" data-thickness=".25"> 
 </script>
 <script id="checkButtonTemplate" type="text/x-jsrender">
   <input id="{{>id}}" {{>checked}} type="checkbox"><label for="{{>id}}" style="width:75px; height:75px;" class="inputControl"> </label>

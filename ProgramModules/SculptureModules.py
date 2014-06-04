@@ -73,16 +73,16 @@ class GridPatternModule(SculptureModuleBase):
 		self.patterns[patternInstanceId].stop()
 		del self.patterns[patternInstanceId]
 
-	def bindPatternToNewInput(self, patternInstanceId, patternInputId, newPatternParams):
-		return self.changePatternInputBinding(patternInstanceId, patternInputId, self.inputManager.createNewInput(newPatternParams))
+	def reassignPatternInputToNew(self, patternInstanceId, inputChannelId, newPatternParams):
+		return self.reassignPatternInput(patternInstanceId, inputChannelId, self.inputManager.createNewInput(newPatternParams))
 
 	def stop(self):
 		for patternInstanceId in self.patterns:
 			self.patterns[patternInstanceId].stop()
 		self.patterns = {}
 
-	def changePatternInputBinding(self, patternInstanceId, *args): #connect data from an input to a pattern parameter
-		return self.patterns[patternInstanceId].changeInputBinding(*args)
+	def reassignPatternInput(self, patternInstanceId, *args): #connect data from an input to a pattern parameter
+		return self.patterns[patternInstanceId].reassignInput(*args)
 
 
 class PooferModule(GridPatternModule):
@@ -138,5 +138,10 @@ class InputOnlyModule(SculptureModuleBase):
 		
 	def getCurrentStateData(self):
 		return {'inputs' : self.inputs.getCurrentStateData()}
-		
-		
+
+	def reassignModuleInputToNew(self, inputChannelId, inputParams):
+		return self.reassignModuleInput(inputChannelId, self.inputManager.createNewInput(inputParams))
+
+	def reassignModuleInput(self, *args): #connect data from an input to a pattern parameter
+		return self.inputs.reassignInput(*args)
+

@@ -11,8 +11,8 @@ class PatternBase():
 		else:
 			self.inputs = inputManager.buildInputCollection(self, self.inputParams, self.instanceId)
 
-	def changeInputBinding(self, *args):
-		self.inputs.replaceInput(*args)
+	def reassignInput(self, *args):
+		self.inputs.reassignInput(*args)
 
 
 	def stop(self):

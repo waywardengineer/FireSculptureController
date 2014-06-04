@@ -1,17 +1,10 @@
 from copy import deepcopy
 
 def makeCamelCase(parts, doFirstLetter = False):
-	str = ''
 	for i in range(len(parts)):
-		part = parts[i]
-		if len(part) > 0:
-			if i > 0 or doFirstLetter:
-				str += part[0].upper()
-			else:
-				str += part[0].lower()
-		if len(part) > 1:
-			str += part[1:]
-	return str
+		if (i > 0 or doFirstLetter) and len(parts[i]) > 0:
+			parts[i] = ''.join([parts[i][0].upper(), parts[i][1:]])
+	return ''.join(parts)
 
 def multiExtendSettings(*settings):
 	i = len(settings) - 1

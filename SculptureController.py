@@ -107,12 +107,13 @@ class SculptureController():
 	
 	def getCurrentStateData(self, sculptureId = False, moduleId = False, *args): 
 		if self.sculptureConfig:
-			data = {'currentSculpture' : self.sculptureConfig.copy(), 'safeMode' : safeMode.isSet()}
+			data = self.sculptureConfig.copy()
+			data['safeMode'] = safeMode.isSet()
 			for moduleId in self.sculptureConfig['modules']:
-				data['currentSculpture']['modules'][moduleId] = dict(self.sculptureConfig['modules'][moduleId], **self.sculptureModules[moduleId].getCurrentStateData())
+				data['modules'][moduleId] = dict(self.sculptureConfig['modules'][moduleId], **self.sculptureModules[moduleId].getCurrentStateData())
 			data = dict(data, **self.inputManager.getCurrentStateData())
 			data['appMessenger'] = appMessenger.getCurrentStateData()
-			data['currentSculpture']['adaptors'] = self.dataChannelManager.getCurrentStateData()
+			data['adaptors'] = self.dataChannelManager.getCurrentStateData()
 		else:
 			data = {'sculptures' : {}}
 			for sculptureId in self.sculptureDefinitions:
