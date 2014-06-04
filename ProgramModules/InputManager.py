@@ -17,7 +17,7 @@ class InputManager():
 				if not ('unavailable' in self.inputModules.inputParams[className].keys()):
 					self.availableInputTypes[inputType][subType] = self.inputModules.inputParams[className]
 
-	def buildInputCollection(self, parentObj, inputParams, patternId):
+	def buildInputCollection(self, parentObj, inputParams):
 		inputDict = {}
 		channelsBoundToMulti = []
 		for inputChannelId in inputParams: #handle multi channels first
@@ -25,12 +25,12 @@ class InputManager():
 				newInputInstanceId = self.createNewInput(inputParams[inputChannelId].copy())
 				if 'channels' in inputParams[inputChannelId].keys(): #multi input that assigned to several non-multi channels
 					for i in range(len(inputParams[inputChannelId]['channels'])):
-						self.registerAndGetInput(patternId, newInputInstanceId, inputParams[inputChannelId]['channels'][i])
+						self.registerAndGetInput(parentObj.getId(), newInputInstanceId, inputParams[inputChannelId]['channels'][i])
 						inputDict[inputParams[inputChannelId]['channels'][i]] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outParamIndex' : i}
 					channelsBoundToMulti += inputParams[inputChannelId]['channels']
 				else:# multi input that is assigned to multi channel
-					inputObj = self.registerAndGetInput(patternId, newInputInstanceId, inputChannelId)
-					inputDict[inputChannelId] = {'inputObj' : inputObj, 'outParamIndex' : [i for i in range(len(inputObj.getCurrentStateData()['outputs']))]}
+					inputObj = self.registerAndGetInput(parentObj.getId(), newInputInstanceId, inputChannelId)
+					inputDict[inputChannelId] = {'inputObj' : inputObj, 'outParamIndex' : [i for i in range(len(inputObj.getCurrentStateData()['outParams']))]}
 		for inputChannelId in inputParams: #single channels
 			if not (inputParams[inputChannelId]['type'] == 'multi' or inputChannelId in channelsBoundToMulti):
 				newInputInstanceId = self.createNewInput(inputParams[inputChannelId].copy())
@@ -39,7 +39,7 @@ class InputManager():
 				else:
 					outParamIndex = 0
 				inputDict[inputChannelId] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outParamIndex' : outParamIndex}
-				self.registerAndGetInput(patternId, newInputInstanceId, inputChannelId)
+				self.registerAndGetInput(parentObj.getId(), newInputInstanceId, inputChannelId)
 		return InputCollection(parentObj, self, inputDict, inputParams)
 
 	def createNewInput(self, params):

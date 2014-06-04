@@ -103,13 +103,13 @@
 </script>
 
 <script id="sculptureChooserTemplate" type="text/x-jsrender">
-  <h1>Choose Sculpture</h1>
-  <select id="sculptureChooser" onChange="changeSculpture()" size="10">
-    <option value="none">None</option>
-    {{for sculptures}}
-      <option value="{{>sculptureId}}">{{>sculptureName}}</option>
-    {{/for}}
-  </select>
+  <span class="ui-widget-content ui-corner-all sculptureHeading">Choose Sculpture</span>
+  <div style="clear:both;">
+  {{for sculptures}}
+    <br>
+    <button class="sculptureChoice" id="{{>sculptureId}}_button" style="margin:10px 0px 0px 20px">{{>sculptureName}}</button>
+  {{/for}}
+  </div>
 </script>
 <script id="inputOnlyModuleTemplate" type="text/x-jsrender">
   <div id="{{>moduleId}}_inputs" class="ui-widget ui-widget-content ui-corner-all" style="height:500px;">

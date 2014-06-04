@@ -9,7 +9,7 @@ class PatternBase():
 		except:
 			self.inputs = False
 		else:
-			self.inputs = inputManager.buildInputCollection(self, self.inputParams, self.instanceId)
+			self.inputs = inputManager.buildInputCollection(self, self.inputParams)
 
 	def reassignInput(self, *args):
 		self.inputs.reassignInput(*args)

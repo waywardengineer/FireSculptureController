@@ -347,8 +347,10 @@ function buildAll(){
 		$.each(allSculptureData['sculptures'], function(sculptureId, sculptureData) {
 			data.sculptures.push({"sculptureId" : sculptureId, "sculptureName" : sculptureData.sculptureName});
 		});
-		$('#mainDiv').append($('#sculptureChooserTemplate').render(data));
-		$('#sculptureChooser').menu();
+		$('#mainDiv').html($('#sculptureChooserTemplate').render(data));
+		$('.sculptureChoice').button().click(function(){
+			doCommand(['loadSculpture', this.id.split('_')[0]]);
+		});
 	}
 	$('#mainDiv').css('height', $(window).height() * 0.88 + 'px');
 }
@@ -573,11 +575,6 @@ function showPatternDetails(moduleId, patternInstanceId){
 	});
 
 }
-function changeSculpture(){
-	if ($('#sculptureChooser').val() != 'none'){
-		doCommand(['loadSculpture', $('#sculptureChooser').val()]);
-	}
-}
 function doCommand(command){
 	commandStr = JSON.stringify(command)
 	$('#logDiv').prepend('Command sent:' + commandStr + '<br>');
@@ -594,7 +591,7 @@ function handleCommandResult(result){
 	resultStr = JSON.stringify(result)
 
 	//$('#logDiv').prepend('Result recieved:' + resultStr + '<br>');
-	if ($.inArray(result.command, ['removePattern', 'loadSculpture', 'addPattern', 'reassignPatternInput', 'reassignModuleInput', 'reassignModuleInputToNew', 'reassignPatternInputToNew', 'addGlobalInput', 'removeGlobalInput']) > -1){
+	if ($.inArray(result.command, ['setSafeMode', 'setInputValue', 'toggleRowSelection', 'updateSerialConnection']) == -1){
 		if (allSculptureData.sculptureId){
 			currentView.sculptureIsLoaded = true;
 		}

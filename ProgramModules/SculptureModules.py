@@ -122,19 +122,16 @@ class PooferModule(GridPatternModule):
 class InputOnlyModule(SculptureModuleBase):
 	def __init__ (self, *args):
 		SculptureModuleBase.__init__ (self, *args)
-		for inputId in self.moduleConfig['inputs']:
-			self.moduleConfig['inputs'][inputId]['sendMessageOnChange'] = True
-			self.moduleConfig['inputs'][inputId]['bindToFunction'] = 'updateValue'
-		self.inputs = self.inputManager.buildInputCollection(self, self.moduleConfig['inputs'], self.getId())
+		for inputChannelId in self.moduleConfig['inputs']:
+			self.moduleConfig['inputs'][inputChannelId]['sendMessageOnChange'] = True
+			self.moduleConfig['inputs'][inputChannelId]['bindToFunction'] = 'updateValue'
+		self.inputs = self.inputManager.buildInputCollection(self, self.moduleConfig['inputs'])
 
 	def updateValue(self, inputChannelId, inputIndex):
 		self.dataChannelManager.send(self.moduleConfig['moduleId'], [[inputChannelId, getattr(self.inputs, inputChannelId)]])
 		
 	def stop(self):
 		self.inputs.stop()
-		
-	def getCurrentOutputState(self):
-		pass
 		
 	def getCurrentStateData(self):
 		return {'inputs' : self.inputs.getCurrentStateData()}

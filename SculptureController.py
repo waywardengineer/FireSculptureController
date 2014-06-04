@@ -2,6 +2,7 @@ import json
 import os
 import inspect
 import time
+from copy import deepcopy
 
 from ProgramModules.DataChannelManager import DataChannelManager
 from ProgramModules.InputManager import InputManager
@@ -78,7 +79,7 @@ class SculptureController():
 
 	def loadSculpture(self, sculptureId):
 		self.doReset()
-		self.sculptureConfig = self.sculptureDefinitions[sculptureId]
+		self.sculptureConfig = deepcopy(self.sculptureDefinitions[sculptureId])
 		self.dataChannelManager = DataChannelManager(self.sculptureConfig)
 		self.inputManager = InputManager(self.dataChannelManager)
 		self.currentSculptureId = sculptureId
