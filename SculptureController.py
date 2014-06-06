@@ -6,8 +6,9 @@ from copy import deepcopy
 
 from ProgramModules.DataChannelManager import DataChannelManager
 from ProgramModules.InputManager import InputManager
-from ProgramModules import Inputs, utils, SculptureModules
+from ProgramModules import utils, SculptureModules
 from ProgramModules.Messenger import Messenger
+import Inputs
 
 class SafeModeController():
 	def __init__(self):
@@ -40,7 +41,7 @@ class SculptureController():
 		self.dataChannelManager = False
 		self.availableGlobalInputs = []
 		for inputType in [['multi', 'osc'], ['pulse', 'audio'], ['multi', 'basic']]:
-			if not 'unavailable' in Inputs.inputParams[utils.makeCamelCase([inputType[1], inputType[0], 'input'], True)].keys():
+			if not 'unavailable' in Inputs.inputTypes[' '.join([inputType[1], inputType[0]])].keys():
 				self.availableGlobalInputs.append(inputType)
 		for definitionFileName in os.listdir(definitionFileDirectory):
 			try:

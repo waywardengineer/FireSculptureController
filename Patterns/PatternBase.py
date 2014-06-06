@@ -1,7 +1,7 @@
 class PatternBase():
 	def __init__ (self, inputManager, gridSize, instanceId):
 		self.gridSize = gridSize
-		self.updateTriggerFunction = False
+		self.requestUpdate = False
 		self.patternName = ''
 		self.instanceId = instanceId
 		try:
@@ -17,7 +17,7 @@ class PatternBase():
 
 	def stop(self):
 		self.inputs.stop()
-		self.updateTriggerFunction = False
+		self.requestUpdate = False
 		self.inputs = False
 
 
@@ -25,8 +25,8 @@ class PatternBase():
 		return({'name' : self.patternName, 'inputs' : self.inputs.getCurrentStateData()})
 	
 
-	def bindUpdateTrigger(self, function):
-		self.updateTriggerFunction = function
+	def setUpdateFunction(self, function):
+		self.requestUpdate = function
 
 
 	def getId(self):

@@ -120,8 +120,8 @@ function doNewInputBinding(moduleId, patternInstanceId, inputChannelId){
 	else if (values[0] == 'new'){
 		params = {'type' : values[1], 'subType' : values[2], 'inParams' : []}
 		inputTypeData = allSculptureData.availableInputTypes[values[1]][values[2]];
-		if (inputTypeData.initInputData){
-			$.each(inputTypeData.initInputData, function (paramIndex, paramData){
+		if (inputTypeData.setupParamsNeeded){
+			$.each(inputTypeData.setupParamsNeeded, function (paramIndex, paramData){
 				formInputId = '#inputDefinitionMainParam' + paramData[2];
 				switch (paramData[0]){
 					case 'text':
@@ -142,8 +142,8 @@ function doNewInputBinding(moduleId, patternInstanceId, inputChannelId){
 		if (inputTypeData.inParams){
 			$.each(inputTypeData.inParams, function (inputIndex, inputData){
 				configData = {}
-				if (inputData.initInputData){
-					paramsData = inputData.initInputData;
+				if (inputData.setupParamsNeeded){
+					paramsData = inputData.setupParamsNeeded;
 				}
 				else if (inputData.type == 'value'){
 					paramsData = [['int', 'Minimum', 'min'], ['int', 'Maximum', 'max']]
@@ -171,7 +171,7 @@ function doNewInputBinding(moduleId, patternInstanceId, inputChannelId){
 			});
 		}
 		params = $.extend(true, inputTypeData, params);
-		delete params.initInputData;
+		delete params.setupParamsNeeded;
 		if (moduleId == 'main'){
 			doCommand(['addGlobalInput', params]);
 		}
@@ -191,8 +191,8 @@ function showInputParamsForm(){
 	formFields = [];
 	if (values[0] == 'new'){
 		inputTypeData = allSculptureData.availableInputTypes[values[1]][values[2]];
-		if (inputTypeData.initInputData){
-			$.each(inputTypeData.initInputData, function (paramIndex, paramData){
+		if (inputTypeData.setupParamsNeeded){
+			$.each(inputTypeData.setupParamsNeeded, function (paramIndex, paramData){
 				fieldData = {"id" : "inputDefinitionMainParam" + paramData[2], "label" : paramData[1]}
 				if (paramData[0] == 'text' || paramData[0] == 'textList' || paramData[0] == 'int'){
 					fieldData['input'] = true;
@@ -208,8 +208,8 @@ function showInputParamsForm(){
 		}
 		if (inputTypeData.inParams){
 			$.each(inputTypeData.inParams, function (inputIndex, inputData){
-				if (inputData.initInputData){
-					paramsData = inputData.initInputData;
+				if (inputData.setupParamsNeeded){
+					paramsData = inputData.setupParamsNeeded;
 				}
 				else if (inputData.type == 'value'){
 					paramsData = [['int', 'Minimum', 'min'], ['int', 'Maximum', 'max']]

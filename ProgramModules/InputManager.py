@@ -1,21 +1,21 @@
 ''' Builds collections of input objects based on defaults. Manages uses: Inputs 
 can be used by multiple things, so this keeps track of who's using what and deletes unused inputs'''
 from ProgramModules import utils
+import Inputs
 class InputManager():
 	def __init__ (self, dataChannelManager):
 		self.dataChannelManager = dataChannelManager
-		self.inputModules = __import__('ProgramModules.Inputs')
+		#self.inputModules = __import__('Inputs')
 		self.nextInputInstanceId = 1
 		self.inputInstances = {}
 		self.inputInstanceUses = {}
 		self.availableInputTypes = {}
 		self.inputCollections = {}
-		for inputType in self.inputModules.availableInputTypes:
+		for inputType in Inputs.availableInputTypes:
 			self.availableInputTypes[inputType] = {}
-			for subType in self.inputModules.availableInputTypes[inputType]:
-				className = utils.makeCamelCase([subType, inputType, 'input'], True)
-				if not ('unavailable' in self.inputModules.inputParams[className].keys()):
-					self.availableInputTypes[inputType][subType] = self.inputModules.inputParams[className]
+			for subType in Inputs.availableInputTypes[inputType]:
+				if not ('unavailable' in Inputs.inputTypes[' '.join([subType, inputType]).strip()].keys()):
+					self.availableInputTypes[inputType][subType] = Inputs.inputTypes[' '.join([subType, inputType]).strip()]
 
 	def buildInputCollection(self, parentObj, inputParams):
 		inputDict = {}
@@ -45,10 +45,16 @@ class InputManager():
 	def createNewInput(self, params):
 		newInputInstanceId = self.nextInputInstanceId
 		self.nextInputInstanceId += 1
-		inputClassName = utils.makeCamelCase([params['subType'], params['type'], 'input'], True)
-		if 'unavailable' in self.inputModules.inputParams[inputClassName].keys():
+		inputTypeKey = ' '.join([params['subType'], params['type']]).strip()
+		params = utils.extendSettings(Inputs.inputTypes[inputTypeKey], params)
+		if 'unavailable' in Inputs.inputTypes[inputTypeKey].keys():
 			return False
-		inputClass = getattr(self.inputModules, inputClassName)
+		params['inputTypeKey'] = inputTypeKey
+		if params['hasOwnClass']:
+			inputClassName = utils.makeCamelCase([params['subType'], params['type'], 'input'], True)
+		else:
+			inputClassName = 'InputBase'
+		inputClass = getattr(Inputs, inputClassName)
 		self.inputInstances[newInputInstanceId] = inputClass(params, newInputInstanceId)
 		return newInputInstanceId
 

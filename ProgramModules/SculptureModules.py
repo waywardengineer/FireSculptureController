@@ -70,13 +70,16 @@ class GridPatternModule(SculptureModuleBase):
 		newInstanceId = '%sPattern%s' %(self.moduleConfig['moduleId'], self.nextPatternInstanceId)
 		self.patterns[newInstanceId] = self.availablePatternClasses[patternTypeId](self.inputManager, self.gridSize, newInstanceId)
 		self.patternRowSettings[newInstanceId] = [True for i in range(self.gridSize[0])]
-		self.patterns[newInstanceId].bindUpdateTrigger(getattr(self, "doUpdates"))
+		self.patterns[newInstanceId].setUpdateFunction(self.doUpdates)
 		self.nextPatternInstanceId += 1
 		return newInstanceId
 
 	def removePattern(self, patternInstanceId): #remove a pattern instance from the stack
 		self.patterns[patternInstanceId].stop()
 		del self.patterns[patternInstanceId]
+
+	def reassignPatternInput(self, patternInstanceId, *args): #connect data from an input to a pattern parameter
+		return self.patterns[patternInstanceId].reassignInput(*args)
 
 	def reassignPatternInputToNew(self, patternInstanceId, inputChannelId, newPatternParams):
 		return self.reassignPatternInput(patternInstanceId, inputChannelId, self.inputManager.createNewInput(newPatternParams))
@@ -86,9 +89,6 @@ class GridPatternModule(SculptureModuleBase):
 			self.patterns[patternInstanceId].stop()
 		self.patterns = {}
 		SculptureModuleBase.stop(self)
-
-	def reassignPatternInput(self, patternInstanceId, *args): #connect data from an input to a pattern parameter
-		return self.patterns[patternInstanceId].reassignInput(*args)
 
 
 class PooferModule(GridPatternModule):
@@ -120,8 +120,6 @@ class PooferModule(GridPatternModule):
 					data.append(([row, col], not safeMode.isSet()))
 		self.dataChannelManager.send(self.moduleConfig['moduleId'], data)
 		
-	def stop(self):
-		GridPatternModule.stop(self)
 
 class InputOnlyModule(SculptureModuleBase):
 	def __init__ (self, *args):
