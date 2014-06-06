@@ -46,9 +46,9 @@ class DataChannelManager():
 			moduleConfig = sculptureConfigData['modules'][moduleId]
 			protocolClassName = moduleConfig['protocol']['type'][0].upper() + moduleConfig['protocol']['type'][1:] + 'Protocol'
 			protocolClass = getattr(protocolModules, protocolClassName)
-			self.dataChannels[moduleId] = protocolClass(self.adaptors[moduleConfig['adaptor']], moduleConfig['protocol']['mapping'])
-	def send(self, moduleId, data):
-		return self.dataChannels[moduleId].send(data)
+			self.dataChannels[moduleId] = protocolClass(self.adaptors[moduleConfig['adaptor']], moduleConfig['protocol'])
+	def send(self, moduleId, *args):
+		return self.dataChannels[moduleId].send(*args)
 		
 	def stop(self):
 		for adaptorId in self.adaptors:

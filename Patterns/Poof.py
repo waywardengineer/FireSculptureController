@@ -152,7 +152,7 @@ class RandomPoof(PatternBase):
 		self.poofStates = [[False for i in range(self.gridSize[1])] for i in range(self.gridSize[0])]
 
 	def randomGenerator(self, input, index):
-		self.poofStates[index / self.gridSize[1]][index % self.gridSize[1]] = self.inputs.randomGenerator(index)
+		self.poofStates[index // self.gridSize[1]][index % self.gridSize[1]] = self.inputs.randomGenerator(index)
 		self.updateTriggerFunction()
 
 	def getState(self, row, col):

@@ -20,7 +20,7 @@ function handleDataStreamEvent(data){
 		$.each(data.outputChanged, function(index, outputChangeMessage){
 			$.each(outputChangeMessage.data, function(index, pointData){
 				rowId = outputChangeMessage.moduleId + '_outputView_row' + pointData[0][0];
-				$('#' + rowId + '_col' + pointData[0][1]).prop('checked', pointData[1][0]);
+				$('#' + rowId + '_col' + pointData[0][1]).prop('checked', pointData[1]);
 			});
 		});
 		$('.outputViewRow').buttonset('refresh');

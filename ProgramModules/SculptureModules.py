@@ -8,13 +8,18 @@ import json
 from ProgramModules.Timers import Timer
 class SculptureModuleBase():
 	def __init__ (self, dataChannelManager, inputManager, moduleConfig):
+		self.initialized = False
 		self.dataChannelManager = dataChannelManager
 		self.inputManager = inputManager
 		self.moduleConfig = deepcopy(moduleConfig)
-
+		self.refreshTimer = False
+		if 'resendDataInterval' in self.moduleConfig['protocol'].keys() and self.moduleConfig['protocol']['resendDataInterval']:
+			self.refreshTimer = Timer(True, self.moduleConfig['protocol']['resendDataInterval'], self.resendOnStates)
 
 	def stop(self):
-		pass
+		if self.refreshTimer:
+			self.refreshTimer.stop()
+
 	
 	def doCommand(self, command):
 		functionName = command.pop(0)
@@ -35,7 +40,7 @@ class GridPatternModule(SculptureModuleBase):
 		self.availablePatternNames = []
 		self.patterns = {}
 		self.patternRowSettings = {}
-		self.gridSize = [len(self.moduleConfig['protocol']['mapping']), len(self.moduleConfig['protocol']['mapping'][0])]
+		self.gridSize = [len(self.moduleConfig['protocol']['mapping']), max([len(self.moduleConfig['protocol']['mapping'][i]) for i in range(len(self.moduleConfig['protocol']['mapping']))])]
 		for patternTypeId in self.moduleConfig['patterns']:
 			try:
 				self.availablePatternClasses[patternTypeId] = getattr(patternClasses, patternTypeId)
@@ -80,6 +85,7 @@ class GridPatternModule(SculptureModuleBase):
 		for patternInstanceId in self.patterns:
 			self.patterns[patternInstanceId].stop()
 		self.patterns = {}
+		SculptureModuleBase.stop(self)
 
 	def reassignPatternInput(self, patternInstanceId, *args): #connect data from an input to a pattern parameter
 		return self.patterns[patternInstanceId].reassignInput(*args)
@@ -91,7 +97,6 @@ class PooferModule(GridPatternModule):
 		self.currentOutputState = [[False for j in range(self.gridSize[1])] for i in range(self.gridSize[0])]
 		self.enabledStatus = [[True for j in range(self.gridSize[1])] for i in range(self.gridSize[0])]
 		safeMode.addBinding(self.doUpdates);
-		self.refreshTimer = Timer(True, 400, self.resendOnStates)
 		
 
 	def doUpdates(self): #Check the pattern state and send data out
@@ -102,21 +107,20 @@ class PooferModule(GridPatternModule):
 				for patternId in self.patterns:
 					state = ((not safeMode.isSet()) and self.enabledStatus[row][col]) and (state or (self.patternRowSettings[patternId][row] and self.patterns[patternId].getState(row, col)))
 				if not state == self.currentOutputState[row][col]:
-					data.append([[row, col], [state]])
+					data.append(([row, col], state))
 					self.currentOutputState[row][col] = state
 		self.dataChannelManager.send(self.moduleConfig['moduleId'], data)
 		appMessenger.putMessage('outputChanged', {'moduleId' : self.moduleConfig['moduleId'], 'data' : data})
 		
 	def resendOnStates(self):
 		data = []
-		for row in range(len(self.moduleConfig['protocol']['mapping'])):
+		for row in range(self.gridSize[0]):
 			for col in range(len(self.moduleConfig['protocol']['mapping'][row])):
 				if (self.currentOutputState[row][col]):
-					data.append([[row, col], [not safeMode.isSet()]])
+					data.append(([row, col], not safeMode.isSet()))
 		self.dataChannelManager.send(self.moduleConfig['moduleId'], data)
 		
 	def stop(self):
-		self.refreshTimer.stop()
 		GridPatternModule.stop(self)
 
 class InputOnlyModule(SculptureModuleBase):
@@ -126,12 +130,24 @@ class InputOnlyModule(SculptureModuleBase):
 			self.moduleConfig['inputs'][inputChannelId]['sendMessageOnChange'] = True
 			self.moduleConfig['inputs'][inputChannelId]['bindToFunction'] = 'updateValue'
 		self.inputs = self.inputManager.buildInputCollection(self, self.moduleConfig['inputs'])
+		self.initialized = True
 
 	def updateValue(self, inputChannelId, inputIndex):
-		self.dataChannelManager.send(self.moduleConfig['moduleId'], [[inputChannelId, getattr(self.inputs, inputChannelId)]])
+		self.dataChannelManager.send(self.moduleConfig['moduleId'], [(inputChannelId, getattr(self.inputs, inputChannelId))])
+		
+	def resendOnStates(self):
+		if self.initialized:
+			data = []
+			for inputChannelId in self.moduleConfig['inputs']:
+				value = getattr(self.inputs, inputChannelId)
+				if value:
+					data.append((inputChannelId, value))
+			if data:
+				self.dataChannelManager.send(self.moduleConfig['moduleId'], data)
 		
 	def stop(self):
 		self.inputs.stop()
+		SculptureModuleBase.stop(self)
 		
 	def getCurrentStateData(self):
 		return {'inputs' : self.inputs.getCurrentStateData()}

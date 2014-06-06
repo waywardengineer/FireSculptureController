@@ -77,11 +77,11 @@ def subscribe():
 	return Response(gen(), mimetype="text/event-stream")
 
 # Testing commands
-# sculpture.loadSculpture('tympani')
-# appMessenger.addBinding('outputChanged', sendNewOutputState, ('outputChanged',))
-# appMessenger.addBinding('log', sendNewOutputState, ('log',))
-# sculpture.doCommand(['addPattern', 'poofers', 'AllPoof'])
-# sculpture.doCommand(['addPattern', 'poofers', 'Chase'])
+sculpture.loadSculpture('tympani')
+appMessenger.addBinding('outputChanged', sendNewOutputState, ('outputChanged',))
+appMessenger.addBinding('log', sendNewOutputState, ('log',))
+sculpture.doCommand(['addPattern', 'poofers', 'AllPoof'])
+sculpture.doCommand(['addPattern', 'poofers', 'Chase'])
 # sculpture.doCommand(['addGlobalInput', {'type' : 'pulse', 'subType' : 'audio'}])
 # sculpture.doCommand(['addGlobalInput', {'type' : 'multi', 'subType' : 'randomPulse'}])
 # sculpture.doCommand(['addGlobalInput', {'type' : 'multi', 'subType' : 'basic', 'number' : 5, 'min' : [0, 0, 1, 0,  1], 'max' : [1, 2, 3, 4,  5], 'description' : ['foo', 'bar', 'baz', 'bam', 'boo']}])

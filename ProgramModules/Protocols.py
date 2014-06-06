@@ -7,27 +7,47 @@ depending on type of data
 
 
 class ProtocolBase():
-	def __init__(self, adaptorObj, mapping):
+	def __init__(self, adaptorObj, configParams):
 		self.adaptorObj = adaptorObj
-		self.mapping = mapping
+		self.configParams = configParams
 		self.dataCache = ''
+		self.ignoreSafeMode = False
+		if 'ignoreSafeMode' in self.configParams.keys() and self.configParams['ignoreSafeMode']:
+			self.ignoreSafeMode = True
+		if isinstance(self.configParams['mapping'], dict):
+			self.translateAddr = self.translateDictAddr
+		elif isinstance(self.configParams['mapping'], list):
+			if isinstance(self.configParams['mapping'][0], list):
+				self.translateAddr = self.translateTwoDimensionalListAddr
+			else:
+				self.translateAddr = self.translateOneDimensionalListAddr
 	def transmitData(self):
 		if self.adaptorObj.transmitData(self.dataCache):
 			self.dataCache = ''
 	def send(self, data):
 		for command in data:
-			self.dataCache += self.formatData(command[0], command[1])
+			self.dataCache += self.formatData(self.translateAddr(command[0]), command[1])
 		if self.dataCache:
 			self.transmitData()
 
+	def translateDictAddr(self, addr):
+		return self.configParams['mapping'][addr]
+
+	def translateOneDimensionalListAddr(self, addr):
+		return self.configParams['mapping'][addr]
+
+	def translateTwoDimensionalListAddr(self, addr):
+		return self.configParams['mapping'][addr[0]][addr[1]]
+	 
+
 class FlgRelayProtocol(ProtocolBase): #Poofer relay boards used on Serpent, Angel, Tympani, Mutopia
 	def formatData(self, addr, data):   
-		if (data[0] in [True, '1', 1]) and not safeMode.isSet():
+		if (data in [True, '1', 1]) and ((not safeMode.isSet()) or self.ignoreSafeMode):
 			cmd = '1'
 		else:
 			cmd = '0'
-		return "!%02X%s%s." %(self.mapping[addr[0]][addr[1]][0], self.mapping[addr[0]][addr[1]][1], cmd)
-
+		return "!%02X%s%s." %(addr[0], addr[1], cmd)
+		
 class TympaniLedProtocol(ProtocolBase): #Tympani Mobius Leds
-	def formatData(self, command, value):   
-		return "!%02X%02X%02X." %(self.mapping[command][0], self.mapping[command][1], int(value))
+	def formatData(self, addr, data):   
+		return "!%02X%02X%02X." %(addr[0], addr[1], int(data))
