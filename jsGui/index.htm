@@ -123,8 +123,8 @@
       {{for rows}}
         <div id="{{>moduleId}}_outputView_row{{>rowIndex}}" class="outputViewRow">
           {{for cols}}
-            <input type="checkbox" id="{{>moduleId}}_outputView_row{{>rowIndex}}_col{{>colIndex}}" class="pooferDisplay">
-            <label for="{{>moduleId}}_outputView_row{{>rowIndex}}_col{{>colIndex}}" class="pooferDisplayLabel"></label>
+            <input type="checkbox" id="{{>moduleId}}_{{>rowIndex}}_{{>colIndex}}_outputView" class="pooferDisplay">
+            <label for="{{>moduleId}}_{{>rowIndex}}_{{>colIndex}}_outputView" class="pooferDisplayLabel"></label>
           {{/for}}
         </div>
       {{/for}}

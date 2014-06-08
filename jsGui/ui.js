@@ -19,8 +19,7 @@ function handleDataStreamEvent(data){
 	if (data.outputChanged){
 		$.each(data.outputChanged, function(index, outputChangeMessage){
 			$.each(outputChangeMessage.data, function(index, pointData){
-				rowId = outputChangeMessage.moduleId + '_outputView_row' + pointData[0][0];
-				$('#' + rowId + '_col' + pointData[0][1]).prop('checked', pointData[1]);
+				$('#' + outputChangeMessage.moduleId + '_' + pointData[0][0] + '_' + pointData[0][1] + '_outputView').prop('checked', pointData[1]);
 			});
 		});
 		$('.outputViewRow').buttonset('refresh');
@@ -427,6 +426,10 @@ function buildPooferModule(moduleData){
 		doCommand(['toggleRowSelection', parts[0], parts[1], parseInt(parts[2])]);
 		$('label[for="' + this.id + '"] > .ui-button-text').html('Row ' + parts[2] + ($('#' + this.id).is(":checked")?' Enabled':' Disabled'));
 	});
+	$('#' + moduleId + '_module .pooferDisplay').click(function(){
+		parts = this.id.split('_');
+		doCommand(['setItemState', parts[0], [parseInt(parts[1]), parseInt(parts[2])], true]);
+	});
 	$('#' + moduleId + '_module .enableControl').button().click(function(){
 		parts = this.id.split('_');
 		doCommand(['toggleEnable', parts[0], [parseInt(parts[1]), parseInt(parts[2])]]);
@@ -591,7 +594,7 @@ function handleCommandResult(result){
 	resultStr = JSON.stringify(result)
 
 	//$('#logDiv').prepend('Result recieved:' + resultStr + '<br>');
-	if ($.inArray(result.command, ['setSafeMode', 'setInputValue', 'toggleRowSelection', 'updateSerialConnection']) == -1){
+	if ($.inArray(result.command, ['setSafeMode', 'setInputValue', 'toggleRowSelection', 'updateSerialConnection', 'setItemState']) == -1){
 		if (allSculptureData.sculptureId){
 			currentView.sculptureIsLoaded = true;
 		}

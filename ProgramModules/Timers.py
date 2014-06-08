@@ -10,14 +10,12 @@ class Timer():
 				self.parent.waitEvent.wait(self.parent.interval / 1000.)
 				self.parent.doFunction()
 		
-	def __init__(self, repeating, interval, function, args = False):
-		self.function = function
-		self.repeating = repeating
-		self.args = args
+	def __init__(self, repeating, interval, function, args = False, stopWhenDone = False):
+		self.__dict__.update(locals())
+		del self.self
 		self.stopEvent = Event()
 		self.waitEvent = Event()
 		self.thread = Timer.TimerThread(self)
-		self.interval = interval
 		self.functionQueue = 1
 		self.thread.start()
 
@@ -42,5 +40,7 @@ class Timer():
 				self.function(*self.args)
 			else:
 				self.function()
+			if self.stopWhenDone:
+				self.stop()
 		if self.functionQueue > -1:
 			self.functionQueue -= 1

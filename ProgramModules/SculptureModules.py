@@ -120,6 +120,12 @@ class PooferModule(GridPatternModule):
 					data.append(([row, col], not safeMode.isSet()))
 		self.dataChannelManager.send(self.moduleConfig['moduleId'], data)
 		
+	def setItemState(self, addr, state):
+		state = (not safeMode.isSet()) and state
+		self.currentOutputState[addr[0]][addr[1]] = state
+		appMessenger.putMessage('outputChanged', {'moduleId' : self.moduleConfig['moduleId'], 'data' : [(addr, state)]})
+		if state:
+			Timer(False, 500, self.setItemState, (addr, False), True)
 
 class InputOnlyModule(SculptureModuleBase):
 	def __init__ (self, *args):
