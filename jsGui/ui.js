@@ -432,6 +432,8 @@ function buildPooferModule(moduleData){
 	$('#' + moduleId + '_module .pooferDisplay').click(function(){
 		parts = this.id.split('_');
 		doCommand(['setItemState', parts[0], [parseInt(parts[1]), parseInt(parts[2])], true]);
+		$('#' + this.id).prop('checked', false);
+		$('.outputViewRow').buttonset('refresh');
 	});
 	$('#' + moduleId + '_module .enableControl').button().click(function(){
 		parts = this.id.split('_');
@@ -463,7 +465,7 @@ function buildInputControls(inputInstanceId, inputData){
 						$('#' + inputId + '_container').append($('#choiceTextTemplate').render(templateData));
 						$('#' + inputId + ' .choiceInputItem').button().click(function(){
 							parts = this.id.split('_');
-							doCommand(['setInputValue', parseInt(parts[0]), parts[1]]);
+							doCommand(['setInputValue', parseInt(parts[0]), parts[1], settingIndex]);
 						});
 						$('#' + inputId + '_outerContainer').removeClass('ui-widget-content');
 
@@ -597,7 +599,8 @@ function handleCommandResult(result){
 	resultStr = JSON.stringify(result)
 
 	//$('#logDiv').prepend('Result recieved:' + resultStr + '<br>');
-	if ($.inArray(result.command, ['setSafeMode', 'setInputValue', 'toggleRowSelection', 'updateSerialConnection', 'setItemState']) == -1){
+	minorCommands = ['setSafeMode', 'setInputValue', 'toggleRowSelection', 'updateSerialConnection', 'setItemState', 'toggleEnable'];
+	if ($.inArray(result.command, minorCommands) == -1){
 		if (allSculptureData.sculptureId){
 			currentView.sculptureIsLoaded = true;
 		}

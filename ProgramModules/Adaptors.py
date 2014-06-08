@@ -4,6 +4,9 @@ take the params needed to open the connection, send the already processed data o
 import serial
 from random import randint
 import utils
+
+import ProgramModules.sharedObjects as app
+
 class SerialAdaptor():
 	def __init__ (self, configData):
 		self.configData = configData
@@ -18,7 +21,7 @@ class SerialAdaptor():
 			try:
 				self.connection.write(data)
 			except:
-				appMessenger.putMessage('log', '%s failure sending data' %(self.configData['adaptorId']))
+				app.messenger.putMessage('log', '%s failure sending data' %(self.configData['adaptorId']))
 				success = False
 		return success
 	def connect(self):
@@ -27,10 +30,10 @@ class SerialAdaptor():
 		while (not self.connection) and portIndex < len(self.configData['ports']):
 			try:
 				self.connection = serial.Serial(self.configData['ports'][portIndex], self.configData['baudrate'], timeout=0.1)
-				appMessenger.putMessage('log', '%s connected on %s at baudrate %s' %(self.configData['adaptorId'], self.configData['ports'][portIndex], self.configData['baudrate']))
+				app.messenger.putMessage('log', '%s connected on %s at baudrate %s' %(self.configData['adaptorId'], self.configData['ports'][portIndex], self.configData['baudrate']))
 			except Exception as e:
-				appMessenger.putMessage('log', '%s failed to connect on %s at baudrate %s' %(self.configData['adaptorId'], self.configData['ports'][portIndex], self.configData['baudrate']))
-				appMessenger.putMessage('log', e.message)
+				app.messenger.putMessage('log', '%s failed to connect on %s at baudrate %s' %(self.configData['adaptorId'], self.configData['ports'][portIndex], self.configData['baudrate']))
+				app.messenger.putMessage('log', e.message)
 				portIndex += 1
 				
 	def updateSerialConnection(self, data):

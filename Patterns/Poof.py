@@ -118,6 +118,7 @@ class AllPoof(PatternBase):
 		self.patternName = 'Allpoof'
 		self.timer = Timer(False, self.inputs.stayOnTime, self.turnOff)
 		self.poofState = False
+
 	def poofButton(self, *args):
 		if self.inputs.poofButton:
 			self.timer.changeInterval(self.inputs.stayOnTime)
@@ -137,7 +138,7 @@ class AllPoof(PatternBase):
 		PatternBase.stop(self)
 		
 class RandomPoof(PatternBase):
-	def __init__(self, inputManager, gridSize, *args):
+	def __init__(self, gridSize, *args):
 		self.inputParams = {
 			'randomGenerator' : {
 				'descriptionInPattern' : 'Random generator',
@@ -147,7 +148,7 @@ class RandomPoof(PatternBase):
 				'number' : gridSize[0] * gridSize[1]
 			},
 		}
-		PatternBase.__init__(self, inputManager, gridSize, *args)
+		PatternBase.__init__(self, gridSize, *args)
 		self.patternName = 'Random Poof'
 		self.poofStates = [[False for i in range(self.gridSize[1])] for i in range(self.gridSize[0])]
 

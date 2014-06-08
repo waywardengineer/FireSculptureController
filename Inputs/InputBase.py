@@ -7,11 +7,10 @@ import IoParams
 class InputBase():
 	def __init__(self, configParams, instanceId):
 		self.configParams = utils.multiExtendSettings({'inParams' : [], 'outParams' : [], 'direct' : False}, configParams)
-		inputParamKeys = [key for key in ['min', 'max', 'default', 'description', 'sendMessageOnChange', 'choices'] if key in self.configParams]
-		if inputParamKeys and self.__class__.__name__ not in ['BasicMultiInput']:
-			if len(self.configParams['inParams']) == 0:
-				self.configParams['inParams'].append({})
-			for key in inputParamKeys:
+		possibleInParamKeys = ['min', 'max', 'default', 'description', 'sendMessageOnChange', 'choices']
+		inParamKeys = [key for key in possibleInParamKeys if key in self.configParams]
+		if inParamKeys:
+			for key in inParamKeys:
 				self.configParams['inParams'][0][key] = self.configParams[key]
 				del self.configParams[key]
 		if 'setupParamsNeeded' in self.configParams.keys():

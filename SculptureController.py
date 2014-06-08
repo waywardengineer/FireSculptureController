@@ -7,39 +7,21 @@ from copy import deepcopy
 from ProgramModules.DataChannelManager import DataChannelManager
 from ProgramModules.InputManager import InputManager
 from ProgramModules import utils, SculptureModules
-from ProgramModules.Messenger import Messenger
+import ProgramModules.sharedObjects as app
 import Inputs
 
-class SafeModeController():
-	def __init__(self):
-		self.safeMode = True
-		self.bindings = []
-	def isSet(self):
-		return self.safeMode
-	def set(self, value):
-		self.safeMode = value
-		if value:
-			for binding in self.bindings:
-				if binding[1]:
-					binding[0](*binding[1])
-				else:
-					binding[0]()
-	def addBinding(self, function, args=False):
-		self.bindings.append([function, args])
 
 
 class SculptureController():
 	def __init__(self):
-		__builtins__['appMessenger'] = Messenger()
-		__builtins__['safeMode'] = SafeModeController()
 		configFileName = 'config.json'
 		definitionFileDirectory = 'sculptureDefinitions'
 		self.sculptureDefinitions = {}
 		self.sculptureModules = {}
 		self.globalInputs = {}
-		self.inputManager = False
-		self.dataChannelManager = False
 		self.availableGlobalInputs = []
+		self.sculptureConfig = False
+
 		for inputType in [['multi', 'osc'], ['pulse', 'audio'], ['multi', 'basic']]:
 			if not 'unavailable' in Inputs.inputTypes[' '.join([inputType[1], inputType[0]])].keys():
 				self.availableGlobalInputs.append(inputType)
@@ -53,48 +35,38 @@ class SculptureController():
 		self.availableInputs = {}
 		self.methodList = [m[0] for m in inspect.getmembers(self, predicate=inspect.ismethod)]
 		self.doReset()
-	
-
-
 
 	def doReset(self):
-		safeMode.set(True)
-		appMessenger.doReset()
-		for moduleId in self.sculptureModules:
-			self.sculptureModules[moduleId].stop()
-		for inputInstanceId in self.globalInputs:
-			self.globalInputs[inputInstanceId].stop()
-		if self.inputManager:
-			self.inputManager.unRegisterInput('main')
-		if self.dataChannelManager:
-			self.dataChannelManager.stop()
-		time.sleep(0.5)
-		self.dataChannelManager = False
-		self.inputManager = False
+		app.safeMode.set(True)
+		app.messenger.doReset()
+		if self.sculptureConfig:
+			for moduleId in self.sculptureModules:
+				self.sculptureModules[moduleId].stop()
+			for inputInstanceId in self.globalInputs:
+				self.globalInputs[inputInstanceId].stop()
+			app.inputManager.unRegisterInputs('main')
+			app.dataChannelManager.stop()
+			time.sleep(0.5)
 		self.sculptureConfig = False
 		self.sculptureModules = {}
 		self.globalInputs = {}
-		appMessenger.doReset()
-		
-
+		app.messenger.doReset()
 
 	def loadSculpture(self, sculptureId):
 		self.doReset()
 		self.sculptureConfig = deepcopy(self.sculptureDefinitions[sculptureId])
-		self.dataChannelManager = DataChannelManager(self.sculptureConfig)
-		self.inputManager = InputManager(self.dataChannelManager)
+		app.dataChannelManager = DataChannelManager(self.sculptureConfig)
+		app.inputManager = InputManager()
 		self.currentSculptureId = sculptureId
 		for moduleId in self.sculptureConfig['modules']:
 			moduleConfig = self.sculptureConfig['modules'][moduleId]
 			moduleConfig['moduleId'] = moduleId
 			sculptureModuleClass = getattr(SculptureModules, moduleConfig['moduleType'] + 'Module')
-			self.sculptureModules[moduleId] = sculptureModuleClass(self.dataChannelManager, self.inputManager, moduleConfig)
-
+			self.sculptureModules[moduleId] = sculptureModuleClass(moduleConfig)
 
 	def setInputValue(self, inputInstanceId, *args):
-		inputObj = self.inputManager.getInputObj(inputInstanceId)
+		inputObj = app.inputManager.getInputObj(inputInstanceId)
 		inputObj.setInputValue(*args)
-
 
 	def doCommand(self, command):
 		functionName = command[0]
@@ -106,16 +78,15 @@ class SculptureController():
 			moduleId = command.pop(1)
 			return self.sculptureModules[moduleId].doCommand(command)
 
-	
-	def getCurrentStateData(self, sculptureId = False, moduleId = False, *args): 
+	def getCurrentStateData(self): 
 		if self.sculptureConfig:
 			data = self.sculptureConfig.copy()
-			data['safeMode'] = safeMode.isSet()
+			data['safeMode'] = app.safeMode.isSet()
 			for moduleId in self.sculptureConfig['modules']:
 				data['modules'][moduleId] = dict(self.sculptureConfig['modules'][moduleId], **self.sculptureModules[moduleId].getCurrentStateData())
-			data = dict(data, **self.inputManager.getCurrentStateData())
-			data['appMessenger'] = appMessenger.getCurrentStateData()
-			data['adaptors'] = self.dataChannelManager.getCurrentStateData()
+			data = dict(data, **app.inputManager.getCurrentStateData())
+			data['messenger'] = app.messenger.getCurrentStateData()
+			data['adaptors'] = app.dataChannelManager.getCurrentStateData()
 		else:
 			data = {'sculptures' : {}}
 			for sculptureId in self.sculptureDefinitions:
@@ -125,15 +96,15 @@ class SculptureController():
 		return data
 
 	def addGlobalInput(self, inputParams):
-		newInputId = self.inputManager.createNewInput(inputParams)
-		self.globalInputs[newInputId] = self.inputManager.registerAndGetInput('main', newInputId)
+		newInputId = app.inputManager.createNewInput(inputParams)
+		self.globalInputs[newInputId] = app.inputManager.registerAndGetInput('main', newInputId)
 
 	def removeGlobalInput(self, inputInstanceId):
-		self.inputManager.unRegisterInput('main', inputInstanceId)
+		app.inputManager.unRegisterInputs('main', inputInstanceId)
 		del self.globalInputs[inputInstanceId]
 		
 	def setSafeMode(self, value):
-		safeMode.set(value)
+		app.safeMode.set(value)
 
 	def updateSerialConnection(self, *args):
-		return self.dataChannelManager.updateSerialConnection(*args)
+		return app.dataChannelManager.updateSerialConnection(*args)

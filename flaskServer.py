@@ -1,11 +1,14 @@
-from SculptureController import SculptureController
 
 from flask import Flask, request, jsonify, Response
 import json
 import gevent
 from gevent.wsgi import WSGIServer
 from gevent.queue import Queue
-app = Flask(__name__,  static_folder='jsGui', static_url_path='/jsGui')
+
+import ProgramModules.sharedObjects as app
+from SculptureController import SculptureController
+
+flaskApp = Flask(__name__,  static_folder='jsGui', static_url_path='/jsGui')
 sculpture = SculptureController()
 serverSentEventStreams = []
 
@@ -36,33 +39,33 @@ class ServerSentEvent(object):
 
 
 def sendNewOutputState(whatChanged):
-	data = {whatChanged : appMessenger.getMessages(whatChanged)}
+	data = {whatChanged : app.messenger.getMessages(whatChanged)}
 	for sub in serverSentEventStreams[:]:
 		sub.put(json.dumps(data), False)
 
 
-@app.route('/')
+@flaskApp.route('/')
 def jsGui():
-	return app.send_static_file('index.htm')
+	return flaskApp.send_static_file('index.htm')
 
 
-@app.route('/getData', methods =['GET', 'POST'])
+@flaskApp.route('/getData', methods =['GET', 'POST'])
 def getData():
 	return jsonify(sculpture.getCurrentStateData())
 
-@app.route('/doCommand', methods =['POST'])
+@flaskApp.route('/doCommand', methods =['POST'])
 def doCommand():
 	requestData = json.loads(request.data)
 	command = requestData[0]
 	result = sculpture.doCommand(requestData)
 	if command == 'loadSculpture':
-		appMessenger.addBinding('outputChanged', sendNewOutputState, ('outputChanged',))
-		appMessenger.addBinding('log', sendNewOutputState, ('log',))
+		app.messenger.addBinding('outputChanged', sendNewOutputState, ('outputChanged',))
+		app.messenger.addBinding('log', sendNewOutputState, ('log',))
 
 	return jsonify({'command' : command, 'result' : result})
 
 
-@app.route("/dataStream")
+@flaskApp.route("/dataStream")
 def subscribe():
 	def gen():
 		q = Queue()
@@ -78,8 +81,8 @@ def subscribe():
 
 # Testing commands
 sculpture.loadSculpture('tympani')
-appMessenger.addBinding('outputChanged', sendNewOutputState, ('outputChanged',))
-appMessenger.addBinding('log', sendNewOutputState, ('log',))
+app.messenger.addBinding('outputChanged', sendNewOutputState, ('outputChanged',))
+app.messenger.addBinding('log', sendNewOutputState, ('log',))
 sculpture.doCommand(['addPattern', 'poofers', 'AllPoof'])
 sculpture.doCommand(['addPattern', 'poofers', 'Chase'])
 # sculpture.doCommand(['addGlobalInput', {'type' : 'pulse', 'subType' : 'audio'}])
@@ -88,8 +91,8 @@ sculpture.doCommand(['addPattern', 'poofers', 'Chase'])
 # sculpture.doCommand(["changePatternInputBinding","poofers","poofersPattern0","poofButton",2,0])
 
 if __name__ == '__main__':
-	app.debug = True #wsgi's debugging isn't that useful for this 
-	server = WSGIServer(("", 80), app)
+	flaskApp.debug = True 
+	server = WSGIServer(("", 80), flaskApp)
 	try:
 		server.serve_forever()
 	except:

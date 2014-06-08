@@ -4,6 +4,7 @@ To send data, each takes a command like [ [address, data], [address2, data2], ..
 depending on type of data
 '''
 
+import ProgramModules.sharedObjects as app
 
 
 class ProtocolBase():
@@ -42,7 +43,7 @@ class ProtocolBase():
 
 class FlgRelayProtocol(ProtocolBase): #Poofer relay boards used on Serpent, Angel, Tympani, Mutopia
 	def formatData(self, addr, data):   
-		if (data in [True, '1', 1]) and ((not safeMode.isSet()) or self.ignoreSafeMode):
+		if (data in [True, '1', 1]) and ((not app.safeMode.isSet()) or self.ignoreSafeMode):
 			cmd = '1'
 		else:
 			cmd = '0'

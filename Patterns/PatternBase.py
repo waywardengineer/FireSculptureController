@@ -1,5 +1,9 @@
+
+import ProgramModules.sharedObjects as app
+
+
 class PatternBase():
-	def __init__ (self, inputManager, gridSize, instanceId):
+	def __init__ (self, gridSize, instanceId):
 		self.gridSize = gridSize
 		self.requestUpdate = False
 		self.patternName = ''
@@ -9,7 +13,7 @@ class PatternBase():
 		except:
 			self.inputs = False
 		else:
-			self.inputs = inputManager.buildInputCollection(self, self.inputParams)
+			self.inputs = app.inputManager.buildInputCollection(self, self.inputParams)
 
 	def reassignInput(self, *args):
 		self.inputs.reassignInput(*args)

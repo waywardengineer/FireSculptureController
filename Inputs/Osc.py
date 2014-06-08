@@ -77,17 +77,17 @@ class OscMultiInput(InputBase):
 	def doPulseCallback(self, path, tags, args, source):
 		outputIndex = self.getOutputIndexFromAddress(path, 'pulse')
 		self.outParams[outputIndex].setValue(args[0] in ['1', 1, 'true', 'True'])
-		appMessenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outParams[outputIndex].getValue()])
+		app.messenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outParams[outputIndex].getValue()])
 
 	def doToggleCallback(self, path, tags, args, source):
 		outputIndex = self.getOutputIndexFromAddress(path, 'toggle')
 		self.outParams[outputIndex].setValue(args[0])
-		appMessenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outParams[outputIndex].getValue()])
+		app.messenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outParams[outputIndex].getValue()])
 
 	def doValueCallback(self, path, tags, args, source):
 		outputIndex = self.getOutputIndexFromAddress(path, 'value')
 		self.outParams[outputIndex].setValue(args[0])
-		appMessenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outParams[outputIndex].getValue()])
+		app.messenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outParams[outputIndex].getValue()])
 
 
 	def getOutputIndexFromAddress(self, path, callbackType):

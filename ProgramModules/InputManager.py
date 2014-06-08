@@ -1,16 +1,15 @@
 ''' Builds collections of input objects based on defaults. Manages uses: Inputs 
 can be used by multiple things, so this keeps track of who's using what and deletes unused inputs'''
 from ProgramModules import utils
+import ProgramModules.sharedObjects as app
 import Inputs
+
 class InputManager():
-	def __init__ (self, dataChannelManager):
-		self.dataChannelManager = dataChannelManager
-		#self.inputModules = __import__('Inputs')
+	def __init__ (self):
 		self.nextInputInstanceId = 1
 		self.inputInstances = {}
 		self.inputInstanceUses = {}
 		self.availableInputTypes = {}
-		self.inputCollections = {}
 		for inputType in Inputs.availableInputTypes:
 			self.availableInputTypes[inputType] = {}
 			for subType in Inputs.availableInputTypes[inputType]:
@@ -40,7 +39,7 @@ class InputManager():
 					outParamIndex = 0
 				inputDict[inputChannelId] = {'inputObj' : self.inputInstances[newInputInstanceId], 'outParamIndex' : outParamIndex}
 				self.registerAndGetInput(parentObj.getId(), newInputInstanceId, inputChannelId)
-		return InputCollection(parentObj, self, inputDict, inputParams)
+		return InputCollection(parentObj, inputDict, inputParams)
 
 	def createNewInput(self, params):
 		newInputInstanceId = self.nextInputInstanceId
@@ -60,17 +59,17 @@ class InputManager():
 
 	def registerAndGetInput(self, userId, inputInstanceId, inputChannelId = False):
 		if inputChannelId:
-			self.unRegisterInput(userId, inputChannelId = inputChannelId)
+			self.unRegisterInputs(userId, inputChannelId = inputChannelId)
 		if not inputInstanceId in self.inputInstanceUses.keys():
 			self.inputInstanceUses[inputInstanceId] = []
 		self.inputInstanceUses[inputInstanceId].append([userId, inputChannelId])
 		return self.getInputObj(inputInstanceId)
 
-	def unRegisterInput(self, userId, inputInstanceId = False, inputChannelId = False):
-		def checkItem(l, userId, inputChannelId):
-			return userId == l[0] and (not inputChannelId or inputChannelId == l[1])
-		def unRegisterForInput(userId, inputInstanceId, inputChannelId):
-			self.inputInstanceUses[inputInstanceId][:] = [l for l in self.inputInstanceUses[inputInstanceId] if not checkItem(l, userId, inputChannelId)]
+	def unRegisterInputs(self, userId, inputInstanceId = False, inputChannelId = False):
+		def unRegisterInputIfApplies(inputInstanceId):
+			def useMatches(useRecord):
+				return userId == useRecord[0] and (not inputChannelId or inputChannelId == useRecord[1])
+			self.inputInstanceUses[inputInstanceId][:] = [useRecord for useRecord in self.inputInstanceUses[inputInstanceId] if not useMatches(useRecord)]
 			if len(self.inputInstanceUses[inputInstanceId]) == 0:
 				if inputInstanceId in self.inputInstances.keys():
 					self.inputInstances[inputInstanceId].stop()
@@ -78,9 +77,9 @@ class InputManager():
 
 		if not inputInstanceId:
 			for inputInstanceId in self.inputInstanceUses:
-				unRegisterForInput(userId, inputInstanceId, inputChannelId)
+				unRegisterInputIfApplies(inputInstanceId)
 		else:
-			unRegisterForInput(userId, inputInstanceId, inputChannelId)
+			unRegisterInputIfApplies(inputInstanceId)
 
 	def getCurrentStateData(self):
 		currentInputData = {}
@@ -93,12 +92,11 @@ class InputManager():
 		return self.inputInstances[inputInstanceId]
 
 class InputCollection(object): #a package of all the inputs used by a module or pattern instance
-	def __init__(self, parentObj, inputManager, inputCollection, inputParams):
+	def __init__(self, parentObj, inputCollection, inputParams):
 		self.inputCollection = inputCollection
 		self.inputParams = inputParams
 		self.parentObj = parentObj
 		self.messengerBindingIds = {}
-		self.inputManager = inputManager
 		for inputChannelId in inputParams:
 			self.addMessengerBindingsIfNeeded(inputChannelId)
 
@@ -116,7 +114,7 @@ class InputCollection(object): #a package of all the inputs used by a module or 
 		return function(*args)
 	
 	def reassignInput (self, inputChannelId, inputInstanceId, outParamIndex = 0):
-		inputObj = self.inputManager.registerAndGetInput(self.parentObj.getId(), inputInstanceId, inputChannelId)
+		inputObj = app.inputManager.registerAndGetInput(self.parentObj.getId(), inputInstanceId, inputChannelId)
 		self.inputCollection[inputChannelId]['inputObj'] = inputObj
 		self.inputCollection[inputChannelId]['outParamIndex'] = outParamIndex
 		self.removeExistingMessengerBindings(inputChannelId)
@@ -127,17 +125,17 @@ class InputCollection(object): #a package of all the inputs used by a module or 
 			inputAssignment = self.getInputAssignment(inputChannelId)
 			function = getattr(self.parentObj, self.inputParams[inputChannelId]['bindToFunction'])
 			if isinstance(inputAssignment[1], list):
-				self.messengerBindingIds[inputChannelId] = [appMessenger.addBinding('output%s_%s' %(inputAssignment[0], i), function, (inputChannelId, i)) for i in range(len(inputAssignment[1]))]
+				self.messengerBindingIds[inputChannelId] = [app.messenger.addBinding('output%s_%s' %(inputAssignment[0], i), function, (inputChannelId, i)) for i in range(len(inputAssignment[1]))]
 			else:
-				self.messengerBindingIds[inputChannelId] = appMessenger.addBinding('output%s_%s' %(inputAssignment[0], inputAssignment[1]), function, (inputChannelId,  inputAssignment[1]))
+				self.messengerBindingIds[inputChannelId] = app.messenger.addBinding('output%s_%s' %(inputAssignment[0], inputAssignment[1]), function, (inputChannelId,  inputAssignment[1]))
 
 	def removeExistingMessengerBindings(self, inputChannelId):
 		if inputChannelId in self.messengerBindingIds.keys():
 			if isinstance(self.messengerBindingIds[inputChannelId], list):
 				for messengerBindingId in self.messengerBindingIds[inputChannelId]:
-					appMessenger.removeBinding(messengerBindingId)
+					app.messenger.removeBinding(messengerBindingId)
 			else:
-				appMessenger.removeBinding(self.messengerBindingIds[inputChannelId])
+				app.messenger.removeBinding(self.messengerBindingIds[inputChannelId])
 			del self.messengerBindingIds[inputChannelId]
 
 	def getCurrentStateData(self):
@@ -152,7 +150,7 @@ class InputCollection(object): #a package of all the inputs used by a module or 
 	def stop(self):
 		for inputChannelId in self.inputParams:
 			self.removeExistingMessengerBindings(inputChannelId)
-		self.inputManager.unRegisterInput(self.parentObj.getId())
+		app.inputManager.unRegisterInputs(self.parentObj.getId())
 		self.parentObj = False
 
 

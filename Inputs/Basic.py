@@ -119,17 +119,17 @@ class TimerPulseInput(InputBase):
 class BasicMultiInput(InputBase):
 	def __init__(self, configParams, *args):
 		configParams = utils.multiExtendSettings({'inParams' : []}, configParams)
-		inputParamKeys = [key for key in ['min', 'max', 'default', 'description', 'choices'] if key in configParams]
+		inParamKeys = [key for key in ['min', 'max', 'default', 'description', 'choices'] if key in configParams]
 		for i in range(configParams['number']):
 			configParam = {}
-			for key in inputParamKeys:
+			for key in inParamKeys:
 				if isinstance(configParams[key], list):
 					configParam[key] = configParams[key][i % len(configParams[key])]
 				else:
 					configParam[key] = configParams[key]
 			configParam['relevance'] = [i]
 			configParams['inParams'].append(utils.extendSettings(inputTypes[configParams['basicInputType']]['inParams'][0], configParam))
-		for key in inputParamKeys:
+		for key in inParamKeys:
 			del configParams[key]
 		
 		InputBase.__init__(self, configParams, *args)

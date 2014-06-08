@@ -3,6 +3,7 @@ All settable parameters of inputs and all output channels to patterns are instan
 
 from ProgramModules import utils
 from ProgramModules.Timers import Timer
+import ProgramModules.sharedObjects as app
 
 class IoParamBase():
 	def __init__(self, params, parentId = 0, indexId = 0):
@@ -11,7 +12,7 @@ class IoParamBase():
 		self.indexId = indexId
 		self.value = self.constrain(self.params['default'])
 		if self.params['sendMessageOnChange']:
-			appMessenger.setQueuing("output%s_%s" %(self.parentId, self.indexId), False)
+			app.messenger.setQueuing("output%s_%s" %(self.parentId, self.indexId), False)
 	def getValue(self):
 		return self.value
 	
@@ -45,7 +46,7 @@ class ValueParam(IoParamBase):
 		if (not self.value == newValue):
 			self.value = newValue
 			if self.params['sendMessageOnChange']:
-				appMessenger.putMessage("output%s_%s" %(self.parentId, self.indexId), self.value)
+				app.messenger.putMessage("output%s_%s" %(self.parentId, self.indexId), self.value)
 
 	def constrain(self, value):
 		try:
@@ -63,6 +64,7 @@ class ValueParam(IoParamBase):
 				value = self.params['max']
 		return value
 
+
 class PulseParam(IoParamBase):
 	def __init__(self, *args):
 		self.defaultParams = {'description' : '', 'subType' : '', 'default' : False, 'sendMessageOnChange' : False, 'toggleTimeOut' : 30}
@@ -73,7 +75,7 @@ class PulseParam(IoParamBase):
 		newValue = self.constrain(newValue)
 		self.value = newValue
 		if self.params['sendMessageOnChange']:
-			appMessenger.putMessage("output%s_%s" %(self.parentId, self.indexId), self.value)
+			app.messenger.putMessage("output%s_%s" %(self.parentId, self.indexId), self.value)
 		if newValue:
 			if self.timer:
 				self.timer.refresh()
@@ -87,6 +89,7 @@ class PulseParam(IoParamBase):
 		if self.timer:
 			self.timer.stop()
 
+
 class ToggleParam(IoParamBase):
 	def __init__(self, *args):
 		self.defaultParams = {'description' : '', 'subType' : '', 'default' : False, 'sendMessageOnChange' : False}
@@ -97,7 +100,7 @@ class ToggleParam(IoParamBase):
 		if (not self.value == newValue):
 			self.value = newValue
 			if self.params['sendMessageOnChange']:
-				appMessenger.putMessage("output%s_%s" %(self.parentId, self.indexId), self.value)
+				app.messenger.putMessage("output%s_%s" %(self.parentId, self.indexId), self.value)
 		
 	def constrain(self, value):
 		return bool(value)
@@ -115,7 +118,7 @@ class TextParam(IoParamBase):
 		if (not self.value == newValue):
 			self.value = newValue
 			if self.params['sendMessageOnChange']:
-				appMessenger.putMessage("output%s_%s" %(self.parentId, self.indexId), self.value)
+				app.messenger.putMessage("output%s_%s" %(self.parentId, self.indexId), self.value)
 
 	def constrain(self, value):
 		if self.params['subType'] == 'choice' and not value in self.params['choices'].keys():

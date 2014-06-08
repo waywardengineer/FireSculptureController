@@ -3,6 +3,9 @@ One instance of this in the program seems to make more sense than one instance p
 due to adaptors needing to serve multiple data channels in some cases
 '''
 from threading import Thread, Event
+import Protocols
+import Adaptors
+
 
 class DataChannelManager():
 	class AdaptorThread(Thread):
@@ -32,20 +35,17 @@ class DataChannelManager():
 	def __init__(self, sculptureConfigData):
 		self.adaptors = {}
 		self.dataChannels = {}
-		adaptorModules = __import__('ProgramModules.Adaptors')
-		protocolModules = __import__('ProgramModules.Protocols')
 		for adaptorId in sculptureConfigData['adaptors']:
 			adaptorConfig = sculptureConfigData['adaptors'][adaptorId]
 			adaptorConfig['adaptorId'] = adaptorId
 			adaptorClassName = adaptorConfig['type'][0].upper() + adaptorConfig['type'][1:] + 'Adaptor'
-			adaptorClass = getattr(adaptorModules, adaptorClassName)
-			# self.adaptors[adaptorId] = adaptorClass(adaptorConfig)
+			adaptorClass = getattr(Adaptors, adaptorClassName)
 			self.adaptors[adaptorId] = DataChannelManager.AdaptorThread(adaptorClass(adaptorConfig))
 			self.adaptors[adaptorId].start()
 		for moduleId in sculptureConfigData['modules']:
 			moduleConfig = sculptureConfigData['modules'][moduleId]
 			protocolClassName = moduleConfig['protocol']['type'][0].upper() + moduleConfig['protocol']['type'][1:] + 'Protocol'
-			protocolClass = getattr(protocolModules, protocolClassName)
+			protocolClass = getattr(Protocols, protocolClassName)
 			self.dataChannels[moduleId] = protocolClass(self.adaptors[moduleConfig['adaptor']], moduleConfig['protocol'])
 	def send(self, moduleId, *args):
 		return self.dataChannels[moduleId].send(*args)
