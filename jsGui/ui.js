@@ -253,6 +253,9 @@ function doInit(){
 	serverSentEventStream.onmessage = function (event) {
 		handleDataStreamEvent(JSON.parse(event.data));
 	};
+	serverSentEventStream.onerror = function () {
+		$('#logDiv').prepend('<span style="font-weight:bold; font-color:FFCD4D">Connection error</span><br>');
+	};
 
 }
 
@@ -473,7 +476,7 @@ function buildInputControls(inputInstanceId, inputData){
 				case 'pulse':
 					$('#' + inputId + '_container').append($('#buttonTemplate').render(templateData));
 					$('#' + inputId).button().click(function(e){
-						doCommand(['setInputValue', parseInt(inputInstanceId), true]);
+						doCommand(['setInputValue', parseInt(inputInstanceId), true, settingIndex]);
 					});
 				break;
 				case 'toggle':
