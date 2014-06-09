@@ -1,7 +1,6 @@
 ''' Protocols take data from the program and convert it into a specific language for talking to the sculpture, then sends it over an adaptor. They are constructed with 
 an adaptor instance, so each one has all the "stuff" for talking to the sculpture. Protocols to be added: Soma, OpenPixel, Tympani LED, Serpent LED, Helyx maybe, motor contollers
-To send data, each takes a command like [ [address, data], [address2, data2], ...]. Each address is itself a list, usually corresponding to [row, column]. Data is also a list, with length 
-depending on type of data
+To send data, each takes a command like [ (address, data), (address2, data2), ...]. 
 '''
 
 import ProgramModules.sharedObjects as app
@@ -18,7 +17,7 @@ class ProtocolBase():
 		if isinstance(self.configParams['mapping'], dict):
 			self.translateAddr = self.translateDictAddr
 		elif isinstance(self.configParams['mapping'], list):
-			if isinstance(self.configParams['mapping'][0], list):
+			if isinstance(self.configParams['mapping'][0][0], list):
 				self.translateAddr = self.translateTwoDimensionalListAddr
 			else:
 				self.translateAddr = self.translateOneDimensionalListAddr

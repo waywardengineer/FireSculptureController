@@ -14,7 +14,7 @@
         "type" : "flgRelay",
         "resendDataInterval" : 400,
         "mapping" : [
-          [[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8]], 
+          [[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6]], 
           [[3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8], [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6]]
         ]
       },
@@ -30,7 +30,7 @@
         "type" : "flgRelay",
         "resendDataInterval" : 400,
         "mapping" : [
-          [[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5], [3, 6], [3, 7], [3, 8], [4, 1], [4, 2], [4, 3], [4, 4], [4, 5], [4, 6], [4, 7], [4, 8]]
+          [[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8]]
         ]
       },
       "patternType" : "Poof",
@@ -104,8 +104,14 @@
       "moduleType" : "InputOnly",
       "adaptor" : "flameBus",
       "inputs" : {
-        "disable" : {
-          "descriptionInPattern" : "Disable Buttons",
+        "disableR" : {
+          "descriptionInPattern" : "Rosalynd disable btns",
+          "type" : "pulse",
+          "subType" : "onOff",
+          "default" : false
+        },
+        "disableA" : {
+          "descriptionInPattern" : "Alexander disable btns",
           "type" : "pulse",
           "subType" : "onOff",
           "default" : false
@@ -116,7 +122,8 @@
         "resendDataInterval" : 400,
         "ignoreSafeMode" : true,
         "mapping" : {
-          "disable" : [4, 7]
+          "disableA" : [4, 7],
+          "disableR" : [2, 7]
         }
       }
     }
