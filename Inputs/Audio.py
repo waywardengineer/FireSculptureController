@@ -1,4 +1,4 @@
-''' Grabbed from Angel Audiopoof.
+''' Grabbed from Angel Audiopoof. Could probably be made less janky.
 ''' 
 from InputBase import InputBase
 

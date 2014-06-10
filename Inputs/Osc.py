@@ -1,5 +1,6 @@
 from InputBase import InputBase
 from threading import Thread, Event
+from ProgramModules import utils
 
 inputTypes = {
 	'osc multi' : {
@@ -65,10 +66,9 @@ class OscMultiInput(InputBase):
 	def buildCallbackLinkList(self):
 		for callbackType in self.outputTypes:
 			if callbackType in self.configParams['callbackAddresses'].keys():
-				function = getattr(self, 'do' + callbackType[0].upper() + callbackType[1:] + 'Callback')
+				function = getattr(self, utils.makeCamelCase(['do', callbackType, 'callback'])
 				for callbackAddress in self.configParams['callbackAddresses'][callbackType]:
 					self.callbackLinkList.append([callbackAddress, function])
-
 
 	def stop(self):
 		self.stopEvent.set()
@@ -77,17 +77,14 @@ class OscMultiInput(InputBase):
 	def doPulseCallback(self, path, tags, args, source):
 		outputIndex = self.getOutputIndexFromAddress(path, 'pulse')
 		self.outParams[outputIndex].setValue(args[0] in ['1', 1, 'true', 'True'])
-		app.messenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outParams[outputIndex].getValue()])
 
 	def doToggleCallback(self, path, tags, args, source):
 		outputIndex = self.getOutputIndexFromAddress(path, 'toggle')
 		self.outParams[outputIndex].setValue(args[0])
-		app.messenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outParams[outputIndex].getValue()])
 
 	def doValueCallback(self, path, tags, args, source):
 		outputIndex = self.getOutputIndexFromAddress(path, 'value')
 		self.outParams[outputIndex].setValue(args[0])
-		app.messenger.putMessage('dataInputChanged', [self.instanceId, outputIndex, self.outParams[outputIndex].getValue()])
 
 
 	def getOutputIndexFromAddress(self, path, callbackType):

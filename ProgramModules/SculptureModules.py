@@ -1,6 +1,5 @@
-'''Runs and overlays patterns, binds inputs to patterns, communicates pattern data to DataChannelManager. 
-Each pattern will have some number of inputs which can be assigned to either gui things or input devices, and are of either an on/off type 
-or a variable type(probably from 0 to 100) 
+'''Runs and overlays patterns, communicates pattern data to DataChannelManager. Is the basic building block of
+stuff that does things on sculptures.
 '''
 from copy import deepcopy
 import json

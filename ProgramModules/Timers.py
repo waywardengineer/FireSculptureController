@@ -1,5 +1,9 @@
+'''Timer object that calls a function after specified time. Can be repeating or single. Single timers
+stick around and can be reset by default, but can also be set to stop their timer thread after the 
+time is up.
+''' 
+
 from threading import Thread, Event
-import time
 class Timer():
 	class TimerThread(Thread):
 		def __init__(self, parent):

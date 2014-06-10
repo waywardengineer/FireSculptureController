@@ -2,7 +2,6 @@
 take the params needed to open the connection, send the already processed data over the connection,
 (eventually) recieve data, and make sure it stays connected. '''
 import serial
-from random import randint
 import utils
 
 import ProgramModules.sharedObjects as app
@@ -11,6 +10,8 @@ class SerialAdaptor():
 	def __init__ (self, configData):
 		self.configData = configData
 		self.connect()
+		self.connection = False
+
 	def transmitData(self, data):
 		success = True
 		print data
@@ -25,7 +26,8 @@ class SerialAdaptor():
 				success = False
 		return success
 	def connect(self):
-		self.connection = False
+		if self.connection:
+			self.connection.close()
 		portIndex = 0
 		while (not self.connection) and portIndex < len(self.configData['ports']):
 			try:
@@ -41,6 +43,8 @@ class SerialAdaptor():
 		self.connect()
 		
 	def stop(self):
+		if self.connection:
+			self.connection.close()
 		self.connection = False
 		
 	def getCurrentStateData(self):
