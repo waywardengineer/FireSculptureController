@@ -66,7 +66,7 @@ class OscMultiInput(InputBase):
 	def buildCallbackLinkList(self):
 		for callbackType in self.outputTypes:
 			if callbackType in self.configParams['callbackAddresses'].keys():
-				function = getattr(self, utils.makeCamelCase(['do', callbackType, 'callback'])
+				function = getattr(self, utils.makeCamelCase(['do', callbackType, 'callback']))
 				for callbackAddress in self.configParams['callbackAddresses'][callbackType]:
 					self.callbackLinkList.append([callbackAddress, function])
 

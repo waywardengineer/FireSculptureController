@@ -9,8 +9,8 @@ import ProgramModules.sharedObjects as app
 class SerialAdaptor():
 	def __init__ (self, configData):
 		self.configData = configData
-		self.connect()
 		self.connection = False
+		self.connect()
 
 	def transmitData(self, data):
 		success = True
