@@ -39,7 +39,7 @@ class Timer():
 		self.interval = interval
 		
 	def doFunction(self):
-		if self.functionQueue == 0 or self.repeating:
+		if self.functionQueue == 0 or (self.repeating and self.functionQueue < 1):
 			if self.args:
 				self.function(*self.args)
 			else:
