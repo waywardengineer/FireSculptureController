@@ -17,7 +17,7 @@ inputTypes = {
 try:
 	from OSC import OSCServer,OSCClient, OSCMessage
 except:
-	inputTypes['OscMultiInput']['unavailable'] = True
+	inputTypes['osc multi']['unavailable'] = True
 
 
 class OscMultiInput(InputBase):
