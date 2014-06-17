@@ -28,6 +28,7 @@ class SerialAdaptor():
 	def connect(self):
 		if self.connection:
 			self.connection.close()
+			self.connection = False
 		portIndex = 0
 		while (not self.connection) and portIndex < len(self.configData['ports']):
 			try:
