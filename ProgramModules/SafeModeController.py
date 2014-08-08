@@ -1,3 +1,8 @@
+'''Mostly keeps track of boolean safemode state, also other things can request a callback
+function to be called when safe mode is set to true''' 
+
+
+
 class SafeModeController():
 	def __init__(self):
 		self.safeMode = True

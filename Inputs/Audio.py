@@ -1,4 +1,4 @@
-''' Grabbed from Angel Audiopoof.
+''' Grabbed from Angel Audiopoof. Could probably be made less janky.
 ''' 
 from InputBase import InputBase
 
@@ -23,7 +23,7 @@ try:
 	import pyaudio
 	import numpy 
 except:
-	inputParams['audio pulse']['unavailable'] = True
+	inputTypes['audio pulse']['unavailable'] = True
 
 class AudioPulseInput(InputBase):
 	class AudioInputThread(Thread):

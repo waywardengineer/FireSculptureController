@@ -70,11 +70,3 @@ class InputBase():
 				input.stop()
 		for output in self.outParams:
 			output.stop()
-
-
-
-
-
-
-
-

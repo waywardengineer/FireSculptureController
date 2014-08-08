@@ -14,14 +14,14 @@ import Inputs
 
 class SculptureController():
 	def __init__(self):
-		configFileName = 'config.json'
+		configFileName = 'config.json' #not really used yet, someday!
 		definitionFileDirectory = 'sculptureDefinitions'
-		self.sculptureDefinitions = {}
-		self.sculptureModules = {}
-		self.globalInputs = {}
+		self.sculptureDefinitions = {} #all the info from sculpture definition Json files
+		self.sculptureModules = {} #modules do most of the work of running patterns and stuff
+		self.globalInputs = {} #inputs that are available to be used by any pattern
 		self.availableGlobalInputs = []
 		self.sculptureConfig = False
-
+		
 		for inputType in [['multi', 'osc'], ['pulse', 'audio'], ['multi', 'basic']]:
 			if not 'unavailable' in Inputs.inputTypes[' '.join([inputType[1], inputType[0]])].keys():
 				self.availableGlobalInputs.append(inputType)
