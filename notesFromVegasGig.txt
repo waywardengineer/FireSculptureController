@@ -1,0 +1,4 @@
+different types of global basic
+global timer
+specific poof pattern
+bug with sticking allpoof
